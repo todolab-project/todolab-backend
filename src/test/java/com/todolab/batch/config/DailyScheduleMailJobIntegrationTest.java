@@ -1,7 +1,6 @@
 package com.todolab.batch.config;
 
 import com.todolab.mail.MailService;
-import com.todolab.batch.scheduler.BatchScheduler;
 import com.todolab.task.domain.query.TaskQueryType;
 import com.todolab.task.dto.TaskQueryRequest;
 import com.todolab.task.dto.TaskResponse;
@@ -58,9 +57,6 @@ class DailyScheduleMailJobIntegrationTest {
 
     @MockitoBean
     private MailService mailService;
-
-    @MockitoBean
-    private BatchScheduler batchScheduler;
 
     @BeforeEach
     void setUp() {

@@ -5,3 +5,8 @@ spring:
   threads:
     virtual:
       enabled: true
+
+app:
+  batch:
+    scheduler:
+      enabled: false
