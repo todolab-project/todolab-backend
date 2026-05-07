@@ -82,11 +82,11 @@
 
                 <!-- Calendar -->
                 <a href="/tasks/week"
-                   th:class="${activeTab == 'week'}
+                   th:class="${activeTab == 'calendar'}
                ? 'group flex flex-col items-center justify-center rounded-2xl py-2 transition hover:bg-black/5 bg-blue-600/10 font-semibold'
                : 'group flex flex-col items-center justify-center rounded-2xl py-2 transition hover:bg-black/5'">
 
-                    <svg th:class="${activeTab == 'week'}
+                    <svg th:class="${activeTab == 'calendar'}
                     ? 'h-6 w-6 mb-1 text-blue-700'
                     : 'h-6 w-6 mb-1 text-gray-400 group-hover:text-gray-700'"
                          viewBox="0 0 24 24" fill="none">
@@ -100,7 +100,7 @@
                               stroke-linecap="round"/>
                     </svg>
 
-                    <span th:class="${activeTab == 'week'}
+                    <span th:class="${activeTab == 'calendar'}
                     ? 'text-[11px] tracking-tight text-blue-700'
                     : 'text-[11px] tracking-tight text-gray-400 group-hover:text-gray-700'">
             Calendar

@@ -180,7 +180,7 @@ public class TaskPageController {
         model.addAttribute("title", "ToDoLab");
         model.addAttribute("showBaseHeader", false);
         model.addAttribute("headerTitle", targetDate.getYear() + "년 " + targetDate.getMonthValue() + "월");
-        model.addAttribute("activeTab", "week");
+        model.addAttribute("activeTab", "calendar");
 
         model.addAttribute("currentDate", targetDate);
         model.addAttribute("weekStart", weekStart);
@@ -269,7 +269,7 @@ public class TaskPageController {
         model.addAttribute("title", "ToDoLab");
         model.addAttribute("showBaseHeader", false);
         model.addAttribute("headerTitle", targetDate.getYear() + "년 " + targetDate.getMonthValue() + "월");
-        model.addAttribute("activeTab", "month");
+        model.addAttribute("activeTab", "calendar");
 
         model.addAttribute("currentDate", targetDate);
         model.addAttribute("selectedDate", selectedDate);
