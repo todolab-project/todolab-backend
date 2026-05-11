@@ -369,6 +369,19 @@ class TaskControllerTest {
     }
 
     @Test
+    @DisplayName("카테고리 그룹 일정 조회 실패 - 잘못된 type이면 400, 10001 에러를 반환한다")
+    void getGroupedTasks_fail_invalidType() throws Exception {
+        mockMvc.perform(get("/api/tasks/grouped")
+                        .param("type", "INVALID")
+                        .param("date", "2025-11-25"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.error.code").value(ErrorCode.INVALID_INPUT.getCode()));
+
+        then(taskService).shouldHaveNoInteractions();
+    }
+
+    @Test
     @DisplayName("일정 조회 실패 - 잘못된 type이면 400, 10001 에러를 반환한다")
     void getTasks_fail_invalidType() throws Exception {
         mockMvc.perform(get("/api/tasks")
@@ -559,6 +572,28 @@ class TaskControllerTest {
         then(taskService).shouldHaveNoMoreInteractions();
     }
 
+    @Test
+    @DisplayName("일정 수정 실패 - PathVariable 타입이 잘못되면 400 에러를 반환한다")
+    void updateTask_invalidPathVariable() throws Exception {
+        TaskRequest req = new TaskRequest(
+                "title",
+                null,
+                null,
+                null,
+                "일",
+                false
+        );
+
+        mockMvc.perform(put("/api/tasks/{id}", "abc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.error.code").value(ErrorCode.INVALID_INPUT.getCode()));
+
+        then(taskService).shouldHaveNoInteractions();
+    }
+
     /*******************
      *  일정 삭제
      *******************/
@@ -596,5 +631,17 @@ class TaskControllerTest {
 
         then(taskService).should().delete(id);
         then(taskService).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("일정 삭제 실패 - PathVariable 타입이 잘못되면 400 에러를 반환한다")
+    void deleteTask_invalidPathVariable() throws Exception {
+        mockMvc.perform(delete("/api/tasks/{id}", "abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.error.code").value(ErrorCode.INVALID_INPUT.getCode()));
+
+        then(taskService).shouldHaveNoInteractions();
     }
 }

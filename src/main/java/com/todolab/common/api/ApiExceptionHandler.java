@@ -1,6 +1,7 @@
 package com.todolab.common.api;
 
 import com.todolab.task.exception.TaskValidationException;
+import com.todolab.task.exception.TaskNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -68,6 +69,16 @@ public class ApiExceptionHandler {
     public ResponseEntity<ApiResponse<?>> handleTaskValidationException(TaskValidationException e) {
         log.error("Task Validation Failed : {}", e.getDetail());
         return ResponseEntity.badRequest().body(ApiResponse.failure(ErrorCode.INVALID_INPUT));
+    }
+
+    /**
+     * Task 리소스 없음
+     */
+    @ExceptionHandler(TaskNotFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleTaskNotFoundException(TaskNotFoundException e) {
+        log.warn("Task Not Found : {}", e.getDetail());
+        return ResponseEntity.status(ErrorCode.TASK_NOT_FOUND.getStatus())
+                .body(ApiResponse.failure(ErrorCode.TASK_NOT_FOUND));
     }
 
     @ExceptionHandler(Exception.class)

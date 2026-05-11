@@ -1,12 +1,10 @@
 package com.todolab.task.controller;
 
 import com.todolab.common.api.ApiResponse;
-import com.todolab.common.api.ErrorCode;
 import com.todolab.task.dto.TaskCategoryGroupResponse;
 import com.todolab.task.dto.TaskQueryRequest;
 import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.dto.TaskResponse;
-import com.todolab.task.exception.TaskNotFoundException;
 import com.todolab.task.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,16 +40,10 @@ public class TaskController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<TaskResponse>> getTask(@PathVariable Long id) {
         log.info("[API] getTask request :: id={}", id);
-        try {
-            TaskResponse res = taskService.getTask(id);
-            log.info("[API] getTask success :: id={}", id);
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(ApiResponse.success(res));
-        } catch (TaskNotFoundException _) {
-            log.warn("[API] getTask failed :: id={}, reason=task not found", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.failure(ErrorCode.TASK_NOT_FOUND));
-        }
+        TaskResponse res = taskService.getTask(id);
+        log.info("[API] getTask success :: id={}", id);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(res));
     }
 
     @GetMapping
@@ -100,16 +92,10 @@ public class TaskController {
 
         request.validate();
 
-        try {
-            TaskResponse res = taskService.update(id, request);
-            log.info("[API] updateTask success :: id={}", id);
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(ApiResponse.success(res));
-        } catch (TaskNotFoundException _) {
-            log.warn("[API] updateTask failed :: id={}, reason=task not found", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.failure(ErrorCode.TASK_NOT_FOUND));
-        }
+        TaskResponse res = taskService.update(id, request);
+        log.info("[API] updateTask success :: id={}", id);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(res));
     }
 
     @GetMapping("/unscheduled")
@@ -137,20 +123,13 @@ public class TaskController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<TaskResponse>> deleteTask(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<TaskResponse>> deleteTask(@PathVariable Long id) {
         log.info("[API] deleteTask request :: id={}", id);
 
-        try {
-            Long longId = Long.valueOf(id);
-            taskService.delete(longId);
-            log.info("[API] deleteTask success :: id={}", id);
+        taskService.delete(id);
+        log.info("[API] deleteTask success :: id={}", id);
 
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(ApiResponse.success(TaskResponse.builder().id(longId).build()));
-        } catch (TaskNotFoundException _) {
-            log.warn("[API] deleteTask failed :: id={}, reason=task not found", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.failure(ErrorCode.TASK_NOT_FOUND));
-        }
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(TaskResponse.builder().id(id).build()));
     }
 }
