@@ -7,7 +7,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -23,6 +22,10 @@ public class Task {
 
     private String title;
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TaskType type;
 
     /***
      * 미정 : startAt == null && endAt == null
@@ -49,12 +52,12 @@ public class Task {
 
 
     @Builder
-    public Task(String title, String description, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category) {
-        apply(title, description, startAt, endAt, allDay, category);
+    public Task(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category) {
+        apply(title, description, type, startAt, endAt, allDay, category);
     }
 
-    public void update(String title, String description, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category) {
-        apply(title, description, startAt, endAt, allDay, category);
+    public void update(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category) {
+        apply(title, description, type, startAt, endAt, allDay, category);
     }
 
     public boolean isUnscheduled() {
@@ -65,7 +68,7 @@ public class Task {
         return startAt != null && endAt != null;
     }
 
-    private void apply(String title, String description, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category) {
+    private void apply(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category) {
         validateSchedule(startAt, endAt, allDay);
 
         String normalizedCategory = normalizeCategory(category);
@@ -73,10 +76,15 @@ public class Task {
 
         this.title = title;
         this.description = description;
+        this.type = normalizeType(type);
         this.startAt = startAt;
         this.endAt = endAt;
         this.allDay = allDay;
         this.category = normalizedCategory;
+    }
+
+    private TaskType normalizeType(TaskType type) {
+        return type == null ? TaskType.defaultType() : type;
     }
 
     private void validateSchedule(LocalDateTime startAt, LocalDateTime endAt, boolean allDay) {

@@ -19,7 +19,7 @@ public class TaskTxService {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new TaskNotFoundException(id));
 
-        task.update(req.title(), req.description(), req.startAt(), req.endAt(), req.allDay(), req.category());
+        task.update(req.title(), req.description(), req.normalizedType(), req.startAt(), req.endAt(), req.allDay(), req.category());
         return taskRepository.save(task);
     }
 }

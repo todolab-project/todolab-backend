@@ -1,11 +1,11 @@
 package com.todolab.task.dto;
 
 import com.todolab.Constant;
+import com.todolab.task.domain.TaskType;
 import com.todolab.task.exception.TaskValidationException;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -17,6 +17,8 @@ public record TaskRequest(
         @Size(max = 300, message = "설명은 300자 이하여야 합니다")
         String description,
 
+        TaskType type,
+
         LocalDateTime startAt,
         LocalDateTime endAt,
 
@@ -25,6 +27,21 @@ public record TaskRequest(
 
         boolean allDay
 ) {
+
+    public TaskRequest(
+            String title,
+            String description,
+            LocalDateTime startAt,
+            LocalDateTime endAt,
+            String category,
+            boolean allDay
+    ) {
+        this(title, description, TaskType.defaultType(), startAt, endAt, category, allDay);
+    }
+
+    public TaskType normalizedType() {
+        return type == null ? TaskType.defaultType() : type;
+    }
 
     public void validate() {
         validateEndAtWithoutStartAt();

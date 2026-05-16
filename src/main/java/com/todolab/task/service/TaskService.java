@@ -26,6 +26,7 @@ public class TaskService {
         Task task = Task.builder()
                 .title(req.title())
                 .description(req.description())
+                .type(req.normalizedType())
                 .startAt(req.startAt())
                 .endAt(req.endAt())
                 .allDay(req.allDay())

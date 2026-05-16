@@ -2,6 +2,7 @@ package com.todolab.task.service;
 
 import com.todolab.common.api.ErrorCode;
 import com.todolab.task.domain.Task;
+import com.todolab.task.domain.TaskType;
 import com.todolab.task.domain.query.DateRange;
 import com.todolab.task.domain.query.TaskQueryType;
 import com.todolab.task.dto.TaskCategoryGroupResponse;
@@ -89,6 +90,62 @@ class TaskServiceTest {
         assertThat(res.endAt()).isNull();
         assertThat(res.allDay()).isFalse();
         assertThat(res.unscheduled()).isFalse();
+        assertThat(res.type()).isEqualTo(TaskType.SCHEDULE);
+
+        then(taskRepository).should(times(1)).save(any(Task.class));
+        then(taskTxService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("일정 등록 성공 - type이 없으면 SCHEDULE로 저장된다")
+    void createTask_success_defaultType() {
+        // given
+        TaskRequest request = new TaskRequest(
+                "default type",
+                "desc",
+                null,
+                null,
+                "일",
+                false
+        );
+
+        given(taskRepository.save(any(Task.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        // when
+        TaskResponse res = taskService.create(request);
+
+        // then
+        assertThat(res.type()).isEqualTo(TaskType.SCHEDULE);
+        assertThat(res.unscheduled()).isTrue();
+
+        then(taskRepository).should(times(1)).save(any(Task.class));
+        then(taskTxService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("일정 등록 성공 - 요청 type을 저장한다")
+    void createTask_success_requestedType() {
+        // given
+        TaskRequest request = new TaskRequest(
+                "idea",
+                "desc",
+                TaskType.IDEA,
+                null,
+                null,
+                "아이디어",
+                false
+        );
+
+        given(taskRepository.save(any(Task.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        // when
+        TaskResponse res = taskService.create(request);
+
+        // then
+        assertThat(res.type()).isEqualTo(TaskType.IDEA);
+        assertThat(res.unscheduled()).isTrue();
 
         then(taskRepository).should(times(1)).save(any(Task.class));
         then(taskTxService).shouldHaveNoInteractions();
