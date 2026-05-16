@@ -48,12 +48,12 @@
     return unwrap(body);
   }
 
-  TaskApi.getTasks = (type, date) => {
-    return request(`/api/tasks${buildQuery({ type, date })}`);
+  TaskApi.getTasks = (type, date, taskType) => {
+    return request(`/api/tasks${buildQuery({ type, date, taskType })}`);
   };
 
-  TaskApi.getGroupedTasks = (type, date) => {
-    return request(`/api/tasks/grouped${buildQuery({ type, date })}`);
+  TaskApi.getGroupedTasks = (type, date, taskType) => {
+    return request(`/api/tasks/grouped${buildQuery({ type, date, taskType })}`);
   };
 
   TaskApi.getTodayTasks = (date) => TaskApi.getTasks('DAY', date);

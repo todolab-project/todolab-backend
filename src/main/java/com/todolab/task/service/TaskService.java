@@ -78,7 +78,7 @@ public class TaskService {
 
         DateRange range = type.calculate(strDate);
 
-        return taskRepository.findByDateRange(range.getStart(), range.getEnd())
+        return taskRepository.findByDateRangeAndType(range.getStart(), range.getEnd(), request.getTaskType())
                 .stream()
                 .map(TaskResponse::from)
                 .toList();

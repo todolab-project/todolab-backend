@@ -382,10 +382,38 @@ class TaskControllerTest {
     }
 
     @Test
+    @DisplayName("카테고리 그룹 일정 조회 실패 - 잘못된 taskType이면 400, 10001 에러를 반환한다")
+    void getGroupedTasks_fail_invalidTaskType() throws Exception {
+        mockMvc.perform(get("/api/tasks/grouped")
+                        .param("type", "DAY")
+                        .param("taskType", "INVALID")
+                        .param("date", "2025-11-25"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.error.code").value(ErrorCode.INVALID_INPUT.getCode()));
+
+        then(taskService).shouldHaveNoInteractions();
+    }
+
+    @Test
     @DisplayName("일정 조회 실패 - 잘못된 type이면 400, 10001 에러를 반환한다")
     void getTasks_fail_invalidType() throws Exception {
         mockMvc.perform(get("/api/tasks")
                         .param("type", "INVALID")
+                        .param("date", "2025-11-24"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.error.code").value(ErrorCode.INVALID_INPUT.getCode()));
+
+        then(taskService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("일정 조회 실패 - 잘못된 taskType이면 400, 10001 에러를 반환한다")
+    void getTasks_fail_invalidTaskType() throws Exception {
+        mockMvc.perform(get("/api/tasks")
+                        .param("type", "DAY")
+                        .param("taskType", "INVALID")
                         .param("date", "2025-11-24"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value("fail"))

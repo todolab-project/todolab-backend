@@ -312,7 +312,7 @@ class TaskServiceTest {
                         .endAt(null).allDay(false).category("일").build()
         );
 
-        given(taskRepository.findByDateRange(dayStart, nextDayStart)).willReturn(returnedByRepo);
+        given(taskRepository.findByDateRangeAndType(dayStart, nextDayStart, TaskType.SCHEDULE)).willReturn(returnedByRepo);
 
         // when
         List<TaskResponse> res = taskService.getTasks(request);
@@ -326,7 +326,7 @@ class TaskServiceTest {
                 !r.startAt().isBefore(dayStart) && r.startAt().isBefore(nextDayStart)
         );
 
-        then(taskRepository).should(times(1)).findByDateRange(dayStart, nextDayStart);
+        then(taskRepository).should(times(1)).findByDateRangeAndType(dayStart, nextDayStart, TaskType.SCHEDULE);
         then(taskRepository).shouldHaveNoMoreInteractions();
         then(taskTxService).shouldHaveNoInteractions();
     }
@@ -354,7 +354,7 @@ class TaskServiceTest {
                         .endAt(null).allDay(false).category("일").build()
         );
 
-        given(taskRepository.findByDateRange(weekStart, weekEndExclusive)).willReturn(returnedByRepo);
+        given(taskRepository.findByDateRangeAndType(weekStart, weekEndExclusive, TaskType.SCHEDULE)).willReturn(returnedByRepo);
 
         // when
         List<TaskResponse> res = taskService.getTasks(request);
@@ -367,7 +367,7 @@ class TaskServiceTest {
                 !r.startAt().isBefore(weekStart) && r.startAt().isBefore(weekEndExclusive)
         );
 
-        then(taskRepository).should(times(1)).findByDateRange(weekStart, weekEndExclusive);
+        then(taskRepository).should(times(1)).findByDateRangeAndType(weekStart, weekEndExclusive, TaskType.SCHEDULE);
         then(taskRepository).shouldHaveNoMoreInteractions();
         then(taskTxService).shouldHaveNoInteractions();
     }
@@ -394,7 +394,7 @@ class TaskServiceTest {
                         .endAt(null).allDay(false).category("일").build()
         );
 
-        given(taskRepository.findByDateRange(monthStart, monthEndExclusive)).willReturn(returnedByRepo);
+        given(taskRepository.findByDateRangeAndType(monthStart, monthEndExclusive, TaskType.SCHEDULE)).willReturn(returnedByRepo);
 
         // when
         List<TaskResponse> res = taskService.getTasks(request);
@@ -407,7 +407,43 @@ class TaskServiceTest {
                 !r.startAt().isBefore(monthStart) && r.startAt().isBefore(monthEndExclusive)
         );
 
-        then(taskRepository).should(times(1)).findByDateRange(monthStart, monthEndExclusive);
+        then(taskRepository).should(times(1)).findByDateRangeAndType(monthStart, monthEndExclusive, TaskType.SCHEDULE);
+        then(taskRepository).shouldHaveNoMoreInteractions();
+        then(taskTxService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("일정 조회 성공 - 요청한 TaskType 기준으로 조회한다")
+    void getTasks_success_filtersTaskType() {
+        // given
+        TaskQueryRequest request = TaskQueryRequest.builder()
+                .rawType("DAY")
+                .rawTaskType("IDEA")
+                .rawDate("2026-05-17")
+                .build();
+
+        DateRange day = TaskQueryType.DAY.calculate("2026-05-17");
+        Task idea = Task.builder()
+                .title("idea")
+                .type(TaskType.IDEA)
+                .startAt(day.getStart().plusHours(1))
+                .endAt(null)
+                .allDay(false)
+                .category("아이디어")
+                .build();
+
+        given(taskRepository.findByDateRangeAndType(day.getStart(), day.getEnd(), TaskType.IDEA))
+                .willReturn(List.of(idea));
+
+        // when
+        List<TaskResponse> res = taskService.getTasks(request);
+
+        // then
+        assertThat(res).hasSize(1);
+        assertThat(res.getFirst().type()).isEqualTo(TaskType.IDEA);
+        assertThat(res.getFirst().title()).isEqualTo("idea");
+
+        then(taskRepository).should(times(1)).findByDateRangeAndType(day.getStart(), day.getEnd(), TaskType.IDEA);
         then(taskRepository).shouldHaveNoMoreInteractions();
         then(taskTxService).shouldHaveNoInteractions();
     }
@@ -437,7 +473,7 @@ class TaskServiceTest {
                 .category("WORK")
                 .build();
 
-        given(taskRepository.findByDateRange(day.getStart(), day.getEnd()))
+        given(taskRepository.findByDateRangeAndType(day.getStart(), day.getEnd(), TaskType.SCHEDULE))
                 .willReturn(List.of(uncategorized, work));
 
         // when
@@ -447,7 +483,7 @@ class TaskServiceTest {
         assertThat(result).extracting(TaskCategoryGroupResponse::category)
                 .containsExactly("WORK", "미분류");
 
-        then(taskRepository).should(times(1)).findByDateRange(day.getStart(), day.getEnd());
+        then(taskRepository).should(times(1)).findByDateRangeAndType(day.getStart(), day.getEnd(), TaskType.SCHEDULE);
         then(taskRepository).shouldHaveNoMoreInteractions();
         then(taskTxService).shouldHaveNoInteractions();
     }

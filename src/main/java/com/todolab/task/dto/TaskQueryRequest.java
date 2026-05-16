@@ -1,6 +1,6 @@
 package com.todolab.task.dto;
 
-import com.todolab.common.api.ErrorCode;
+import com.todolab.task.domain.TaskType;
 import com.todolab.task.domain.query.TaskQueryType;
 import com.todolab.task.exception.TaskValidationException;
 import lombok.Builder;
@@ -13,16 +13,22 @@ import java.time.YearMonth;
 public class TaskQueryRequest {
 
     private final TaskQueryType type;
+    private final TaskType taskType;
     private final String date;
 
     @Builder
-    public TaskQueryRequest(String rawType, String rawDate) {
-        this(parseType(rawType), rawDate);
+    public TaskQueryRequest(String rawType, String rawTaskType, String rawDate) {
+        this(parseType(rawType), parseTaskType(rawTaskType), rawDate);
     }
 
     public TaskQueryRequest(TaskQueryType type, String rawDate) {
+        this(type, TaskType.defaultType(), rawDate);
+    }
+
+    public TaskQueryRequest(TaskQueryType type, TaskType taskType, String rawDate) {
         validateDateFormat(type, rawDate);
         this.type = type;
+        this.taskType = taskType == null ? TaskType.defaultType() : taskType;
         this.date = rawDate;
     }
 
@@ -31,6 +37,18 @@ public class TaskQueryRequest {
             return TaskQueryType.from(rawType);
         } catch (Exception e) {
             throw new TaskValidationException("올바르지 않은 Type 값입니다.");
+        }
+    }
+
+    private static TaskType parseTaskType(String rawTaskType) {
+        if (rawTaskType == null || rawTaskType.isBlank()) {
+            return TaskType.defaultType();
+        }
+
+        try {
+            return TaskType.valueOf(rawTaskType.trim().toUpperCase());
+        } catch (Exception e) {
+            throw new TaskValidationException("올바르지 않은 taskType 값입니다.");
         }
     }
 

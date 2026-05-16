@@ -3,6 +3,7 @@ package com.todolab.task.repository;
 import com.todolab.config.QuerydslConfig;
 import com.todolab.support.RepositoryTestSupport;
 import com.todolab.task.domain.Task;
+import com.todolab.task.domain.TaskType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -202,6 +203,42 @@ class TaskRepositoryTest extends RepositoryTestSupport {
         // then
         then(results).extracting("title")
                 .doesNotContain("nonOverlap");
+    }
+
+    @Test
+    @DisplayName("findByDateRangeAndType()은 지정한 TaskType만 조회한다")
+    void findByDateRangeAndType_filters_taskType() {
+        // given
+        LocalDateTime startInclusive = LocalDateTime.of(2026, 5, 17, 0, 0);
+        LocalDateTime endExclusive = LocalDateTime.of(2026, 5, 18, 0, 0);
+
+        Task schedule = Task.builder()
+                .title("schedule")
+                .type(TaskType.SCHEDULE)
+                .startAt(LocalDateTime.of(2026, 5, 17, 10, 0))
+                .endAt(null)
+                .allDay(false)
+                .category("일")
+                .build();
+
+        Task todo = Task.builder()
+                .title("todo")
+                .type(TaskType.TODO)
+                .startAt(LocalDateTime.of(2026, 5, 17, 11, 0))
+                .endAt(null)
+                .allDay(false)
+                .category("할일")
+                .build();
+
+        taskRepository.saveAll(List.of(schedule, todo));
+        flushAndClear();
+
+        // when
+        List<Task> results = taskRepository.findByDateRangeAndType(startInclusive, endExclusive, TaskType.SCHEDULE);
+
+        // then
+        then(results).extracting("title")
+                .containsExactly("schedule");
     }
 
     @Test

@@ -49,16 +49,18 @@ public class TaskController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getTasks(
             @RequestParam(required = false) String type,
+            @RequestParam(required = false) String taskType,
             @RequestParam(required = false) String date
     ) {
-        log.info("[API] getTasks :: Type : {} , Date : {}", type, date);
+        log.info("[API] getTasks :: Type : {}, TaskType : {}, Date : {}", type, taskType, date);
         TaskQueryRequest request = TaskQueryRequest.builder()
                 .rawType(type)
+                .rawTaskType(taskType)
                 .rawDate(date)
                 .build();
 
         List<TaskResponse> res = taskService.getTasks(request);
-        log.info("[API] getTasks success :: type={}, date={}, taskCount={}", type, date, res.size());
+        log.info("[API] getTasks success :: type={}, taskType={}, date={}, taskCount={}", type, taskType, date, res.size());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(res));
     }
@@ -66,16 +68,18 @@ public class TaskController {
     @GetMapping("/grouped")
     public ResponseEntity<ApiResponse<List<TaskCategoryGroupResponse>>> getGroupedTasks(
             @RequestParam(required = false) String type,
+            @RequestParam(required = false) String taskType,
             @RequestParam(required = false) String date
     ) {
-        log.info("[API] getGroupedTasks :: Type : {} , Date : {}", type, date);
+        log.info("[API] getGroupedTasks :: Type : {}, TaskType : {}, Date : {}", type, taskType, date);
         TaskQueryRequest request = TaskQueryRequest.builder()
                 .rawType(type)
+                .rawTaskType(taskType)
                 .rawDate(date)
                 .build();
 
         List<TaskCategoryGroupResponse> res = taskService.getGroupedTasks(request);
-        log.info("[API] getGroupedTasks success :: type={}, date={}, groupCount={}", type, date, res.size());
+        log.info("[API] getGroupedTasks success :: type={}, taskType={}, date={}, groupCount={}", type, taskType, date, res.size());
         log.debug("[API] getGroupedTasks categories :: {}",
                 res.stream().map(TaskCategoryGroupResponse::category).toList());
         return ResponseEntity.status(HttpStatus.OK)
