@@ -1,0 +1,11 @@
+.git
+.gradle
+.idea
+out
+build/classes
+build/generated
+build/reports
+build/test-results
+build/tmp
+*.iml
+.DS_Store

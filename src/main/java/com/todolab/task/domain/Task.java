@@ -11,20 +11,24 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "TASK")
+@Table(name = "`TASK`")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Task {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "`ID`")
     private Long id;
 
+    @Column(name = "`TITLE`")
     private String title;
+
+    @Column(name = "`DESCRIPTION`")
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "`TYPE`", nullable = false)
     private TaskType type;
 
     /***
@@ -32,17 +36,23 @@ public class Task {
      * 단일 : startAt != null && endAt == null
      * 기간 : startAT != null && endAt != null
      */
+    @Column(name = "`START_AT`")
     private LocalDateTime startAt;
+
+    @Column(name = "`END_AT`")
     private LocalDateTime endAt;
 
     /***
      * 종일 일정 여부
      *  - true 면 시간 입력 개념이 없으며, startAt/endAt은 00:00으로 정규화되어야 함
      */
+    @Column(name = "`ALL_DAY`")
     private boolean allDay;
 
+    @Column(name = "`CATEGORY`")
     private String category;
 
+    @Column(name = "`CREATED_AT`")
     private LocalDateTime createdAt;
 
     @PrePersist
