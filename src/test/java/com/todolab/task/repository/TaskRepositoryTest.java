@@ -3,6 +3,7 @@ package com.todolab.task.repository;
 import com.todolab.config.QuerydslConfig;
 import com.todolab.support.RepositoryTestSupport;
 import com.todolab.task.domain.Task;
+import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.domain.TaskType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,6 +53,9 @@ class TaskRepositoryTest extends RepositoryTestSupport {
         then(saved.getEndAt()).isEqualTo(endAt);
         then(saved.isAllDay()).isFalse();
         then(saved.getCategory()).isEqualTo("일");
+        then(saved.getStatus()).isEqualTo(TaskStatus.TODAY);
+        then(saved.getTargetDate()).isEqualTo(startAt.toLocalDate());
+        then(saved.getCompletedAt()).isNull();
     }
 
     @Test

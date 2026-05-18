@@ -2,6 +2,7 @@ package com.todolab.task.service;
 
 import com.todolab.common.api.ErrorCode;
 import com.todolab.task.domain.Task;
+import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.domain.TaskType;
 import com.todolab.task.domain.query.DateRange;
 import com.todolab.task.domain.query.TaskQueryType;
@@ -91,6 +92,9 @@ class TaskServiceTest {
         assertThat(res.allDay()).isFalse();
         assertThat(res.unscheduled()).isFalse();
         assertThat(res.type()).isEqualTo(TaskType.SCHEDULE);
+        assertThat(res.status()).isEqualTo(TaskStatus.TODAY);
+        assertThat(res.targetDate()).isEqualTo(startAt.toLocalDate());
+        assertThat(res.completedAt()).isNull();
 
         then(taskRepository).should(times(1)).save(any(Task.class));
         then(taskTxService).shouldHaveNoInteractions();
@@ -117,6 +121,39 @@ class TaskServiceTest {
 
         // then
         assertThat(res.type()).isEqualTo(TaskType.SCHEDULE);
+        assertThat(res.unscheduled()).isTrue();
+        assertThat(res.status()).isEqualTo(TaskStatus.INBOX);
+        assertThat(res.targetDate()).isNull();
+        assertThat(res.completedAt()).isNull();
+
+        then(taskRepository).should(times(1)).save(any(Task.class));
+        then(taskTxService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("일정 등록 성공 - 제목만 있으면 Inbox 상태로 저장된다")
+    void createTask_success_titleOnlyInbox() {
+        // given
+        TaskRequest request = new TaskRequest(
+                "quick task",
+                null,
+                null,
+                null,
+                null,
+                false
+        );
+
+        given(taskRepository.save(any(Task.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        // when
+        TaskResponse res = taskService.create(request);
+
+        // then
+        assertThat(res.title()).isEqualTo("quick task");
+        assertThat(res.status()).isEqualTo(TaskStatus.INBOX);
+        assertThat(res.targetDate()).isNull();
+        assertThat(res.completedAt()).isNull();
         assertThat(res.unscheduled()).isTrue();
 
         then(taskRepository).should(times(1)).save(any(Task.class));
@@ -146,6 +183,9 @@ class TaskServiceTest {
         // then
         assertThat(res.type()).isEqualTo(TaskType.IDEA);
         assertThat(res.unscheduled()).isTrue();
+        assertThat(res.status()).isEqualTo(TaskStatus.INBOX);
+        assertThat(res.targetDate()).isNull();
+        assertThat(res.completedAt()).isNull();
 
         then(taskRepository).should(times(1)).save(any(Task.class));
         then(taskTxService).shouldHaveNoInteractions();

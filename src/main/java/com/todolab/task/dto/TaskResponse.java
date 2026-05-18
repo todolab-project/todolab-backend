@@ -1,9 +1,11 @@
 package com.todolab.task.dto;
 
 import com.todolab.task.domain.Task;
+import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.domain.TaskType;
 import lombok.Builder;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Builder
@@ -17,6 +19,9 @@ public record TaskResponse(
         boolean allDay,
         boolean unscheduled,
         String category,
+        TaskStatus status,
+        LocalDate targetDate,
+        LocalDateTime completedAt,
         LocalDateTime createdAt
 ) {
     public TaskResponse(
@@ -30,7 +35,7 @@ public record TaskResponse(
             String category,
             LocalDateTime createdAt
     ) {
-        this(id, TaskType.defaultType(), title, description, startAt, endAt, allDay, unscheduled, category, createdAt);
+        this(id, TaskType.defaultType(), title, description, startAt, endAt, allDay, unscheduled, category, null, null, null, createdAt);
     }
 
     public static TaskResponse from(Task t) {
@@ -44,6 +49,9 @@ public record TaskResponse(
                 .allDay(t.isAllDay())
                 .unscheduled(t.isUnscheduled())
                 .category(t.getCategory())
+                .status(t.getStatus())
+                .targetDate(t.getTargetDate())
+                .completedAt(t.getCompletedAt())
                 .createdAt(t.getCreatedAt())
                 .build();
     }

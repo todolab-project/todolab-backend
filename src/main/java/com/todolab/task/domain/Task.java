@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -52,22 +53,40 @@ public class Task {
     @Column(name = "`CATEGORY`")
     private String category;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "`STATUS`", nullable = false)
+    private TaskStatus status;
+
+    @Column(name = "`TARGET_DATE`")
+    private LocalDate targetDate;
+
+    @Column(name = "`COMPLETED_AT`")
+    private LocalDateTime completedAt;
+
     @Column(name = "`CREATED_AT`")
     private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
+        if (this.status == null) {
+            applyInitialStatus();
+        }
         this.createdAt = LocalDateTime.now();
     }
 
 
     @Builder
-    public Task(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category) {
+    public Task(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category,
+                TaskStatus status, LocalDate targetDate, LocalDateTime completedAt) {
         apply(title, description, type, startAt, endAt, allDay, category);
+        applyStatus(status, targetDate, completedAt);
     }
 
     public void update(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category) {
         apply(title, description, type, startAt, endAt, allDay, category);
+        if (this.status != TaskStatus.DONE) {
+            applyInitialStatus();
+        }
     }
 
     public boolean isUnscheduled() {
@@ -91,10 +110,38 @@ public class Task {
         this.endAt = endAt;
         this.allDay = allDay;
         this.category = normalizedCategory;
+
+        if (this.status == null) {
+            applyInitialStatus();
+        }
     }
 
     private TaskType normalizeType(TaskType type) {
         return type == null ? TaskType.defaultType() : type;
+    }
+
+    private void applyStatus(TaskStatus status, LocalDate targetDate, LocalDateTime completedAt) {
+        if (status == null) {
+            applyInitialStatus();
+            return;
+        }
+
+        this.status = status;
+        this.targetDate = targetDate;
+        this.completedAt = completedAt;
+    }
+
+    private void applyInitialStatus() {
+        if (isUnscheduled()) {
+            this.status = TaskStatus.INBOX;
+            this.targetDate = null;
+            this.completedAt = null;
+            return;
+        }
+
+        this.status = TaskStatus.TODAY;
+        this.targetDate = startAt.toLocalDate();
+        this.completedAt = null;
     }
 
     private void validateSchedule(LocalDateTime startAt, LocalDateTime endAt, boolean allDay) {
