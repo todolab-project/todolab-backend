@@ -80,7 +80,7 @@ public class TaskPageController {
     // ===========================
     //  일정 미정 페이지
     // ===========================
-    @GetMapping("/tasks/unscheduled")
+    @GetMapping({"/tasks/unscheduled", "/tasks/inbox"})
     public String unscheduled(Model model) {
         model.addAttribute("title", "ToDoLab");
         model.addAttribute("showBaseHeader", false);

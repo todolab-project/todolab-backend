@@ -123,6 +123,23 @@ class TaskPageControllerTest {
     }
 
     @Test
+    @DisplayName("Inbox 페이지는 base layout과 unscheduled 탭 모델을 반환한다")
+    void inbox_returnsBaseLayout() throws Exception {
+        mockMvc.perform(get("/tasks/inbox"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("layout/base"))
+                .andExpect(model().attribute("title", "ToDoLab"))
+                .andExpect(model().attribute("showBaseHeader", false))
+                .andExpect(model().attribute("headerTitle", "ToDoLab"))
+                .andExpect(model().attribute("activeTab", "unscheduled"))
+                .andExpect(model().attribute("contentView", "pages/task/unscheduled"));
+
+        then(templateEngine).shouldHaveNoInteractions();
+        then(taskService).shouldHaveNoInteractions();
+        then(taskViewService).shouldHaveNoInteractions();
+    }
+
+    @Test
     @DisplayName("오늘 일정 페이지는 base layout과 today 탭 모델을 반환한다")
     void today_returnsBaseLayout() throws Exception {
         mockMvc.perform(get("/tasks/today"))
