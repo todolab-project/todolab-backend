@@ -56,6 +56,10 @@
     return request(`/api/tasks/grouped${buildQuery({ type, date, taskType })}`);
   };
 
+  TaskApi.getInboxTasks = () => {
+    return request('/api/tasks/inbox');
+  };
+
   TaskApi.getTodayTasks = (date) => {
     return request(`/api/tasks/today${buildQuery({ date })}`);
   };

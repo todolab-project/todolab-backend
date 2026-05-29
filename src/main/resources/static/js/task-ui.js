@@ -122,6 +122,29 @@
     });
   };
 
+  TaskUI.renderInboxCard = (t) => {
+    const created = TaskUI.toDate(t?.createdAt);
+    const meta = created ? `기록일 · ${created}` : null;
+    const base = TaskUI.renderTaskCard(t, {
+      showRightTime: false,
+      metaText: meta,
+      barColor: 'rgba(59, 130, 246, 0.55)'
+    });
+
+    return `
+<div class="inbox-task-item" data-inbox-task-id="${TaskUI.escapeHtml(t?.id)}">
+  ${base}
+  <div class="mt-2 flex justify-end">
+    <button type="button"
+            class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-[12px] font-extrabold text-gray-700 hover:bg-gray-50"
+            data-action="move-to-today"
+            data-task-id="${TaskUI.escapeHtml(t?.id)}">
+      오늘 할 일로
+    </button>
+  </div>
+</div>`.trim();
+  };
+
   // ✅ Today: 우측 시간 O, meta X
   TaskUI.renderTodayCard = (t) => {
     return TaskUI.renderTaskCard(t, {

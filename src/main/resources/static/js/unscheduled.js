@@ -13,6 +13,14 @@
   const $list    = document.getElementById('unscheduled-list');
   const $count   = document.getElementById('unscheduled-count');
 
+  function todayYmd() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
   function hideAll() {
     $loading?.classList.add('hidden');
     $error?.classList.add('hidden');
@@ -63,13 +71,13 @@
       return;
     }
 
-    if (!window.TaskUI || typeof window.TaskUI.renderSeedCard !== 'function') {
-      showError('렌더 실패: TaskUI.renderSeedCard를 찾을 수 없습니다. (task-ui.js 로드 순서 확인)');
+    if (!window.TaskUI || typeof window.TaskUI.renderInboxCard !== 'function') {
+      showError('렌더 실패: TaskUI.renderInboxCard를 찾을 수 없습니다. (task-ui.js 로드 순서 확인)');
       return;
     }
 
     showList(tasks.length);
-    $list.innerHTML = tasks.map(TaskUI.renderSeedCard).join('');
+    $list.innerHTML = tasks.map(TaskUI.renderInboxCard).join('');
   }
 
   async function load() {
@@ -77,15 +85,35 @@
       $loading?.classList.remove('hidden');
       $error?.classList.add('hidden');
 
-      const raw = (await TaskApi.getUnscheduledTasks()) ?? [];
-      const only = raw.filter(t => t && t.unscheduled === true);
-      render(sortTasks(only));
+      const raw = (await TaskApi.getInboxTasks()) ?? [];
+      render(sortTasks(raw));
     } catch (e) {
-      showError(`씨앗 로딩 실패: ${e.message}`);
+      showError(`Inbox 로딩 실패: ${e.message}`);
     } finally {
       $loading?.classList.add('hidden');
     }
   }
+
+  $list?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-action="move-to-today"]');
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const id = btn.getAttribute('data-task-id');
+    if (!id) return;
+
+    try {
+      btn.disabled = true;
+      await TaskApi.moveToToday(id, todayYmd());
+      await load();
+    } catch (err) {
+      showError(`Today 이동 실패: ${err.message}`);
+    } finally {
+      btn.disabled = false;
+    }
+  });
 
   load();
 })();
