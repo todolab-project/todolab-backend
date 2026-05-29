@@ -109,6 +109,27 @@ public class TaskPageController {
     }
 
     // ===========================
+    //  완료 로그 페이지
+    // ===========================
+    @GetMapping({"/tasks/log", "/tasks/done"})
+    public String doneLog(
+            @RequestParam(name = "date", required = false) String date,
+            Model model
+    ) {
+        LocalDate selectedDate = date == null || date.isBlank()
+                ? LocalDate.now()
+                : LocalDate.parse(date);
+
+        model.addAttribute("title", "ToDoLab");
+        model.addAttribute("showBaseHeader", false);
+        model.addAttribute("headerTitle", "Log");
+        model.addAttribute("activeTab", "log");
+        model.addAttribute("date", selectedDate);
+        model.addAttribute("contentView", "pages/task/log");
+        return "layout/base";
+    }
+
+    // ===========================
     //  주간 일정 페이지
     // ===========================
     @GetMapping("/tasks/week")

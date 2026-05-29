@@ -158,6 +158,25 @@ class TaskPageControllerTest {
     }
 
     @Test
+    @DisplayName("완료 로그 페이지는 선택 날짜와 log 탭 모델을 반환한다")
+    void doneLog_returnsBaseLayout() throws Exception {
+        mockMvc.perform(get("/tasks/log")
+                        .param("date", "2026-05-30"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("layout/base"))
+                .andExpect(model().attribute("title", "ToDoLab"))
+                .andExpect(model().attribute("showBaseHeader", false))
+                .andExpect(model().attribute("headerTitle", "Log"))
+                .andExpect(model().attribute("activeTab", "log"))
+                .andExpect(model().attribute("date", LocalDate.of(2026, 5, 30)))
+                .andExpect(model().attribute("contentView", "pages/task/log"));
+
+        then(templateEngine).shouldHaveNoInteractions();
+        then(taskService).shouldHaveNoInteractions();
+        then(taskViewService).shouldHaveNoInteractions();
+    }
+
+    @Test
     @DisplayName("주간 일정 페이지는 TaskViewService 결과를 calendar 탭 모델로 반환한다")
     void week_returnsBaseLayoutWithWeekModel() throws Exception {
         // given
