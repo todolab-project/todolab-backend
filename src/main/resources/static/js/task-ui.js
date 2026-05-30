@@ -84,6 +84,17 @@
                  aria-label="완료 처리">✓</button>`
       : `<div class="check-box">✓</div>`;
 
+    const actionsHtml = options.carryOverAction
+      ? `<div class="px-4 pb-4 flex justify-end">
+           <button type="button"
+                   class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-[12px] font-extrabold text-gray-700 hover:bg-gray-50"
+                   data-action="carry-over-task"
+                   data-task-id="${TaskUI.escapeHtml(task.id)}">
+             내일로
+           </button>
+         </div>`
+      : '';
+
     return `
 <div class="task-card task-card-clickable cursor-pointer hover:bg-gray-50 active:scale-[0.995]"
      data-task-id="${TaskUI.escapeHtml(task.id)}">
@@ -104,6 +115,7 @@
 
     ${right ? `<div class="task-right">${right}</div>` : ``}
   </div>
+  ${actionsHtml}
 </div>`.trim();
   };
 
@@ -150,7 +162,8 @@
     return TaskUI.renderTaskCard(t, {
       showRightTime: true,
       metaText: null,
-      completeAction: true
+      completeAction: true,
+      carryOverAction: true
     });
   };
 
