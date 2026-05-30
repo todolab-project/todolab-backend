@@ -48,7 +48,7 @@ ToDoLab은 단순히 할 일을 많이 쌓아두는 ToDo CRUD 앱이 아니라, 
 - 하단 탭은 `Today / Calendar / D-Day / More`로 정리되어 있다.
 - D-Day는 `DdayGoal` 별도 엔티티로 최소 등록, 조회, 삭제 흐름이 연결되어 있다.
 - `schema.sql`을 직접 관리하고 있으므로 필드를 추가하면 스키마도 같이 바꿔야 한다.
-- 1차 MVP의 남은 핵심은 미완료 이월 UI와 Today 중심 화면 재구성이다.
+- 1차 MVP의 기본 흐름은 닫혔고, 이제는 Today 중심 사용성을 다듬은 뒤 2차 고도화로 넘어가면 된다.
 
 ## 2. 1차 MVP 목표
 
@@ -340,21 +340,22 @@ API가 안정화된 뒤 화면을 붙인다.
 
 해야 할 일:
 
-- 하단 첫 탭을 Today로 고정
-- 기록함을 Today 안의 섹션으로 흡수
-- Inbox 항목에 “오늘 기록”, “3일 전 기록” 같은 메타 표시
-- Today 안에서 Inbox 항목을 오늘 할 일로 이동
-- 오늘 완료 요약을 Today 상단 또는 하단에 유지
-- Log 탭은 More나 Calendar 날짜 상세로 옮길지 결정
+- [x] 하단 첫 탭을 Today로 고정
+- [x] 기록함을 Today 안의 섹션으로 흡수
+- [x] Inbox 항목에 기록일 메타 표시
+- [x] Today 안에서 Inbox 항목을 오늘 할 일로 이동
+- [x] 오늘 완료 요약을 Today 하단에 유지
+- [x] Log 탭은 More와 Calendar 날짜 상세에서 접근하도록 정리
+- [x] 빠른 기록과 일반 생성의 타입 정책 정리
 
 ### 6-8. 하단 탭 구조 정리
 
 다음 후보로 정리한다.
 
-- Today
-- Calendar
-- D-Day
-- More
+- [x] Today
+- [x] Calendar
+- [x] D-Day
+- [x] More
 
 D-Day는 별도 엔티티로 최소 등록, 조회, 삭제 화면부터 시작한다.
 이후 Today 할 일 연결과 Calendar 표시를 붙여서 단순 카운트다운이 아니라 실행과 이어지게 만든다.
