@@ -150,6 +150,14 @@ public class TaskPageController {
     }
 
     // ===========================
+    //  캘린더 기본 진입점
+    // ===========================
+    @GetMapping("/tasks/calendar")
+    public String calendar() {
+        return "redirect:/tasks/week";
+    }
+
+    // ===========================
     //  주간 일정 페이지
     // ===========================
     @GetMapping("/tasks/week")

@@ -14,6 +14,10 @@
   const $empty = document.getElementById('month-empty');
   const $card  = document.getElementById('month-card');
   const $list  = document.getElementById('month-list');
+  const $doneEmpty = document.getElementById('month-done-empty');
+  const $doneCard = document.getElementById('month-done-card');
+  const $doneList = document.getElementById('month-done-list');
+  const $doneCount = document.getElementById('month-done-count');
 
   const selectedDate = (root.dataset.selectedDate || '').trim(); // yyyy-MM-dd
   const monthLabel   = (root.dataset.monthLabel || '').trim();   // yyyy-MM
@@ -50,6 +54,25 @@
   function showList(n) {
     hideAll();
     $card?.classList.remove('hidden');
+  }
+
+  function renderDone(tasks) {
+    const doneTasks = Array.isArray(tasks) ? tasks : [];
+    if ($doneCount) $doneCount.textContent = `${doneTasks.length}개`;
+
+    if (!window.TaskUI || typeof window.TaskUI.renderDoneCard !== 'function') {
+      return;
+    }
+
+    if (!doneTasks.length) {
+      $doneCard?.classList.add('hidden');
+      $doneEmpty?.classList.remove('hidden');
+      return;
+    }
+
+    $doneEmpty?.classList.add('hidden');
+    $doneCard?.classList.remove('hidden');
+    $doneList.innerHTML = doneTasks.map(TaskUI.renderDoneCard).join('');
   }
 
   function gotoMonth(move) {
@@ -95,7 +118,11 @@
       applyTodayRing();
 
       const ym = monthLabel || (monthStart ? monthStart.slice(0, 7) : '');
-      const tasks = await TaskApi.getMonthTasks(ym);
+      const [tasks, doneTasks] = await Promise.all([
+        TaskApi.getMonthTasks(ym),
+        selectedDate ? TaskApi.getDoneTasks(selectedDate) : Promise.resolve([])
+      ]);
+      renderDone(doneTasks);
 
       // 하단 리스트는 selectedDate 기준
       const filtered = Array.isArray(tasks)

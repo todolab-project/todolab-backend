@@ -202,6 +202,18 @@ class TaskPageControllerTest {
     }
 
     @Test
+    @DisplayName("Calendar 기본 진입점은 주간 캘린더로 이동한다")
+    void calendar_redirectsToWeek() throws Exception {
+        mockMvc.perform(get("/tasks/calendar"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/tasks/week"));
+
+        then(templateEngine).shouldHaveNoInteractions();
+        then(taskService).shouldHaveNoInteractions();
+        then(taskViewService).shouldHaveNoInteractions();
+    }
+
+    @Test
     @DisplayName("주간 일정 페이지는 TaskViewService 결과를 calendar 탭 모델로 반환한다")
     void week_returnsBaseLayoutWithWeekModel() throws Exception {
         // given
