@@ -36,11 +36,19 @@ public record TaskRequest(
             String category,
             boolean allDay
     ) {
-        this(title, description, TaskType.defaultType(), startAt, endAt, category, allDay);
+        this(title, description, null, startAt, endAt, category, allDay);
     }
 
     public TaskType normalizedType() {
-        return type == null ? TaskType.defaultType() : type;
+        if (type != null) {
+            return type;
+        }
+
+        if (startAt == null && endAt == null) {
+            return TaskType.TODO;
+        }
+
+        return TaskType.defaultType();
     }
 
     public void validate() {

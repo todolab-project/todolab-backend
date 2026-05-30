@@ -25,6 +25,7 @@ window.TaskModal = (() => {
 
   let mode = 'create'; // create | detail | edit
   let currentId = null;
+  let currentType = null;
 
   /* -----------------------------
    * open / close
@@ -97,6 +98,7 @@ window.TaskModal = (() => {
   function reset() {
     mode = 'create';
     currentId = null;
+    currentType = null;
 
     $title.value = '';
     $desc.value = '';
@@ -111,14 +113,16 @@ window.TaskModal = (() => {
     $updatedAt.textContent = '-';
 
     $delete.classList.add('hidden');
-    $primary.textContent = '일정 등록';
-    $titleBar.textContent = '일정 등록';
+    $primary.textContent = '항목 등록';
+    $titleBar.textContent = '항목 등록';
 
     setReadOnly(false);
     syncDateDisabled();
   }
 
   function fill(task) {
+    currentType = task.type ?? null;
+
     $title.value = task.title ?? '';
     $desc.value = task.description ?? '';
     $category.value = task.category ?? '';
@@ -136,14 +140,21 @@ window.TaskModal = (() => {
   }
 
   function payloadFromForm() {
+    const startAt = $startAt.value || null;
+    const endAt = $endAt.value || null;
+    const isUnscheduled = !!$unscheduled.checked;
+    const hasSchedule = !isUnscheduled && !!(startAt || endAt);
+    const type = hasSchedule ? 'SCHEDULE' : (currentType === 'IDEA' ? 'IDEA' : 'TODO');
+
     return {
       title: ($title.value || '').trim(),
       description: $desc.value || '',
       category: $category.value || '',
-      unscheduled: !!$unscheduled.checked,
+      type,
+      unscheduled: isUnscheduled,
       allDay: !!$allDay.checked,
-      startAt: $startAt.value || null,
-      endAt: $endAt.value || null,
+      startAt: isUnscheduled ? null : startAt,
+      endAt: isUnscheduled ? null : endAt,
     };
   }
 
@@ -154,8 +165,8 @@ window.TaskModal = (() => {
     mode = 'create';
     currentId = null;
 
-    $titleBar.textContent = '일정 등록';
-    $primary.textContent = '일정 등록';
+    $titleBar.textContent = '항목 등록';
+    $primary.textContent = '항목 등록';
     $delete.classList.add('hidden');
     $meta.classList.add('hidden');
 

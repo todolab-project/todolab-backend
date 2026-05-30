@@ -101,7 +101,7 @@ class TaskServiceTest {
     }
 
     @Test
-    @DisplayName("일정 등록 성공 - type이 없으면 SCHEDULE로 저장된다")
+    @DisplayName("일정 등록 성공 - type이 없고 날짜가 없으면 TODO로 저장된다")
     void createTask_success_defaultType() {
         // given
         TaskRequest request = new TaskRequest(
@@ -120,7 +120,7 @@ class TaskServiceTest {
         TaskResponse res = taskService.create(request);
 
         // then
-        assertThat(res.type()).isEqualTo(TaskType.SCHEDULE);
+        assertThat(res.type()).isEqualTo(TaskType.TODO);
         assertThat(res.unscheduled()).isTrue();
         assertThat(res.status()).isEqualTo(TaskStatus.INBOX);
         assertThat(res.targetDate()).isNull();
@@ -151,6 +151,7 @@ class TaskServiceTest {
 
         // then
         assertThat(res.title()).isEqualTo("quick task");
+        assertThat(res.type()).isEqualTo(TaskType.TODO);
         assertThat(res.status()).isEqualTo(TaskStatus.INBOX);
         assertThat(res.targetDate()).isNull();
         assertThat(res.completedAt()).isNull();
