@@ -18,6 +18,10 @@
   const $quickForm = document.getElementById('todayQuickForm');
   const $quickTitle = document.getElementById('todayQuickTitle');
   const $quickSubmit = document.getElementById('todayQuickSubmit');
+  const $inboxEmpty = document.getElementById('today-inbox-empty');
+  const $inboxCard = document.getElementById('today-inbox-card');
+  const $inboxList = document.getElementById('today-inbox-list');
+  const $inboxCount = document.getElementById('today-inbox-count');
   const $doneEmpty = document.getElementById('today-done-empty');
   const $doneCard = document.getElementById('today-done-card');
   const $doneList = document.getElementById('today-done-list');
@@ -78,6 +82,11 @@
     $doneCount.textContent = `${n}개`;
   }
 
+  function setInboxCount(n) {
+    if (!$inboxCount) return;
+    $inboxCount.textContent = `${n}개`;
+  }
+
   function renderToday(tasks) {
     if (!Array.isArray(tasks) || tasks.length === 0) {
       showEmpty();
@@ -112,6 +121,25 @@
     $doneList.innerHTML = doneTasks.map(TaskUI.renderDoneCard).join('');
   }
 
+  function renderInbox(tasks) {
+    const inboxTasks = Array.isArray(tasks) ? tasks : [];
+    setInboxCount(inboxTasks.length);
+
+    if (!window.TaskUI || typeof window.TaskUI.renderInboxCard !== 'function') {
+      return;
+    }
+
+    if (inboxTasks.length === 0) {
+      $inboxCard?.classList.add('hidden');
+      $inboxEmpty?.classList.remove('hidden');
+      return;
+    }
+
+    $inboxEmpty?.classList.add('hidden');
+    $inboxCard?.classList.remove('hidden');
+    $inboxList.innerHTML = inboxTasks.map(TaskUI.renderInboxCard).join('');
+  }
+
   async function load() {
     try {
       // 로딩 시작
@@ -124,12 +152,14 @@
         $dateText.textContent = dow ? `${date} (${dow})` : date;
       }
 
-      const [todayTasks, doneTasks] = await Promise.all([
+      const [todayTasks, inboxTasks, doneTasks] = await Promise.all([
         TaskApi.getTodayTasks(date),
+        TaskApi.getInboxTasks(),
         TaskApi.getDoneTasks(date)
       ]);
 
       renderToday(todayTasks ?? []);
+      renderInbox(inboxTasks ?? []);
       renderDone(doneTasks ?? []);
     } catch (e) {
       showError(`Today 로딩 실패: ${e.message}`);
@@ -139,8 +169,8 @@
     }
   }
 
-  async function createTodayTask(title) {
-    const created = await TaskApi.createTask({
+  async function createInboxTask(title) {
+    await TaskApi.createTask({
       title,
       description: '',
       category: '',
@@ -149,8 +179,6 @@
       startAt: null,
       endAt: null
     });
-
-    await TaskApi.moveToToday(created.id, date);
   }
 
   $quickForm?.addEventListener('submit', async (e) => {
@@ -164,11 +192,11 @@
 
     try {
       if ($quickSubmit) $quickSubmit.disabled = true;
-      await createTodayTask(title);
+      await createInboxTask(title);
       $quickTitle.value = '';
       await load();
     } catch (err) {
-      showError(`오늘 할 일 추가 실패: ${err.message}`);
+      showError(`기록 실패: ${err.message}`);
     } finally {
       if ($quickSubmit) $quickSubmit.disabled = false;
     }
@@ -190,6 +218,27 @@
       await load();
     } catch (err) {
       showError(`완료 처리 실패: ${err.message}`);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $inboxList?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-action="move-to-today"]');
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const id = btn.getAttribute('data-task-id');
+    if (!id) return;
+
+    try {
+      btn.disabled = true;
+      await TaskApi.moveToToday(id, date);
+      await load();
+    } catch (err) {
+      showError(`오늘 할 일 이동 실패: ${err.message}`);
     } finally {
       btn.disabled = false;
     }
