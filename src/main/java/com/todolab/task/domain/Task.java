@@ -1,6 +1,7 @@
 package com.todolab.task.domain;
 
 import com.todolab.Constant;
+import com.todolab.dday.domain.DdayGoal;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -63,6 +64,10 @@ public class Task {
     @Column(name = "`COMPLETED_AT`")
     private LocalDateTime completedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "`DDAY_GOAL_ID`")
+    private DdayGoal ddayGoal;
+
     @Column(name = "`CREATED_AT`")
     private LocalDateTime createdAt;
 
@@ -77,9 +82,10 @@ public class Task {
 
     @Builder
     public Task(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category,
-                TaskStatus status, LocalDate targetDate, LocalDateTime completedAt) {
+                TaskStatus status, LocalDate targetDate, LocalDateTime completedAt, DdayGoal ddayGoal) {
         apply(title, description, type, startAt, endAt, allDay, category);
         applyStatus(status, targetDate, completedAt);
+        this.ddayGoal = ddayGoal;
     }
 
     public void update(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category) {
@@ -121,6 +127,17 @@ public class Task {
         this.status = TaskStatus.TODAY;
         this.targetDate = nextDate;
         this.completedAt = null;
+    }
+
+    public void connectDdayGoal(DdayGoal ddayGoal) {
+        if (ddayGoal == null) {
+            throw new IllegalArgumentException("ddayGoal은 필수입니다.");
+        }
+        this.ddayGoal = ddayGoal;
+    }
+
+    public void disconnectDdayGoal() {
+        this.ddayGoal = null;
     }
 
     private void apply(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category) {

@@ -1,6 +1,7 @@
 package com.todolab.task.repository;
 
 import com.todolab.config.QuerydslConfig;
+import com.todolab.dday.domain.DdayGoal;
 import com.todolab.support.RepositoryTestSupport;
 import com.todolab.task.domain.Task;
 import com.todolab.task.domain.TaskStatus;
@@ -389,5 +390,52 @@ class TaskRepositoryTest extends RepositoryTestSupport {
         // then
         then(result).extracting("title")
                 .containsExactly("evening", "morning");
+    }
+
+    @Test
+    @DisplayName("findByDdayGoalId()는 D-Day 목표에 연결된 Task만 실행 날짜순으로 조회한다")
+    void findByDdayGoalId_filters_goal() {
+        // given
+        DdayGoal goal = new DdayGoal("정보처리기사", LocalDate.of(2026, 6, 10));
+        DdayGoal otherGoal = new DdayGoal("포트폴리오 제출", LocalDate.of(2026, 6, 5));
+        em.persist(goal);
+        em.persist(otherGoal);
+
+        Task first = Task.builder()
+                .title("기출 20문제 풀기")
+                .status(TaskStatus.TODAY)
+                .targetDate(LocalDate.of(2026, 5, 30))
+                .ddayGoal(goal)
+                .build();
+
+        Task second = Task.builder()
+                .title("오답 정리")
+                .status(TaskStatus.TODAY)
+                .targetDate(LocalDate.of(2026, 5, 31))
+                .ddayGoal(goal)
+                .build();
+
+        Task other = Task.builder()
+                .title("포트폴리오 README 정리")
+                .status(TaskStatus.TODAY)
+                .targetDate(LocalDate.of(2026, 5, 30))
+                .ddayGoal(otherGoal)
+                .build();
+
+        Task unlinked = Task.builder()
+                .title("연결 없는 일")
+                .status(TaskStatus.TODAY)
+                .targetDate(LocalDate.of(2026, 5, 30))
+                .build();
+
+        taskRepository.saveAll(List.of(second, other, first, unlinked));
+        flushAndClear();
+
+        // when
+        List<Task> result = taskRepository.findByDdayGoalId(goal.getId());
+
+        // then
+        then(result).extracting("title")
+                .containsExactly("기출 20문제 풀기", "오답 정리");
     }
 }

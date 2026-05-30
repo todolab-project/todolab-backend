@@ -4,6 +4,7 @@ import com.todolab.common.api.ApiResponse;
 import com.todolab.dday.dto.DdayGoalRequest;
 import com.todolab.dday.dto.DdayGoalResponse;
 import com.todolab.dday.service.DdayGoalService;
+import com.todolab.task.dto.TaskResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,11 @@ public class DdayGoalController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<DdayGoalResponse>>> findAll() {
         return ResponseEntity.ok(ApiResponse.success(ddayGoalService.findAll()));
+    }
+
+    @GetMapping("/{id}/tasks")
+    public ResponseEntity<ApiResponse<List<TaskResponse>>> findTasks(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(ddayGoalService.findTasks(id)));
     }
 
     @DeleteMapping("/{id}")

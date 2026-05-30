@@ -105,6 +105,17 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
                 .fetch();
     }
 
+    @Override
+    public List<Task> findByDdayGoalId(Long ddayGoalId) {
+        QTask t = QTask.task;
+
+        return queryFactory
+                .selectFrom(t)
+                .where(t.ddayGoal.id.eq(ddayGoalId))
+                .orderBy(t.targetDate.asc().nullsLast(), t.createdAt.asc(), t.id.asc())
+                .fetch();
+    }
+
     private BooleanExpression overlapsRange(QTask t, LocalDateTime start, LocalDateTime end) {
         return singleScheduleInRange(t, start, end)
                 .or(periodScheduleOverlapsRange(t, start, end));

@@ -22,6 +22,7 @@ public record TaskResponse(
         TaskStatus status,
         LocalDate targetDate,
         LocalDateTime completedAt,
+        Long ddayGoalId,
         LocalDateTime createdAt
 ) {
     public TaskResponse(
@@ -35,7 +36,7 @@ public record TaskResponse(
             String category,
             LocalDateTime createdAt
     ) {
-        this(id, TaskType.defaultType(), title, description, startAt, endAt, allDay, unscheduled, category, null, null, null, createdAt);
+        this(id, TaskType.defaultType(), title, description, startAt, endAt, allDay, unscheduled, category, null, null, null, null, createdAt);
     }
 
     public static TaskResponse from(Task t) {
@@ -52,6 +53,7 @@ public record TaskResponse(
                 .status(t.getStatus())
                 .targetDate(t.getTargetDate())
                 .completedAt(t.getCompletedAt())
+                .ddayGoalId(t.getDdayGoal() == null ? null : t.getDdayGoal().getId())
                 .createdAt(t.getCreatedAt())
                 .build();
     }

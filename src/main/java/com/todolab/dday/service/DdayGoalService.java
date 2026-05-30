@@ -5,6 +5,8 @@ import com.todolab.dday.dto.DdayGoalRequest;
 import com.todolab.dday.dto.DdayGoalResponse;
 import com.todolab.dday.exception.DdayGoalNotFoundException;
 import com.todolab.dday.repository.DdayGoalRepository;
+import com.todolab.task.dto.TaskResponse;
+import com.todolab.task.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +18,7 @@ import java.util.List;
 public class DdayGoalService {
 
     private final DdayGoalRepository ddayGoalRepository;
+    private final TaskRepository taskRepository;
 
     @Transactional
     public DdayGoalResponse create(DdayGoalRequest request) {
@@ -27,6 +30,17 @@ public class DdayGoalService {
     public List<DdayGoalResponse> findAll() {
         return ddayGoalRepository.findAllByOrderByTargetDateAscIdAsc().stream()
                 .map(DdayGoalResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<TaskResponse> findTasks(Long id) {
+        if (!ddayGoalRepository.existsById(id)) {
+            throw new DdayGoalNotFoundException(id);
+        }
+
+        return taskRepository.findByDdayGoalId(id).stream()
+                .map(TaskResponse::from)
                 .toList();
     }
 

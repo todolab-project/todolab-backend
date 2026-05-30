@@ -6,6 +6,8 @@ import com.todolab.dday.dto.DdayGoalRequest;
 import com.todolab.dday.dto.DdayGoalResponse;
 import com.todolab.dday.exception.DdayGoalNotFoundException;
 import com.todolab.dday.service.DdayGoalService;
+import com.todolab.task.domain.TaskStatus;
+import com.todolab.task.dto.TaskResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,6 +99,47 @@ class DdayGoalControllerTest {
                 .andExpect(jsonPath("$.data[0].title").value("포트폴리오 제출"));
 
         then(ddayGoalService).should().findAll();
+        then(ddayGoalService).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("D-Day 목표에 연결된 Task 목록 조회 성공")
+    void findTasks_success() throws Exception {
+        TaskResponse task = TaskResponse.builder()
+                .id(10L)
+                .title("기출 20문제 풀기")
+                .status(TaskStatus.TODAY)
+                .targetDate(LocalDate.of(2026, 5, 30))
+                .ddayGoalId(1L)
+                .build();
+
+        given(ddayGoalService.findTasks(1L)).willReturn(List.of(task));
+
+        mockMvc.perform(get("/api/ddays/{id}/tasks", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].id").value(10))
+                .andExpect(jsonPath("$.data[0].title").value("기출 20문제 풀기"))
+                .andExpect(jsonPath("$.data[0].status").value("TODAY"))
+                .andExpect(jsonPath("$.data[0].targetDate").value("2026-05-30"))
+                .andExpect(jsonPath("$.data[0].ddayGoalId").value(1));
+
+        then(ddayGoalService).should().findTasks(1L);
+        then(ddayGoalService).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("D-Day 목표에 연결된 Task 목록 조회 실패 - 존재하지 않으면 404를 반환한다")
+    void findTasks_fail_notFound() throws Exception {
+        given(ddayGoalService.findTasks(99L)).willThrow(new DdayGoalNotFoundException(99L));
+
+        mockMvc.perform(get("/api/ddays/{id}/tasks", 99L))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.error.code").value(ErrorCode.DDAY_GOAL_NOT_FOUND.getCode()));
+
+        then(ddayGoalService).should().findTasks(99L);
         then(ddayGoalService).shouldHaveNoMoreInteractions();
     }
 

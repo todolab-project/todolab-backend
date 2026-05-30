@@ -20,4 +20,6 @@ public interface TaskRepositoryCustom {
     List<Task> findTodayTasks(LocalDate targetDate);
 
     List<Task> findDoneTasks(LocalDate completedDate);
+
+    List<Task> findByDdayGoalId(Long ddayGoalId);
 }
