@@ -20,7 +20,7 @@
            pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3">
 
         <nav class="mx-auto max-w-3xl px-4">
-            <div class="grid grid-cols-3 gap-2">
+            <div class="grid grid-cols-4 gap-1">
 
                 <!-- Today -->
                 <a href="/tasks/today"
@@ -74,28 +74,49 @@
           </span>
                 </a>
 
-                <!-- Log -->
-                <a href="/tasks/log"
-                   th:class="${activeTab == 'log'}
+                <!-- D-Day -->
+                <a href="/tasks/dday"
+                   th:class="${activeTab == 'dday'}
                ? 'group flex flex-col items-center justify-center rounded-2xl py-2 transition hover:bg-black/5 bg-blue-600/10 font-semibold'
                : 'group flex flex-col items-center justify-center rounded-2xl py-2 transition hover:bg-black/5'">
 
-                    <svg th:class="${activeTab == 'log'}
+                    <svg th:class="${activeTab == 'dday'}
                     ? 'h-6 w-6 mb-1 text-blue-700'
                     : 'h-6 w-6 mb-1 text-gray-400 group-hover:text-gray-700'"
                          viewBox="0 0 24 24" fill="none">
-                        <path d="M8 6h8M8 10h8M8 14h5"
-                              stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-                        <path d="M6.5 3.5h11A2.5 2.5 0 0 1 20 6v12a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 18V6a2.5 2.5 0 0 1 2.5-2.5Z"
+                        <path d="M7 3.5h10A2.5 2.5 0 0 1 19.5 6v12A2.5 2.5 0 0 1 17 20.5H7A2.5 2.5 0 0 1 4.5 18V6A2.5 2.5 0 0 1 7 3.5Z"
                               stroke="currentColor" stroke-width="1.6"/>
-                        <path d="m14.5 17 1.4 1.4 3-3"
+                        <path d="M8 8h8M8 12h5"
+                              stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                        <path d="M9 17h6"
                               stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
 
-                    <span th:class="${activeTab == 'log'}
+                    <span th:class="${activeTab == 'dday'}
                     ? 'text-[11px] tracking-tight text-blue-700'
                     : 'text-[11px] tracking-tight text-gray-400 group-hover:text-gray-700'">
-            Log
+            D-Day
+          </span>
+                </a>
+
+                <!-- More -->
+                <a href="/tasks/more"
+                   th:class="${activeTab == 'more'}
+               ? 'group flex flex-col items-center justify-center rounded-2xl py-2 transition hover:bg-black/5 bg-blue-600/10 font-semibold'
+               : 'group flex flex-col items-center justify-center rounded-2xl py-2 transition hover:bg-black/5'">
+
+                    <svg th:class="${activeTab == 'more'}
+                    ? 'h-6 w-6 mb-1 text-blue-700'
+                    : 'h-6 w-6 mb-1 text-gray-400 group-hover:text-gray-700'"
+                         viewBox="0 0 24 24" fill="none">
+                        <path d="M5 12h.01M12 12h.01M19 12h.01"
+                              stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/>
+                    </svg>
+
+                    <span th:class="${activeTab == 'more'}
+                    ? 'text-[11px] tracking-tight text-blue-700'
+                    : 'text-[11px] tracking-tight text-gray-400 group-hover:text-gray-700'">
+            More
           </span>
                 </a>
 

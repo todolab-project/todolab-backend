@@ -1,0 +1,37 @@
+<!-- src/main/resources/templates/pages/task/more.html -->
+<div th:fragment="content">
+    <div class="px-4 pb-24 max-w-3xl mx-auto h-full flex flex-col">
+
+        <div class="mt-6 flex items-center justify-between px-1 shrink-0">
+            <div>
+                <div class="inline-flex items-center gap-2 text-[16px] font-black text-gray-900 tracking-tight">
+                    <span class="text-[16px] leading-none">☰</span>
+                    <span>More</span>
+                </div>
+                <div class="mt-1 text-[12px] font-semibold text-gray-500">
+                    필요한 메뉴를 모아뒀어요
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 border-t border-gray-200 shrink-0"></div>
+
+        <div class="flex-1 min-h-0 overflow-y-auto">
+            <section class="mt-6 space-y-3">
+                <a href="/tasks/log"
+                   class="block rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm active:scale-[0.995]">
+                    <div class="text-[15px] font-black text-gray-900">완료 기록</div>
+                    <div class="mt-1 text-[12px] font-semibold text-gray-500">날짜별로 끝낸 일을 확인해요</div>
+                </a>
+
+                <a href="/tasks/month"
+                   class="block rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm active:scale-[0.995]">
+                    <div class="text-[15px] font-black text-gray-900">월간 보기</div>
+                    <div class="mt-1 text-[12px] font-semibold text-gray-500">기존 월간 캘린더로 이동해요</div>
+                </a>
+            </section>
+
+            <div class="h-10"></div>
+        </div>
+    </div>
+</div>

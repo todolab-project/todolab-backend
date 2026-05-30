@@ -78,17 +78,11 @@ public class TaskPageController {
     }
 
     // ===========================
-    //  일정 미정 페이지
+    //  기록함 레거시 진입점
     // ===========================
     @GetMapping({"/tasks/unscheduled", "/tasks/inbox"})
-    public String unscheduled(Model model) {
-        model.addAttribute("title", "ToDoLab");
-        model.addAttribute("showBaseHeader", false);
-        model.addAttribute("headerTitle", "ToDoLab");
-        model.addAttribute("activeTab", "unscheduled");
-
-        model.addAttribute("contentView", "pages/task/unscheduled");
-        return "layout/base";
+    public String unscheduled() {
+        return "redirect:/tasks/today";
     }
 
     // ===========================
@@ -126,6 +120,32 @@ public class TaskPageController {
         model.addAttribute("activeTab", "log");
         model.addAttribute("date", selectedDate);
         model.addAttribute("contentView", "pages/task/log");
+        return "layout/base";
+    }
+
+    // ===========================
+    //  D-Day 페이지
+    // ===========================
+    @GetMapping("/tasks/dday")
+    public String dday(Model model) {
+        model.addAttribute("title", "ToDoLab");
+        model.addAttribute("showBaseHeader", false);
+        model.addAttribute("headerTitle", "D-Day");
+        model.addAttribute("activeTab", "dday");
+        model.addAttribute("contentView", "pages/task/dday");
+        return "layout/base";
+    }
+
+    // ===========================
+    //  더보기 페이지
+    // ===========================
+    @GetMapping("/tasks/more")
+    public String more(Model model) {
+        model.addAttribute("title", "ToDoLab");
+        model.addAttribute("showBaseHeader", false);
+        model.addAttribute("headerTitle", "More");
+        model.addAttribute("activeTab", "more");
+        model.addAttribute("contentView", "pages/task/more");
         return "layout/base";
     }
 

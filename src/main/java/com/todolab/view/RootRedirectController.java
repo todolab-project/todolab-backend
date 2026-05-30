@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class RootRedirectController {
 
     @GetMapping("/")
-    public String redirectToUnscheduled() {
-        return "redirect:/tasks/unscheduled";
+    public String redirectToToday() {
+        return "redirect:/tasks/today";
     }
 }

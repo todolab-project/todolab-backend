@@ -32,6 +32,7 @@ import static org.mockito.BDDMockito.willAnswer;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -106,16 +107,11 @@ class TaskPageControllerTest {
     }
 
     @Test
-    @DisplayName("미정 일정 페이지는 base layout과 unscheduled 탭 모델을 반환한다")
+    @DisplayName("미정 일정 페이지는 Today로 이동한다")
     void unscheduled_returnsBaseLayout() throws Exception {
         mockMvc.perform(get("/tasks/unscheduled"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("layout/base"))
-                .andExpect(model().attribute("title", "ToDoLab"))
-                .andExpect(model().attribute("showBaseHeader", false))
-                .andExpect(model().attribute("headerTitle", "ToDoLab"))
-                .andExpect(model().attribute("activeTab", "unscheduled"))
-                .andExpect(model().attribute("contentView", "pages/task/unscheduled"));
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/tasks/today"));
 
         then(templateEngine).shouldHaveNoInteractions();
         then(taskService).shouldHaveNoInteractions();
@@ -123,16 +119,11 @@ class TaskPageControllerTest {
     }
 
     @Test
-    @DisplayName("Inbox 페이지는 base layout과 unscheduled 탭 모델을 반환한다")
+    @DisplayName("Inbox 페이지는 Today로 이동한다")
     void inbox_returnsBaseLayout() throws Exception {
         mockMvc.perform(get("/tasks/inbox"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("layout/base"))
-                .andExpect(model().attribute("title", "ToDoLab"))
-                .andExpect(model().attribute("showBaseHeader", false))
-                .andExpect(model().attribute("headerTitle", "ToDoLab"))
-                .andExpect(model().attribute("activeTab", "unscheduled"))
-                .andExpect(model().attribute("contentView", "pages/task/unscheduled"));
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/tasks/today"));
 
         then(templateEngine).shouldHaveNoInteractions();
         then(taskService).shouldHaveNoInteractions();
@@ -170,6 +161,40 @@ class TaskPageControllerTest {
                 .andExpect(model().attribute("activeTab", "log"))
                 .andExpect(model().attribute("date", LocalDate.of(2026, 5, 30)))
                 .andExpect(model().attribute("contentView", "pages/task/log"));
+
+        then(templateEngine).shouldHaveNoInteractions();
+        then(taskService).shouldHaveNoInteractions();
+        then(taskViewService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("D-Day 페이지는 base layout과 dday 탭 모델을 반환한다")
+    void dday_returnsBaseLayout() throws Exception {
+        mockMvc.perform(get("/tasks/dday"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("layout/base"))
+                .andExpect(model().attribute("title", "ToDoLab"))
+                .andExpect(model().attribute("showBaseHeader", false))
+                .andExpect(model().attribute("headerTitle", "D-Day"))
+                .andExpect(model().attribute("activeTab", "dday"))
+                .andExpect(model().attribute("contentView", "pages/task/dday"));
+
+        then(templateEngine).shouldHaveNoInteractions();
+        then(taskService).shouldHaveNoInteractions();
+        then(taskViewService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("More 페이지는 base layout과 more 탭 모델을 반환한다")
+    void more_returnsBaseLayout() throws Exception {
+        mockMvc.perform(get("/tasks/more"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("layout/base"))
+                .andExpect(model().attribute("title", "ToDoLab"))
+                .andExpect(model().attribute("showBaseHeader", false))
+                .andExpect(model().attribute("headerTitle", "More"))
+                .andExpect(model().attribute("activeTab", "more"))
+                .andExpect(model().attribute("contentView", "pages/task/more"));
 
         then(templateEngine).shouldHaveNoInteractions();
         then(taskService).shouldHaveNoInteractions();
