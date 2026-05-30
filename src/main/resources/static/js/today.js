@@ -77,6 +77,16 @@
     }
   }
 
+  function shiftDate(yyyyMmDd, days) {
+    const [y, m, d] = yyyyMmDd.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    dt.setDate(dt.getDate() + days);
+    const yy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, '0');
+    const dd = String(dt.getDate()).padStart(2, '0');
+    return `${yy}-${mm}-${dd}`;
+  }
+
   function setDoneCount(n) {
     if (!$doneCount) return;
     $doneCount.textContent = `${n}개`;
@@ -203,7 +213,7 @@
   });
 
   $list?.addEventListener('click', async (e) => {
-    const btn = e.target.closest('[data-action="complete-task"]');
+    const btn = e.target.closest('[data-action="complete-task"], [data-action="carry-over-task"]');
     if (!btn) return;
 
     e.preventDefault();
@@ -214,10 +224,15 @@
 
     try {
       btn.disabled = true;
-      await TaskApi.completeTask(id);
+      if (btn.dataset.action === 'carry-over-task') {
+        await TaskApi.carryOver(id, shiftDate(date, 1));
+      } else {
+        await TaskApi.completeTask(id);
+      }
       await load();
     } catch (err) {
-      showError(`완료 처리 실패: ${err.message}`);
+      const actionLabel = btn.dataset.action === 'carry-over-task' ? '이월 처리' : '완료 처리';
+      showError(`${actionLabel} 실패: ${err.message}`);
     } finally {
       btn.disabled = false;
     }
