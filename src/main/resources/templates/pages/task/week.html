@@ -13,7 +13,7 @@
             <div>
                 <div class="inline-flex items-center gap-2 text-[16px] font-black text-gray-900 tracking-tight">
                     <span class="text-[16px] leading-none">🗓️</span>
-                    <span>주간 일정</span>
+                    <span>Calendar</span>
                 </div>
 
                 <div id="weekRangeText"
@@ -148,10 +148,36 @@
             </div>
 
             <div id="week-card" class="mt-4 hidden">
+                <div class="mb-3 px-1">
+                    <div class="text-[15px] font-black text-gray-900">선택한 날짜의 일정</div>
+                    <div class="mt-1 text-[12px] font-semibold text-gray-500" th:text="${selectedDate}">2026-05-30</div>
+                </div>
                 <div class="task-card">
                     <div id="week-list" class="space-y-0"></div>
                 </div>
             </div>
+
+            <section class="mt-8">
+                <div class="flex items-center justify-between px-1">
+                    <div>
+                        <div class="text-[15px] font-black text-gray-900">완료한 일</div>
+                        <div class="mt-1 text-[12px] font-semibold text-gray-500">선택한 날짜에 끝낸 일이에요</div>
+                    </div>
+                    <div id="week-done-count"
+                         class="text-[12px] font-extrabold text-gray-900 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full">
+                        0개
+                    </div>
+                </div>
+
+                <div id="week-done-empty"
+                     class="mt-4 rounded-xl border border-dashed border-gray-200 bg-white/60 px-4 py-5 text-center text-[14px] font-semibold text-gray-500">
+                    아직 완료한 일이 없어요
+                </div>
+
+                <div id="week-done-card" class="mt-4 hidden">
+                    <div id="week-done-list" class="space-y-3"></div>
+                </div>
+            </section>
 
             <div class="h-10"></div>
         </div>

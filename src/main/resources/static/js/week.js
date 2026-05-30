@@ -14,6 +14,10 @@
   const $empty = document.getElementById('week-empty');
   const $card  = document.getElementById('week-card');
   const $list  = document.getElementById('week-list');
+  const $doneEmpty = document.getElementById('week-done-empty');
+  const $doneCard = document.getElementById('week-done-card');
+  const $doneList = document.getElementById('week-done-list');
+  const $doneCount = document.getElementById('week-done-count');
 
   const selectedDate = (root.dataset.selectedDate || '').trim(); // yyyy-MM-dd
   const weekStart = (root.dataset.weekStart || '').trim();       // yyyy-MM-dd
@@ -48,6 +52,25 @@
   function showList() {
     hideAll();
     $card?.classList.remove('hidden');
+  }
+
+  function renderDone(tasks) {
+    const doneTasks = Array.isArray(tasks) ? tasks : [];
+    if ($doneCount) $doneCount.textContent = `${doneTasks.length}개`;
+
+    if (!window.TaskUI || typeof window.TaskUI.renderDoneCard !== 'function') {
+      return;
+    }
+
+    if (!doneTasks.length) {
+      $doneCard?.classList.add('hidden');
+      $doneEmpty?.classList.remove('hidden');
+      return;
+    }
+
+    $doneEmpty?.classList.add('hidden');
+    $doneCard?.classList.remove('hidden');
+    $doneList.innerHTML = doneTasks.map(TaskUI.renderDoneCard).join('');
   }
 
   function gotoWeek(deltaWeeks) {
@@ -97,7 +120,11 @@
       applyTodayRing();
 
       const date = selectedDate || weekStart;
-      const tasks = await TaskApi.getWeekTasks(date);
+      const [tasks, doneTasks] = await Promise.all([
+        TaskApi.getWeekTasks(date),
+        selectedDate ? TaskApi.getDoneTasks(selectedDate) : Promise.resolve([])
+      ]);
+      renderDone(doneTasks);
 
       const filtered = Array.isArray(tasks)
         ? tasks.filter(t => {
