@@ -1,5 +1,6 @@
 package com.todolab.common.api;
 
+import com.todolab.dday.exception.DdayGoalNotFoundException;
 import com.todolab.task.exception.TaskValidationException;
 import com.todolab.task.exception.TaskNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -79,6 +80,13 @@ public class ApiExceptionHandler {
         log.warn("Task Not Found : {}", e.getDetail());
         return ResponseEntity.status(ErrorCode.TASK_NOT_FOUND.getStatus())
                 .body(ApiResponse.failure(ErrorCode.TASK_NOT_FOUND));
+    }
+
+    @ExceptionHandler(DdayGoalNotFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleDdayGoalNotFoundException(DdayGoalNotFoundException e) {
+        log.warn("D-Day Goal Not Found : {}", e.getDetail());
+        return ResponseEntity.status(ErrorCode.DDAY_GOAL_NOT_FOUND.getStatus())
+                .body(ApiResponse.failure(ErrorCode.DDAY_GOAL_NOT_FOUND));
     }
 
     @ExceptionHandler(Exception.class)
