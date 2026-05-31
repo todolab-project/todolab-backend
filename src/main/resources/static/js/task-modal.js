@@ -19,6 +19,10 @@ window.TaskModal = (() => {
   const $meta = document.getElementById('tmMeta');
   const $createdAt = document.getElementById('tmCreatedAt');
   const $updatedAt = document.getElementById('tmUpdatedAt');
+  const $ddaySection = document.getElementById('tmDdaySection');
+  const $ddaySelect = document.getElementById('tmDdaySelect');
+  const $ddayCurrent = document.getElementById('tmDdayCurrent');
+  const $ddayDisconnect = document.getElementById('tmDdayDisconnectBtn');
 
   const $primary = document.getElementById('tmPrimaryBtn');
   const $delete = document.getElementById('tmDeleteBtn');
@@ -26,6 +30,10 @@ window.TaskModal = (() => {
   let mode = 'create'; // create | detail | edit
   let currentId = null;
   let currentType = null;
+  let currentTask = null;
+  let ddayGoals = [];
+  let ddayLoading = null;
+  let reloadOnClose = false;
 
   /* -----------------------------
    * open / close
@@ -38,7 +46,9 @@ window.TaskModal = (() => {
   function close() {
     $modal.classList.add('hidden');
     document.body.style.overflow = '';
+    const shouldReload = reloadOnClose;
     reset();
+    if (shouldReload) location.reload();
   }
 
   // 닫기: X/닫기 버튼(data-action="close"), dim 클릭, ESC
@@ -71,6 +81,16 @@ window.TaskModal = (() => {
     return hm ? `${d}T${hm}` : '';
   }
 
+  function formatDdayLabel(daysLeft) {
+    if (window.TaskUI?.formatDdayLabel) return TaskUI.formatDdayLabel(daysLeft);
+    if (daysLeft === null || daysLeft === undefined || daysLeft === '') return null;
+    const n = Number(daysLeft);
+    if (Number.isNaN(n)) return null;
+    if (n === 0) return 'D-Day';
+    if (n > 0) return `D-${n}`;
+    return `D+${Math.abs(n)}`;
+  }
+
   function setReadOnly(ro) {
     $title.readOnly = ro;
     $desc.readOnly = ro;
@@ -99,6 +119,8 @@ window.TaskModal = (() => {
     mode = 'create';
     currentId = null;
     currentType = null;
+    currentTask = null;
+    reloadOnClose = false;
 
     $title.value = '';
     $desc.value = '';
@@ -111,6 +133,10 @@ window.TaskModal = (() => {
     $meta.classList.add('hidden');
     $createdAt.textContent = '-';
     $updatedAt.textContent = '-';
+    $ddaySection?.classList.add('hidden');
+    if ($ddaySelect) $ddaySelect.innerHTML = '<option value="">연결된 목표 없음</option>';
+    if ($ddayCurrent) $ddayCurrent.textContent = '-';
+    $ddayDisconnect?.classList.add('hidden');
 
     $delete.classList.add('hidden');
     $primary.textContent = '항목 등록';
@@ -121,6 +147,7 @@ window.TaskModal = (() => {
   }
 
   function fill(task) {
+    currentTask = task;
     currentType = task.type ?? null;
 
     $title.value = task.title ?? '';
@@ -137,6 +164,72 @@ window.TaskModal = (() => {
     $updatedAt.textContent = fmtIso(task.updatedAt || task.timestamp);
 
     syncDateDisabled();
+  }
+
+  async function loadDdayGoals() {
+    if (!ddayLoading) {
+      ddayLoading = TaskApi.getDdayGoals()
+        .then((goals) => {
+          ddayGoals = Array.isArray(goals) ? goals : [];
+          return ddayGoals;
+        })
+        .finally(() => {
+          ddayLoading = null;
+        });
+    }
+    return ddayLoading;
+  }
+
+  function renderDdayOptions(task) {
+    if (!$ddaySelect) return;
+
+    const selectedId = task?.ddayGoalId == null ? '' : String(task.ddayGoalId);
+    const options = ['<option value="">연결된 목표 없음</option>']
+      .concat(ddayGoals.map((goal) => {
+        const label = formatDdayLabel(goal.daysLeft);
+        const text = label ? `${goal.title} ${label}` : goal.title;
+        const selected = String(goal.id) === selectedId ? ' selected' : '';
+        return `<option value="${String(goal.id).replaceAll('"', '&quot;')}"${selected}>${String(text)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')}</option>`;
+      }));
+
+    $ddaySelect.innerHTML = options.join('');
+  }
+
+  function renderDdayCurrent(task) {
+    if (!$ddayCurrent || !$ddayDisconnect) return;
+
+    if (!task?.ddayGoalId) {
+      $ddayCurrent.textContent = '연결된 목표가 없습니다.';
+      $ddayDisconnect.classList.add('hidden');
+      return;
+    }
+
+    const label = formatDdayLabel(task.ddayDaysLeft);
+    const title = task.ddayGoalTitle || 'D-Day 목표';
+    $ddayCurrent.textContent = label ? `현재 연결 · ${title} ${label}` : `현재 연결 · ${title}`;
+    $ddayDisconnect.classList.remove('hidden');
+  }
+
+  async function showDdayControl(task) {
+    if (!$ddaySection || !$ddaySelect) return;
+
+    $ddaySection.classList.remove('hidden');
+    $ddaySelect.disabled = true;
+    if ($ddayCurrent) $ddayCurrent.textContent = 'D-Day 목표를 불러오는 중...';
+
+    try {
+      await loadDdayGoals();
+      renderDdayOptions(task);
+      renderDdayCurrent(task);
+    } catch (e) {
+      if ($ddayCurrent) $ddayCurrent.textContent = `D-Day 목표 로딩 실패: ${e.message || e}`;
+    } finally {
+      $ddaySelect.disabled = false;
+    }
   }
 
   function payloadFromForm() {
@@ -169,6 +262,7 @@ window.TaskModal = (() => {
     $primary.textContent = '항목 등록';
     $delete.classList.add('hidden');
     $meta.classList.add('hidden');
+    $ddaySection?.classList.add('hidden');
 
     setReadOnly(false);
 
@@ -195,6 +289,7 @@ window.TaskModal = (() => {
 
     fill(task);
     setReadOnly(true);
+    showDdayControl(task);
   }
 
   function setModeEdit(id) {
@@ -208,6 +303,7 @@ window.TaskModal = (() => {
 
     setReadOnly(false);
     syncDateDisabled();
+    showDdayControl(currentTask);
   }
 
   /* -----------------------------
@@ -255,6 +351,44 @@ window.TaskModal = (() => {
       location.reload();
     } catch (e) {
       alert(`${e.message || e}`);
+    }
+  });
+
+  $ddaySelect?.addEventListener('change', async () => {
+    if (!currentId || !currentTask) return;
+
+    const value = $ddaySelect.value;
+    $ddaySelect.disabled = true;
+
+    try {
+      const updated = value
+        ? await TaskApi.connectDdayGoal(currentId, value)
+        : await TaskApi.disconnectDdayGoal(currentId);
+      reloadOnClose = true;
+      fill(updated);
+      await showDdayControl(updated);
+    } catch (e) {
+      alert(`D-Day 연결 변경 실패: ${e.message || e}`);
+      renderDdayOptions(currentTask);
+      renderDdayCurrent(currentTask);
+    } finally {
+      $ddaySelect.disabled = false;
+    }
+  });
+
+  $ddayDisconnect?.addEventListener('click', async () => {
+    if (!currentId || !currentTask?.ddayGoalId) return;
+
+    try {
+      $ddayDisconnect.disabled = true;
+      const updated = await TaskApi.disconnectDdayGoal(currentId);
+      reloadOnClose = true;
+      fill(updated);
+      await showDdayControl(updated);
+    } catch (e) {
+      alert(`D-Day 연결 해제 실패: ${e.message || e}`);
+    } finally {
+      $ddayDisconnect.disabled = false;
     }
   });
 
