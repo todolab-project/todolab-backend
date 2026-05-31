@@ -6,6 +6,7 @@ import java.util.List;
 public record CalendarCell(
         LocalDate date,
         boolean inMonth,
-        List<TaskUi> tasks
+        List<TaskUi> tasks,
+        List<DdayGoalUi> ddayGoals
 ) {
 }

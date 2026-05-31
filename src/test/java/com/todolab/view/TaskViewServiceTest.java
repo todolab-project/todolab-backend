@@ -1,5 +1,7 @@
 package com.todolab.view;
 
+import com.todolab.dday.dto.DdayGoalResponse;
+import com.todolab.dday.service.DdayGoalService;
 import com.todolab.task.domain.query.TaskQueryType;
 import com.todolab.task.dto.TaskQueryRequest;
 import com.todolab.task.dto.TaskResponse;
@@ -30,11 +32,14 @@ class TaskViewServiceTest {
     @Mock
     TaskService taskService;
 
+    @Mock
+    DdayGoalService ddayGoalService;
+
     TaskViewService taskViewService;
 
     @BeforeEach
     void setUp() {
-        taskViewService = new TaskViewService(taskService);
+        taskViewService = new TaskViewService(taskService, ddayGoalService);
     }
 
     @Test
@@ -48,6 +53,8 @@ class TaskViewServiceTest {
         );
         given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
                 .willReturn(tasks);
+        given(ddayGoalService.findByDateRange(LocalDate.of(2025, 11, 23), LocalDate.of(2025, 11, 29)))
+                .willReturn(List.of());
 
         // when
         WeekPageModel page = taskViewService.getWeekPage(null, "2025-11-25");
@@ -77,7 +84,9 @@ class TaskViewServiceTest {
         then(taskService).should().getTasks(requestCaptor.capture());
         assertThat(requestCaptor.getValue().getType()).isEqualTo(TaskQueryType.WEEK);
         assertThat(requestCaptor.getValue().getDate()).isEqualTo("2025-11-25");
+        then(ddayGoalService).should().findByDateRange(LocalDate.of(2025, 11, 23), LocalDate.of(2025, 11, 29));
         then(taskService).shouldHaveNoMoreInteractions();
+        then(ddayGoalService).shouldHaveNoMoreInteractions();
     }
 
     @Test
@@ -85,6 +94,8 @@ class TaskViewServiceTest {
     void getWeekPage_appliesMove() {
         // given
         given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
+                .willReturn(List.of());
+        given(ddayGoalService.findByDateRange(LocalDate.of(2025, 11, 30), LocalDate.of(2025, 12, 6)))
                 .willReturn(List.of());
 
         // when
@@ -100,7 +111,9 @@ class TaskViewServiceTest {
         then(taskService).should().getTasks(requestCaptor.capture());
         assertThat(requestCaptor.getValue().getType()).isEqualTo(TaskQueryType.WEEK);
         assertThat(requestCaptor.getValue().getDate()).isEqualTo("2025-12-02");
+        then(ddayGoalService).should().findByDateRange(LocalDate.of(2025, 11, 30), LocalDate.of(2025, 12, 6));
         then(taskService).shouldHaveNoMoreInteractions();
+        then(ddayGoalService).shouldHaveNoMoreInteractions();
     }
 
     @Test
@@ -114,6 +127,8 @@ class TaskViewServiceTest {
         );
         given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
                 .willReturn(tasks);
+        given(ddayGoalService.findByDateRange(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 28)))
+                .willReturn(List.of());
 
         // when
         MonthPageModel page = taskViewService.getMonthPage(null, "2026-02");
@@ -141,7 +156,9 @@ class TaskViewServiceTest {
         then(taskService).should().getTasks(requestCaptor.capture());
         assertThat(requestCaptor.getValue().getType()).isEqualTo(TaskQueryType.MONTH);
         assertThat(requestCaptor.getValue().getDate()).isEqualTo("2026-02");
+        then(ddayGoalService).should().findByDateRange(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 28));
         then(taskService).shouldHaveNoMoreInteractions();
+        then(ddayGoalService).shouldHaveNoMoreInteractions();
     }
 
     @Test
@@ -149,6 +166,8 @@ class TaskViewServiceTest {
     void getMonthPage_appliesDateAndMove() {
         // given
         given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
+                .willReturn(List.of());
+        given(ddayGoalService.findByDateRange(LocalDate.of(2025, 12, 28), LocalDate.of(2026, 1, 31)))
                 .willReturn(List.of());
 
         // when
@@ -166,7 +185,37 @@ class TaskViewServiceTest {
         then(taskService).should().getTasks(requestCaptor.capture());
         assertThat(requestCaptor.getValue().getType()).isEqualTo(TaskQueryType.MONTH);
         assertThat(requestCaptor.getValue().getDate()).isEqualTo("2026-01");
+        then(ddayGoalService).should().findByDateRange(LocalDate.of(2025, 12, 28), LocalDate.of(2026, 1, 31));
         then(taskService).shouldHaveNoMoreInteractions();
+        then(ddayGoalService).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("주간 화면 조회 - D-Day 목표를 날짜별로 구성한다")
+    void getWeekPage_buildsDdayGoalsByDate() {
+        // given
+        given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
+                .willReturn(List.of());
+        given(ddayGoalService.findByDateRange(LocalDate.of(2026, 6, 7), LocalDate.of(2026, 6, 13)))
+                .willReturn(List.of(new DdayGoalResponse(
+                        1L,
+                        "정보처리기사",
+                        LocalDate.of(2026, 6, 10),
+                        10,
+                        null
+                )));
+
+        // when
+        WeekPageModel page = taskViewService.getWeekPage(null, "2026-06-10");
+
+        // then
+        DaySchedule selected = page.selectedSchedule();
+        assertThat(selected.date()).isEqualTo(LocalDate.of(2026, 6, 10));
+        assertThat(selected.ddayGoals()).hasSize(1);
+        assertThat(selected.ddayGoals().getFirst().title()).isEqualTo("정보처리기사");
+        assertThat(selected.ddayGoals().getFirst().label()).isEqualTo("D-10");
+
+        then(ddayGoalService).should().findByDateRange(LocalDate.of(2026, 6, 7), LocalDate.of(2026, 6, 13));
     }
 
     private TaskResponse task(Long id, String title, LocalDateTime startAt, LocalDateTime endAt, boolean unscheduled) {

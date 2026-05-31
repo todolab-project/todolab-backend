@@ -124,6 +124,8 @@
                             <div class="mt-1 h-2 flex items-center justify-center">
                 <span th:if="${c.tasks != null and !c.tasks.isEmpty()}"
                       class="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400/70"></span>
+                                <span th:if="${c.ddayGoals != null and !c.ddayGoals.isEmpty()}"
+                                      class="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-fuchsia-500/80"></span>
                             </div>
                         </div>
                     </div>
@@ -165,6 +167,36 @@
                     <div id="month-list" class="space-y-0"></div>
                 </div>
             </div>
+
+            <section th:with="selectedCell=${monthDays.?[date.equals(selectedDate)].isEmpty() ? null : monthDays.?[date.equals(selectedDate)][0]}"
+                     th:if="${selectedCell != null and selectedCell.ddayGoals != null and !selectedCell.ddayGoals.isEmpty()}"
+                     class="mt-8">
+                <div class="flex items-center justify-between px-1">
+                    <div>
+                        <div class="text-[15px] font-black text-gray-900">D-Day</div>
+                        <div class="mt-1 text-[12px] font-semibold text-gray-500">선택한 날짜의 목표예요</div>
+                    </div>
+                    <div class="text-[12px] font-extrabold text-gray-900 bg-fuchsia-50 border border-fuchsia-100 px-3 py-1.5 rounded-full"
+                         th:text="${selectedCell.ddayGoals.size()} + '개'">1개</div>
+                </div>
+
+                <div class="mt-4 space-y-3">
+                    <a th:each="goal : ${selectedCell.ddayGoals}"
+                       th:href="@{/tasks/dday}"
+                       class="block rounded-xl border border-fuchsia-100 bg-white px-4 py-4 shadow-sm">
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <div class="truncate text-[15px] font-black text-gray-900"
+                                     th:text="${goal.title}">정보처리기사</div>
+                                <div class="mt-1 text-[12px] font-semibold text-gray-500"
+                                     th:text="${goal.targetDate}">2026-06-10</div>
+                            </div>
+                            <div class="shrink-0 text-[14px] font-black text-fuchsia-600"
+                                 th:text="${goal.label()}">D-Day</div>
+                        </div>
+                    </a>
+                </div>
+            </section>
 
             <section class="mt-8">
                 <div class="flex items-center justify-between px-1">

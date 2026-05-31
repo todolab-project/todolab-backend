@@ -6,6 +6,7 @@ import java.util.List;
 public record DaySchedule(
         LocalDate date,
         String dayLabel,
-        List<TaskUi> tasks
+        List<TaskUi> tasks,
+        List<DdayGoalUi> ddayGoals
 ) {
 }

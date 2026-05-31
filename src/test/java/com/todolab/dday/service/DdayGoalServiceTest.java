@@ -63,6 +63,24 @@ class DdayGoalServiceTest {
     }
 
     @Test
+    @DisplayName("D-Day 목표를 날짜 범위로 조회한다")
+    void findByDateRange_success() {
+        DdayGoalService service = new DdayGoalService(ddayGoalRepository, taskRepository);
+        LocalDate startDate = LocalDate.of(2026, 6, 1);
+        LocalDate endDate = LocalDate.of(2026, 6, 30);
+        given(ddayGoalRepository.findByTargetDateBetweenOrderByTargetDateAscIdAsc(startDate, endDate))
+                .willReturn(List.of(new DdayGoal("정보처리기사", LocalDate.of(2026, 6, 10))));
+
+        var responses = service.findByDateRange(startDate, endDate);
+
+        assertThat(responses).hasSize(1);
+        assertThat(responses.getFirst().title()).isEqualTo("정보처리기사");
+        assertThat(responses.getFirst().targetDate()).isEqualTo(LocalDate.of(2026, 6, 10));
+        then(ddayGoalRepository).should().findByTargetDateBetweenOrderByTargetDateAscIdAsc(startDate, endDate);
+        then(taskRepository).shouldHaveNoInteractions();
+    }
+
+    @Test
     @DisplayName("D-Day 목표에 연결된 Task를 조회한다")
     void findTasks_success() {
         DdayGoalService service = new DdayGoalService(ddayGoalRepository, taskRepository);

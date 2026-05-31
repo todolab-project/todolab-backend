@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -30,6 +31,13 @@ public class DdayGoalService {
     @Transactional(readOnly = true)
     public List<DdayGoalResponse> findAll() {
         return ddayGoalRepository.findAllByOrderByTargetDateAscIdAsc().stream()
+                .map(DdayGoalResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<DdayGoalResponse> findByDateRange(LocalDate startDate, LocalDate endDate) {
+        return ddayGoalRepository.findByTargetDateBetweenOrderByTargetDateAscIdAsc(startDate, endDate).stream()
                 .map(DdayGoalResponse::from)
                 .toList();
     }

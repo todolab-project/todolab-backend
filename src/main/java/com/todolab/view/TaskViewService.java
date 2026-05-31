@@ -1,11 +1,14 @@
 package com.todolab.view;
 
+import com.todolab.dday.dto.DdayGoalResponse;
+import com.todolab.dday.service.DdayGoalService;
 import com.todolab.task.domain.query.TaskQueryType;
 import com.todolab.task.dto.TaskQueryRequest;
 import com.todolab.task.dto.TaskResponse;
 import com.todolab.task.service.TaskService;
 import com.todolab.view.model.CalendarCell;
 import com.todolab.view.model.DaySchedule;
+import com.todolab.view.model.DdayGoalUi;
 import com.todolab.view.model.MonthPageModel;
 import com.todolab.view.model.TaskUi;
 import com.todolab.view.model.WeekPageModel;
@@ -22,6 +25,7 @@ import java.util.List;
 public class TaskViewService {
 
     private final TaskService taskService;
+    private final DdayGoalService ddayGoalService;
 
     private final String[] dayLabels = {"일", "월", "화", "수", "목", "금", "토"};
 
@@ -39,6 +43,7 @@ public class TaskViewService {
         List<TaskResponse> taskList = taskService.getTasks(
                 new TaskQueryRequest(TaskQueryType.WEEK, targetDate.toString())
         );
+        List<DdayGoalResponse> ddayGoals = ddayGoalService.findByDateRange(weekStart, weekEnd);
 
         List<DaySchedule> weeklyTasks = new ArrayList<>(7);
         for (int i = 0; i < 7; i++) {
@@ -49,7 +54,12 @@ public class TaskViewService {
                     .map(this::toUi)
                     .toList();
 
-            weeklyTasks.add(new DaySchedule(day, dayLabels[i], uiTasks));
+            List<DdayGoalUi> uiDdayGoals = ddayGoals.stream()
+                    .filter(goal -> goal.targetDate().equals(day))
+                    .map(this::toUi)
+                    .toList();
+
+            weeklyTasks.add(new DaySchedule(day, dayLabels[i], uiTasks, uiDdayGoals));
         }
 
         LocalDate selectedDate = targetDate;
@@ -102,6 +112,7 @@ public class TaskViewService {
         List<TaskResponse> taskList = taskService.getTasks(
                 new TaskQueryRequest(TaskQueryType.MONTH, ymKey)
         );
+        List<DdayGoalResponse> ddayGoals = ddayGoalService.findByDateRange(gridStart, gridEnd);
 
         LocalDate selectedDate = (date != null && date.length() == 10)
                 ? LocalDate.parse(date)
@@ -117,7 +128,12 @@ public class TaskViewService {
                     .map(this::toUi)
                     .toList();
 
-            monthDays.add(new CalendarCell(day, inMonth, uiTasks));
+            List<DdayGoalUi> uiDdayGoals = ddayGoals.stream()
+                    .filter(goal -> goal.targetDate().equals(day))
+                    .map(this::toUi)
+                    .toList();
+
+            monthDays.add(new CalendarCell(day, inMonth, uiTasks, uiDdayGoals));
         }
 
         int monthTotalCount = monthDays.stream()
@@ -186,6 +202,15 @@ public class TaskViewService {
                 task.endAt(),
                 task.category(),
                 pickColor(task.id())
+        );
+    }
+
+    private DdayGoalUi toUi(DdayGoalResponse goal) {
+        return new DdayGoalUi(
+                goal.id(),
+                goal.title(),
+                goal.targetDate(),
+                goal.daysLeft()
         );
     }
 
