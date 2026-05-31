@@ -56,6 +56,19 @@
     return label ? `목표 · ${task.ddayGoalTitle} ${label}` : `목표 · ${task.ddayGoalTitle}`;
   };
 
+  TaskUI.formatCarryOverMeta = (task) => {
+    const n = Number(task?.carryOverCount || 0);
+    if (!Number.isFinite(n) || n <= 0) return null;
+    return `${n}회 이월`;
+  };
+
+  TaskUI.joinMeta = (...items) => {
+    return items
+      .map(v => (v === null || v === undefined ? '' : String(v).trim()))
+      .filter(Boolean)
+      .join(' · ');
+  };
+
   /* -----------------------------
    * renderTaskCard (모든 페이지가 이걸로 통일)
    *
@@ -176,7 +189,7 @@
   TaskUI.renderTodayCard = (t) => {
     return TaskUI.renderTaskCard(t, {
       showRightTime: true,
-      metaText: TaskUI.formatDdayMeta(t),
+      metaText: TaskUI.joinMeta(TaskUI.formatDdayMeta(t), TaskUI.formatCarryOverMeta(t)),
       completeAction: true,
       carryOverAction: true
     });

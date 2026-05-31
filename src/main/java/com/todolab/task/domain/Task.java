@@ -64,6 +64,9 @@ public class Task {
     @Column(name = "`COMPLETED_AT`")
     private LocalDateTime completedAt;
 
+    @Column(name = "`CARRY_OVER_COUNT`", nullable = false)
+    private int carryOverCount;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "`DDAY_GOAL_ID`")
     private DdayGoal ddayGoal;
@@ -82,9 +85,10 @@ public class Task {
 
     @Builder
     public Task(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category,
-                TaskStatus status, LocalDate targetDate, LocalDateTime completedAt, DdayGoal ddayGoal) {
+                TaskStatus status, LocalDate targetDate, LocalDateTime completedAt, Integer carryOverCount, DdayGoal ddayGoal) {
         apply(title, description, type, startAt, endAt, allDay, category);
         applyStatus(status, targetDate, completedAt);
+        this.carryOverCount = carryOverCount == null ? 0 : Math.max(0, carryOverCount);
         this.ddayGoal = ddayGoal;
     }
 
@@ -127,6 +131,7 @@ public class Task {
         this.status = TaskStatus.TODAY;
         this.targetDate = nextDate;
         this.completedAt = null;
+        this.carryOverCount++;
     }
 
     public void connectDdayGoal(DdayGoal ddayGoal) {

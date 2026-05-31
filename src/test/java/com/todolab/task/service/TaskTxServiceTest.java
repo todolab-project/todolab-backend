@@ -68,6 +68,7 @@ class TaskTxServiceTest {
                 .title("task")
                 .status(TaskStatus.TODAY)
                 .targetDate(LocalDate.of(2026, 5, 21))
+                .carryOverCount(1)
                 .build();
         TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
 
@@ -95,6 +96,7 @@ class TaskTxServiceTest {
                 .title("task")
                 .status(TaskStatus.TODAY)
                 .targetDate(LocalDate.of(2026, 5, 21))
+                .carryOverCount(1)
                 .build();
         TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
 
@@ -108,6 +110,7 @@ class TaskTxServiceTest {
         assertThat(result.getStatus()).isEqualTo(TaskStatus.TODAY);
         assertThat(result.getTargetDate()).isEqualTo(nextDate);
         assertThat(result.getCompletedAt()).isNull();
+        assertThat(result.getCarryOverCount()).isEqualTo(2);
 
         then(taskRepository).should(times(1)).findById(id);
         then(taskRepository).should(times(1)).save(task);

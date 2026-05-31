@@ -13,6 +13,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class TaskTest {
 
     @Test
+    @DisplayName("새 Task의 이월 횟수 기본값은 0이다")
+    void carryOverCount_defaultZero() {
+        // given
+        Task task = Task.builder()
+                .title("task")
+                .build();
+
+        // then
+        assertThat(task.getCarryOverCount()).isZero();
+    }
+
+    @Test
     @DisplayName("moveToInbox는 Inbox 상태로 바꾸고 실행 날짜와 완료 시간을 비운다")
     void moveToInbox() {
         // given
@@ -76,6 +88,7 @@ class TaskTest {
                 .status(TaskStatus.DONE)
                 .targetDate(LocalDate.of(2026, 5, 20))
                 .completedAt(LocalDateTime.of(2026, 5, 20, 21, 0))
+                .carryOverCount(2)
                 .build();
         LocalDate nextDate = LocalDate.of(2026, 5, 21);
 
@@ -86,6 +99,7 @@ class TaskTest {
         assertThat(task.getStatus()).isEqualTo(TaskStatus.TODAY);
         assertThat(task.getTargetDate()).isEqualTo(nextDate);
         assertThat(task.getCompletedAt()).isNull();
+        assertThat(task.getCarryOverCount()).isEqualTo(3);
     }
 
     @Test

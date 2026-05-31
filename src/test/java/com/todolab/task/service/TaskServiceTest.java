@@ -830,6 +830,7 @@ class TaskServiceTest {
                 .title("carried over")
                 .status(TaskStatus.TODAY)
                 .targetDate(nextDate)
+                .carryOverCount(2)
                 .build();
 
         given(taskTxService.carryOverTx(id, nextDate)).willReturn(carriedOver);
@@ -842,6 +843,7 @@ class TaskServiceTest {
         assertThat(result.status()).isEqualTo(TaskStatus.TODAY);
         assertThat(result.targetDate()).isEqualTo(nextDate);
         assertThat(result.completedAt()).isNull();
+        assertThat(result.carryOverCount()).isEqualTo(2);
 
         then(taskTxService).should(times(1)).carryOverTx(id, nextDate);
         then(taskRepository).shouldHaveNoInteractions();

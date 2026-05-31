@@ -786,6 +786,7 @@ class TaskControllerTest {
                 .title("carried over")
                 .status(TaskStatus.TODAY)
                 .targetDate(nextDate)
+                .carryOverCount(2)
                 .build();
 
         given(taskService.carryOver(id, nextDate)).willReturn(carriedOver);
@@ -797,7 +798,8 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.status").value("TODAY"))
-                .andExpect(jsonPath("$.data.targetDate").value("2026-05-22"));
+                .andExpect(jsonPath("$.data.targetDate").value("2026-05-22"))
+                .andExpect(jsonPath("$.data.carryOverCount").value(2));
 
         then(taskService).should().carryOver(id, nextDate);
         then(taskService).shouldHaveNoMoreInteractions();
