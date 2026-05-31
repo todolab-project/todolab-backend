@@ -815,6 +815,9 @@ class TaskControllerTest {
                 .status(TaskStatus.TODAY)
                 .targetDate(LocalDate.of(2026, 5, 31))
                 .ddayGoalId(ddayGoalId)
+                .ddayGoalTitle("정보처리기사")
+                .ddayGoalTargetDate(LocalDate.of(2026, 6, 10))
+                .ddayDaysLeft(10L)
                 .build();
 
         given(taskService.connectDdayGoal(id, ddayGoalId)).willReturn(connected);
@@ -825,7 +828,10 @@ class TaskControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.id").value(1))
-                .andExpect(jsonPath("$.data.ddayGoalId").value(10));
+                .andExpect(jsonPath("$.data.ddayGoalId").value(10))
+                .andExpect(jsonPath("$.data.ddayGoalTitle").value("정보처리기사"))
+                .andExpect(jsonPath("$.data.ddayGoalTargetDate").value("2026-06-10"))
+                .andExpect(jsonPath("$.data.ddayDaysLeft").value(10));
 
         then(taskService).should().connectDdayGoal(id, ddayGoalId);
         then(taskService).shouldHaveNoMoreInteractions();

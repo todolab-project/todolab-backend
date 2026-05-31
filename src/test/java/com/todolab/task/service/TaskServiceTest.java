@@ -870,6 +870,9 @@ class TaskServiceTest {
         // then
         assertThat(result.title()).isEqualTo("기출 20문제 풀기");
         assertThat(result.ddayGoalId()).isEqualTo(ddayGoalId);
+        assertThat(result.ddayGoalTitle()).isEqualTo("정보처리기사");
+        assertThat(result.ddayGoalTargetDate()).isEqualTo(LocalDate.of(2026, 6, 10));
+        assertThat(result.ddayDaysLeft()).isNotNull();
 
         then(taskTxService).should(times(1)).connectDdayGoalTx(id, ddayGoalId);
         then(taskRepository).shouldHaveNoInteractions();

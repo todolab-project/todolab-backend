@@ -57,6 +57,9 @@
   }
 
   function ddayLabel(daysLeft) {
+    if (window.TaskUI?.formatDdayLabel) {
+      return TaskUI.formatDdayLabel(daysLeft);
+    }
     const n = Number(daysLeft);
     if (n === 0) return 'D-Day';
     if (n > 0) return `D-${n}`;

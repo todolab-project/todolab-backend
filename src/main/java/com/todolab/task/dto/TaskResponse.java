@@ -7,6 +7,7 @@ import lombok.Builder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Builder
 public record TaskResponse(
@@ -23,6 +24,9 @@ public record TaskResponse(
         LocalDate targetDate,
         LocalDateTime completedAt,
         Long ddayGoalId,
+        String ddayGoalTitle,
+        LocalDate ddayGoalTargetDate,
+        Long ddayDaysLeft,
         LocalDateTime createdAt
 ) {
     public TaskResponse(
@@ -36,10 +40,11 @@ public record TaskResponse(
             String category,
             LocalDateTime createdAt
     ) {
-        this(id, TaskType.defaultType(), title, description, startAt, endAt, allDay, unscheduled, category, null, null, null, null, createdAt);
+        this(id, TaskType.defaultType(), title, description, startAt, endAt, allDay, unscheduled, category, null, null, null, null, null, null, null, createdAt);
     }
 
     public static TaskResponse from(Task t) {
+        var ddayGoal = t.getDdayGoal();
         return TaskResponse.builder()
                 .id(t.getId())
                 .type(t.getType())
@@ -53,7 +58,10 @@ public record TaskResponse(
                 .status(t.getStatus())
                 .targetDate(t.getTargetDate())
                 .completedAt(t.getCompletedAt())
-                .ddayGoalId(t.getDdayGoal() == null ? null : t.getDdayGoal().getId())
+                .ddayGoalId(ddayGoal == null ? null : ddayGoal.getId())
+                .ddayGoalTitle(ddayGoal == null ? null : ddayGoal.getTitle())
+                .ddayGoalTargetDate(ddayGoal == null ? null : ddayGoal.getTargetDate())
+                .ddayDaysLeft(ddayGoal == null ? null : ChronoUnit.DAYS.between(LocalDate.now(), ddayGoal.getTargetDate()))
                 .createdAt(t.getCreatedAt())
                 .build();
     }

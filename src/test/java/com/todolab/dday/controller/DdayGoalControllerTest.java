@@ -111,6 +111,9 @@ class DdayGoalControllerTest {
                 .status(TaskStatus.TODAY)
                 .targetDate(LocalDate.of(2026, 5, 30))
                 .ddayGoalId(1L)
+                .ddayGoalTitle("정보처리기사")
+                .ddayGoalTargetDate(LocalDate.of(2026, 6, 10))
+                .ddayDaysLeft(11L)
                 .build();
 
         given(ddayGoalService.findTasks(1L)).willReturn(List.of(task));
@@ -123,7 +126,10 @@ class DdayGoalControllerTest {
                 .andExpect(jsonPath("$.data[0].title").value("기출 20문제 풀기"))
                 .andExpect(jsonPath("$.data[0].status").value("TODAY"))
                 .andExpect(jsonPath("$.data[0].targetDate").value("2026-05-30"))
-                .andExpect(jsonPath("$.data[0].ddayGoalId").value(1));
+                .andExpect(jsonPath("$.data[0].ddayGoalId").value(1))
+                .andExpect(jsonPath("$.data[0].ddayGoalTitle").value("정보처리기사"))
+                .andExpect(jsonPath("$.data[0].ddayGoalTargetDate").value("2026-06-10"))
+                .andExpect(jsonPath("$.data[0].ddayDaysLeft").value(11));
 
         then(ddayGoalService).should().findTasks(1L);
         then(ddayGoalService).shouldHaveNoMoreInteractions();

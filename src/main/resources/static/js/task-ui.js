@@ -41,6 +41,21 @@
     return '';
   };
 
+  TaskUI.formatDdayLabel = (daysLeft) => {
+    if (daysLeft === null || daysLeft === undefined || daysLeft === '') return null;
+    const n = Number(daysLeft);
+    if (Number.isNaN(n)) return null;
+    if (n === 0) return 'D-Day';
+    if (n > 0) return `D-${n}`;
+    return `D+${Math.abs(n)}`;
+  };
+
+  TaskUI.formatDdayMeta = (task) => {
+    if (!task?.ddayGoalTitle) return null;
+    const label = TaskUI.formatDdayLabel(task.ddayDaysLeft);
+    return label ? `목표 · ${task.ddayGoalTitle} ${label}` : `목표 · ${task.ddayGoalTitle}`;
+  };
+
   /* -----------------------------
    * renderTaskCard (모든 페이지가 이걸로 통일)
    *
@@ -161,7 +176,7 @@
   TaskUI.renderTodayCard = (t) => {
     return TaskUI.renderTaskCard(t, {
       showRightTime: true,
-      metaText: null,
+      metaText: TaskUI.formatDdayMeta(t),
       completeAction: true,
       carryOverAction: true
     });
