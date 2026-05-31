@@ -1,5 +1,8 @@
 package com.todolab.task.service;
 
+import com.todolab.dday.domain.DdayGoal;
+import com.todolab.dday.exception.DdayGoalNotFoundException;
+import com.todolab.dday.repository.DdayGoalRepository;
 import com.todolab.task.domain.Task;
 import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.exception.TaskNotFoundException;
@@ -26,6 +29,9 @@ class TaskTxServiceTest {
     @Mock
     TaskRepository taskRepository;
 
+    @Mock
+    DdayGoalRepository ddayGoalRepository;
+
     @Test
     @DisplayName("moveToTodayTx는 Task를 Today 상태로 변경하고 저장한다")
     void moveToTodayTx_success() {
@@ -35,7 +41,7 @@ class TaskTxServiceTest {
         Task task = Task.builder()
                 .title("task")
                 .build();
-        TaskTxService service = new TaskTxService(taskRepository);
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
 
         given(taskRepository.findById(id)).willReturn(Optional.of(task));
         given(taskRepository.save(task)).willReturn(task);
@@ -63,7 +69,7 @@ class TaskTxServiceTest {
                 .status(TaskStatus.TODAY)
                 .targetDate(LocalDate.of(2026, 5, 21))
                 .build();
-        TaskTxService service = new TaskTxService(taskRepository);
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
 
         given(taskRepository.findById(id)).willReturn(Optional.of(task));
         given(taskRepository.save(task)).willReturn(task);
@@ -90,7 +96,7 @@ class TaskTxServiceTest {
                 .status(TaskStatus.TODAY)
                 .targetDate(LocalDate.of(2026, 5, 21))
                 .build();
-        TaskTxService service = new TaskTxService(taskRepository);
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
 
         given(taskRepository.findById(id)).willReturn(Optional.of(task));
         given(taskRepository.save(task)).willReturn(task);
@@ -112,7 +118,7 @@ class TaskTxServiceTest {
     void changeStatus_notFound() {
         // given
         long id = 999L;
-        TaskTxService service = new TaskTxService(taskRepository);
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
         given(taskRepository.findById(id)).willReturn(Optional.empty());
 
         // when & then
@@ -120,5 +126,79 @@ class TaskTxServiceTest {
                 .isInstanceOf(TaskNotFoundException.class);
 
         then(taskRepository).should(times(1)).findById(id);
+    }
+
+    @Test
+    @DisplayName("connectDdayGoalTx는 Task에 D-Day 목표를 연결하고 저장한다")
+    void connectDdayGoalTx_success() {
+        // given
+        long id = 1L;
+        long ddayGoalId = 10L;
+        Task task = Task.builder()
+                .title("기출 20문제 풀기")
+                .build();
+        DdayGoal goal = new DdayGoal("정보처리기사", LocalDate.of(2026, 6, 10));
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
+
+        given(taskRepository.findById(id)).willReturn(Optional.of(task));
+        given(ddayGoalRepository.findById(ddayGoalId)).willReturn(Optional.of(goal));
+        given(taskRepository.save(task)).willReturn(task);
+
+        // when
+        Task result = service.connectDdayGoalTx(id, ddayGoalId);
+
+        // then
+        assertThat(result.getDdayGoal()).isEqualTo(goal);
+
+        then(taskRepository).should(times(1)).findById(id);
+        then(ddayGoalRepository).should(times(1)).findById(ddayGoalId);
+        then(taskRepository).should(times(1)).save(task);
+    }
+
+    @Test
+    @DisplayName("connectDdayGoalTx는 D-Day 목표가 없으면 DdayGoalNotFoundException이 발생한다")
+    void connectDdayGoalTx_fail_goalNotFound() {
+        // given
+        long id = 1L;
+        long ddayGoalId = 99L;
+        Task task = Task.builder()
+                .title("기출 20문제 풀기")
+                .build();
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
+
+        given(taskRepository.findById(id)).willReturn(Optional.of(task));
+        given(ddayGoalRepository.findById(ddayGoalId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> service.connectDdayGoalTx(id, ddayGoalId))
+                .isInstanceOf(DdayGoalNotFoundException.class);
+
+        then(taskRepository).should(times(1)).findById(id);
+        then(ddayGoalRepository).should(times(1)).findById(ddayGoalId);
+    }
+
+    @Test
+    @DisplayName("disconnectDdayGoalTx는 Task의 D-Day 목표 연결을 해제하고 저장한다")
+    void disconnectDdayGoalTx_success() {
+        // given
+        long id = 1L;
+        DdayGoal goal = new DdayGoal("정보처리기사", LocalDate.of(2026, 6, 10));
+        Task task = Task.builder()
+                .title("기출 20문제 풀기")
+                .ddayGoal(goal)
+                .build();
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
+
+        given(taskRepository.findById(id)).willReturn(Optional.of(task));
+        given(taskRepository.save(task)).willReturn(task);
+
+        // when
+        Task result = service.disconnectDdayGoalTx(id);
+
+        // then
+        assertThat(result.getDdayGoal()).isNull();
+
+        then(taskRepository).should(times(1)).findById(id);
+        then(taskRepository).should(times(1)).save(task);
     }
 }

@@ -89,6 +89,20 @@
     });
   };
 
+  TaskApi.connectDdayGoal = (id, ddayGoalId) => {
+    return request(`/api/tasks/${encodeURIComponent(id)}/dday-goal${buildQuery({ ddayGoalId })}`, {
+      method: 'PATCH',
+      headers: { 'X-Requested-With': 'fetch' }
+    });
+  };
+
+  TaskApi.disconnectDdayGoal = (id) => {
+    return request(`/api/tasks/${encodeURIComponent(id)}/dday-goal`, {
+      method: 'DELETE',
+      headers: { 'X-Requested-With': 'fetch' }
+    });
+  };
+
   TaskApi.getWeekTasks = (date) => TaskApi.getTasks('WEEK', date);
 
   TaskApi.getMonthTasks = (yearMonth) => TaskApi.getTasks('MONTH', yearMonth);

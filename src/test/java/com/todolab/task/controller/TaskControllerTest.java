@@ -2,6 +2,7 @@ package com.todolab.task.controller;
 
 import com.todolab.common.api.ApiExceptionHandler;
 import com.todolab.common.api.ErrorCode;
+import com.todolab.dday.exception.DdayGoalNotFoundException;
 import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.dto.TaskCategoryGroupResponse;
 import com.todolab.task.dto.TaskRequest;
@@ -799,6 +800,80 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.data.targetDate").value("2026-05-22"));
 
         then(taskService).should().carryOver(id, nextDate);
+        then(taskService).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("D-Day 목표 연결 성공")
+    void connectDdayGoal_success() throws Exception {
+        // given
+        long id = 1L;
+        long ddayGoalId = 10L;
+        TaskResponse connected = TaskResponse.builder()
+                .id(id)
+                .title("기출 20문제 풀기")
+                .status(TaskStatus.TODAY)
+                .targetDate(LocalDate.of(2026, 5, 31))
+                .ddayGoalId(ddayGoalId)
+                .build();
+
+        given(taskService.connectDdayGoal(id, ddayGoalId)).willReturn(connected);
+
+        // when & then
+        mockMvc.perform(patch("/api/tasks/{id}/dday-goal", id)
+                        .param("ddayGoalId", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.ddayGoalId").value(10));
+
+        then(taskService).should().connectDdayGoal(id, ddayGoalId);
+        then(taskService).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("D-Day 목표 연결 실패 - 존재하지 않는 D-Day 목표면 404를 반환한다")
+    void connectDdayGoal_fail_goalNotFound() throws Exception {
+        // given
+        long id = 1L;
+        long ddayGoalId = 99L;
+        given(taskService.connectDdayGoal(id, ddayGoalId))
+                .willThrow(new DdayGoalNotFoundException(ddayGoalId));
+
+        // when & then
+        mockMvc.perform(patch("/api/tasks/{id}/dday-goal", id)
+                        .param("ddayGoalId", "99"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.error.code").value(ErrorCode.DDAY_GOAL_NOT_FOUND.getCode()));
+
+        then(taskService).should().connectDdayGoal(id, ddayGoalId);
+        then(taskService).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("D-Day 목표 연결 해제 성공")
+    void disconnectDdayGoal_success() throws Exception {
+        // given
+        long id = 1L;
+        TaskResponse disconnected = TaskResponse.builder()
+                .id(id)
+                .title("기출 20문제 풀기")
+                .status(TaskStatus.TODAY)
+                .targetDate(LocalDate.of(2026, 5, 31))
+                .ddayGoalId(null)
+                .build();
+
+        given(taskService.disconnectDdayGoal(id)).willReturn(disconnected);
+
+        // when & then
+        mockMvc.perform(delete("/api/tasks/{id}/dday-goal", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.ddayGoalId").doesNotExist());
+
+        then(taskService).should().disconnectDdayGoal(id);
         then(taskService).shouldHaveNoMoreInteractions();
     }
 

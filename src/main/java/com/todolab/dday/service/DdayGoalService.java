@@ -5,6 +5,7 @@ import com.todolab.dday.dto.DdayGoalRequest;
 import com.todolab.dday.dto.DdayGoalResponse;
 import com.todolab.dday.exception.DdayGoalNotFoundException;
 import com.todolab.dday.repository.DdayGoalRepository;
+import com.todolab.task.domain.Task;
 import com.todolab.task.dto.TaskResponse;
 import com.todolab.task.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,8 @@ public class DdayGoalService {
         if (!ddayGoalRepository.existsById(id)) {
             throw new DdayGoalNotFoundException(id);
         }
+        taskRepository.findByDdayGoalId(id)
+                .forEach(Task::disconnectDdayGoal);
         ddayGoalRepository.deleteById(id);
     }
 }

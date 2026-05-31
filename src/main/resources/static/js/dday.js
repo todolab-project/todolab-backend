@@ -17,6 +17,9 @@
   const $list = document.getElementById('dday-list');
   const $count = document.getElementById('dday-count');
 
+  let selectedGoalId = null;
+  let selectedGoalTasks = [];
+
   async function request(path, options = {}) {
     const res = await fetch(path, {
       ...options,
@@ -70,6 +73,39 @@
     }
   }
 
+  function renderLinkedTasks() {
+    const tasks = Array.isArray(selectedGoalTasks) ? selectedGoalTasks : [];
+    if (!tasks.length) {
+      return `
+        <div class="mt-3 rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-4 text-[13px] font-semibold text-gray-500">
+          아직 연결된 오늘 할 일이 없어요
+        </div>
+      `;
+    }
+
+    return `
+      <div class="mt-3 space-y-2">
+        ${tasks.map(task => {
+          if (window.TaskUI?.renderTaskCard) {
+            return TaskUI.renderTaskCard(task, {
+              showRightTime: true,
+              metaText: task.targetDate ? `실행일 · ${task.targetDate}` : null,
+              barColor: 'rgba(99, 102, 241, 0.55)',
+              showDesc: false
+            });
+          }
+
+          return `
+            <div class="rounded-xl border border-gray-200 bg-white px-4 py-3">
+              <div class="truncate text-[14px] font-black text-gray-900">${escapeHtml(task.title)}</div>
+              ${task.targetDate ? `<div class="mt-1 text-[12px] font-semibold text-gray-500">${escapeHtml(task.targetDate)}</div>` : ''}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
   function render(goals) {
     const items = Array.isArray(goals) ? goals : [];
     $loading?.classList.add('hidden');
@@ -85,25 +121,55 @@
 
     $empty?.classList.add('hidden');
     $card?.classList.remove('hidden');
-    $list.innerHTML = items.map(goal => `
-      <div class="rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-        <div class="flex items-center justify-between gap-3">
-          <div class="min-w-0">
-            <div class="truncate text-[16px] font-black text-gray-900">${escapeHtml(goal.title)}</div>
-            <div class="mt-1 text-[12px] font-semibold text-gray-500">${escapeHtml(goal.targetDate)}</div>
+    $list.innerHTML = items.map(goal => {
+      const selected = String(goal.id) === String(selectedGoalId);
+      return `
+        <div class="rounded-2xl border ${selected ? 'border-indigo-200 bg-indigo-50/40' : 'border-gray-200 bg-white'} px-5 py-4 shadow-sm"
+             data-action="select-dday"
+             data-dday-id="${escapeHtml(goal.id)}">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <div class="truncate text-[16px] font-black text-gray-900">${escapeHtml(goal.title)}</div>
+              <div class="mt-1 text-[12px] font-semibold text-gray-500">${escapeHtml(goal.targetDate)}</div>
+            </div>
+            <div class="shrink-0 text-right">
+              <div class="text-[18px] font-black text-indigo-600">${escapeHtml(ddayLabel(goal.daysLeft))}</div>
+              <button type="button"
+                      class="mt-2 text-[12px] font-extrabold text-gray-400 hover:text-red-600"
+                      data-action="delete-dday"
+                      data-dday-id="${escapeHtml(goal.id)}">
+                삭제
+              </button>
+            </div>
           </div>
-          <div class="shrink-0 text-right">
-            <div class="text-[18px] font-black text-indigo-600">${escapeHtml(ddayLabel(goal.daysLeft))}</div>
-            <button type="button"
-                    class="mt-2 text-[12px] font-extrabold text-gray-400 hover:text-red-600"
-                    data-action="delete-dday"
-                    data-dday-id="${escapeHtml(goal.id)}">
-              삭제
-            </button>
-          </div>
+
+          ${selected ? `
+            <form class="mt-4 grid grid-cols-[1fr_auto] gap-2"
+                  data-action="add-dday-task"
+                  data-dday-id="${escapeHtml(goal.id)}">
+              <input type="text"
+                     name="title"
+                     maxlength="30"
+                     class="min-w-0 rounded-xl border border-gray-200 bg-white px-4 py-3 text-[14px] font-semibold text-gray-900 outline-none focus:border-gray-900"
+                     placeholder="오늘 할 일" />
+              <button type="submit"
+                      class="rounded-xl bg-gray-900 px-4 py-3 text-[13px] font-extrabold text-white disabled:opacity-50">
+                추가
+              </button>
+            </form>
+            ${renderLinkedTasks()}
+          ` : ''}
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
+  }
+
+  async function loadSelectedTasks() {
+    if (!selectedGoalId) {
+      selectedGoalTasks = [];
+      return;
+    }
+    selectedGoalTasks = await request(`/api/ddays/${encodeURIComponent(selectedGoalId)}/tasks`);
   }
 
   async function load() {
@@ -111,6 +177,11 @@
       $loading?.classList.remove('hidden');
       $error?.classList.add('hidden');
       const goals = await request('/api/ddays');
+      if (selectedGoalId && !goals.some(goal => String(goal.id) === String(selectedGoalId))) {
+        selectedGoalId = null;
+        selectedGoalTasks = [];
+      }
+      await loadSelectedTasks();
       render(goals);
     } catch (err) {
       showError(`D-Day 로딩 실패: ${err.message}`);
@@ -152,24 +223,81 @@
   });
 
   $list?.addEventListener('click', async (e) => {
-    const btn = e.target.closest('[data-action="delete-dday"]');
-    if (!btn) return;
+    const deleteBtn = e.target.closest('[data-action="delete-dday"]');
+    if (deleteBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const id = deleteBtn.getAttribute('data-dday-id');
+      if (!id) return;
+
+      try {
+        deleteBtn.disabled = true;
+        await request(`/api/ddays/${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          headers: { 'X-Requested-With': 'fetch' }
+        });
+        if (String(selectedGoalId) === String(id)) {
+          selectedGoalId = null;
+          selectedGoalTasks = [];
+        }
+        await load();
+      } catch (err) {
+        showError(`D-Day 삭제 실패: ${err.message}`);
+      } finally {
+        deleteBtn.disabled = false;
+      }
+      return;
+    }
+
+    const card = e.target.closest('[data-action="select-dday"]');
+    if (!card || e.target.closest('button,input,textarea,select,label')) return;
 
     e.preventDefault();
-    const id = btn.getAttribute('data-dday-id');
-    if (!id) return;
+    const id = card.getAttribute('data-dday-id');
+    selectedGoalId = String(selectedGoalId) === String(id) ? null : id;
 
     try {
-      btn.disabled = true;
-      await request(`/api/ddays/${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-        headers: { 'X-Requested-With': 'fetch' }
-      });
       await load();
     } catch (err) {
-      showError(`D-Day 삭제 실패: ${err.message}`);
+      showError(`D-Day 할 일 로딩 실패: ${err.message}`);
+    }
+  });
+
+  $list?.addEventListener('submit', async (e) => {
+    const form = e.target.closest('[data-action="add-dday-task"]');
+    if (!form) return;
+
+    e.preventDefault();
+    const ddayGoalId = form.getAttribute('data-dday-id');
+    const input = form.querySelector('input[name="title"]');
+    const button = form.querySelector('button[type="submit"]');
+    const title = (input?.value || '').trim();
+    if (!title) {
+      input?.focus();
+      return;
+    }
+
+    try {
+      if (button) button.disabled = true;
+      const task = await TaskApi.createTask({
+        title,
+        description: '',
+        category: '',
+        type: 'TODO',
+        allDay: false,
+        startAt: null,
+        endAt: null
+      });
+      await TaskApi.moveToToday(task.id, todayYmd());
+      await TaskApi.connectDdayGoal(task.id, ddayGoalId);
+      input.value = '';
+      selectedGoalId = ddayGoalId;
+      await load();
+    } catch (err) {
+      showError(`오늘 할 일 추가 실패: ${err.message}`);
     } finally {
-      btn.disabled = false;
+      if (button) button.disabled = false;
     }
   });
 

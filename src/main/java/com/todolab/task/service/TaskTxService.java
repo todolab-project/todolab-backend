@@ -1,5 +1,8 @@
 package com.todolab.task.service;
 
+import com.todolab.dday.domain.DdayGoal;
+import com.todolab.dday.exception.DdayGoalNotFoundException;
+import com.todolab.dday.repository.DdayGoalRepository;
 import com.todolab.task.domain.Task;
 import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.exception.TaskNotFoundException;
@@ -16,6 +19,7 @@ import java.time.LocalDateTime;
 public class TaskTxService {
 
     private final TaskRepository taskRepository;
+    private final DdayGoalRepository ddayGoalRepository;
 
     @Transactional
     public Task updateTx(Long id, TaskRequest req) {
@@ -44,6 +48,23 @@ public class TaskTxService {
     public Task carryOverTx(Long id, LocalDate nextDate) {
         Task task = findTask(id);
         task.carryOverTo(nextDate);
+        return taskRepository.save(task);
+    }
+
+    @Transactional
+    public Task connectDdayGoalTx(Long id, Long ddayGoalId) {
+        Task task = findTask(id);
+        DdayGoal ddayGoal = ddayGoalRepository.findById(ddayGoalId)
+                .orElseThrow(() -> new DdayGoalNotFoundException(ddayGoalId));
+
+        task.connectDdayGoal(ddayGoal);
+        return taskRepository.save(task);
+    }
+
+    @Transactional
+    public Task disconnectDdayGoalTx(Long id) {
+        Task task = findTask(id);
+        task.disconnectDdayGoal();
         return taskRepository.save(task);
     }
 
