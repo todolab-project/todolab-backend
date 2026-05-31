@@ -101,6 +101,30 @@ class DdayGoalServiceTest {
     }
 
     @Test
+    @DisplayName("D-Day 목표 삭제 시 연결된 Task는 보존하고 연결만 해제한다")
+    void delete_success_disconnectTasks() {
+        DdayGoalService service = new DdayGoalService(ddayGoalRepository, taskRepository);
+        long ddayGoalId = 1L;
+        DdayGoal goal = new DdayGoal("정보처리기사", LocalDate.of(2026, 6, 10));
+        Task task = Task.builder()
+                .title("기출 20문제 풀기")
+                .status(TaskStatus.TODAY)
+                .targetDate(LocalDate.of(2026, 5, 31))
+                .ddayGoal(goal)
+                .build();
+
+        given(ddayGoalRepository.existsById(ddayGoalId)).willReturn(true);
+        given(taskRepository.findByDdayGoalId(ddayGoalId)).willReturn(List.of(task));
+
+        service.delete(ddayGoalId);
+
+        assertThat(task.getDdayGoal()).isNull();
+        then(ddayGoalRepository).should().existsById(ddayGoalId);
+        then(taskRepository).should().findByDdayGoalId(ddayGoalId);
+        then(ddayGoalRepository).should().deleteById(ddayGoalId);
+    }
+
+    @Test
     @DisplayName("존재하지 않는 D-Day 목표 삭제 시 예외를 던진다")
     void delete_fail_notFound() {
         DdayGoalService service = new DdayGoalService(ddayGoalRepository, taskRepository);

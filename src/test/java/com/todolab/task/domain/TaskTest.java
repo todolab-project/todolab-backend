@@ -1,5 +1,6 @@
 package com.todolab.task.domain;
 
+import com.todolab.dday.domain.DdayGoal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -113,5 +114,52 @@ class TaskTest {
         assertThatThrownBy(() -> task.complete(null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("completedAt은 필수입니다.");
+    }
+
+    @Test
+    @DisplayName("connectDdayGoal은 D-Day 목표를 연결한다")
+    void connectDdayGoal() {
+        // given
+        Task task = Task.builder()
+                .title("task")
+                .build();
+        DdayGoal goal = new DdayGoal("정보처리기사", LocalDate.of(2026, 6, 10));
+
+        // when
+        task.connectDdayGoal(goal);
+
+        // then
+        assertThat(task.getDdayGoal()).isEqualTo(goal);
+    }
+
+    @Test
+    @DisplayName("connectDdayGoal은 D-Day 목표가 없으면 실패한다")
+    void connectDdayGoal_requiresGoal() {
+        // given
+        Task task = Task.builder()
+                .title("task")
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> task.connectDdayGoal(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("ddayGoal은 필수입니다.");
+    }
+
+    @Test
+    @DisplayName("disconnectDdayGoal은 D-Day 목표 연결을 해제한다")
+    void disconnectDdayGoal() {
+        // given
+        DdayGoal goal = new DdayGoal("정보처리기사", LocalDate.of(2026, 6, 10));
+        Task task = Task.builder()
+                .title("task")
+                .ddayGoal(goal)
+                .build();
+
+        // when
+        task.disconnectDdayGoal();
+
+        // then
+        assertThat(task.getDdayGoal()).isNull();
     }
 }

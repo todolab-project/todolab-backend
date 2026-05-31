@@ -184,6 +184,31 @@ public class TaskController {
                 .body(ApiResponse.success(res));
     }
 
+    @PatchMapping("/{id}/dday-goal")
+    public ResponseEntity<ApiResponse<TaskResponse>> connectDdayGoal(
+            @PathVariable Long id,
+            @RequestParam Long ddayGoalId
+    ) {
+        log.info("[API] connectDdayGoal request :: id={}, ddayGoalId={}", id, ddayGoalId);
+
+        TaskResponse res = taskService.connectDdayGoal(id, ddayGoalId);
+
+        log.info("[API] connectDdayGoal success :: id={}, ddayGoalId={}", id, ddayGoalId);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(res));
+    }
+
+    @DeleteMapping("/{id}/dday-goal")
+    public ResponseEntity<ApiResponse<TaskResponse>> disconnectDdayGoal(@PathVariable Long id) {
+        log.info("[API] disconnectDdayGoal request :: id={}", id);
+
+        TaskResponse res = taskService.disconnectDdayGoal(id);
+
+        log.info("[API] disconnectDdayGoal success :: id={}", id);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(res));
+    }
+
     @GetMapping("/unscheduled")
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getUnscheduledTasks() {
         log.info("[API] getUnscheduledTasks request");

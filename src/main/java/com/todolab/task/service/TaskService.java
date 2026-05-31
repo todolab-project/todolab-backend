@@ -101,6 +101,16 @@ public class TaskService {
         return TaskResponse.from(carriedOver);
     }
 
+    public TaskResponse connectDdayGoal(Long id, Long ddayGoalId) {
+        Task connected = taskTxService.connectDdayGoalTx(id, ddayGoalId);
+        return TaskResponse.from(connected);
+    }
+
+    public TaskResponse disconnectDdayGoal(Long id) {
+        Task disconnected = taskTxService.disconnectDdayGoalTx(id);
+        return TaskResponse.from(disconnected);
+    }
+
     public void delete(Long id) {
         if (!taskRepository.existsById(id)) {
             throw new TaskNotFoundException(id);
