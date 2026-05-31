@@ -1,10 +1,10 @@
 <!-- src/main/resources/templates/fragments/task-modal.html -->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="taskModal">
 
-    <div id="taskModal" class="fixed inset-0 hidden bg-black/40 z-50">
+    <div id="taskModal" class="fixed inset-0 hidden bg-slate-950/45 z-50">
         <div id="taskModalBackdrop" class="w-full h-full flex items-center justify-center p-4">
             <div id="taskModalPanel"
-                 class="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden">
+                 class="bg-white rounded-lg shadow-2xl w-full max-w-lg flex flex-col overflow-hidden">
 
                 <!-- header -->
                 <div class="flex items-center justify-between px-5 py-4 border-b shrink-0">
@@ -102,7 +102,7 @@
                 <div class="shrink-0 border-t bg-white">
                     <div class="p-4 flex items-center gap-2">
                         <button id="tmPrimaryBtn" type="button"
-                                class="flex-1 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700">
+                                class="app-primary-btn flex-1 py-3">
                             저장
                         </button>
 

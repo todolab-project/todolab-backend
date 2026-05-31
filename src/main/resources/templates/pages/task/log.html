@@ -2,43 +2,38 @@
 <div th:fragment="content">
 
     <div id="log-page"
-         class="px-4 pb-24 max-w-3xl mx-auto h-full flex flex-col"
+         class="app-page"
          th:attr="data-date=${date}">
 
-        <div class="mt-6 flex items-center justify-between px-1 shrink-0">
+        <div class="app-page-header">
             <div>
-                <div class="inline-flex items-center gap-2 text-[16px] font-black text-gray-900 tracking-tight">
-                    <span class="text-[16px] leading-none">✓</span>
-                    <span>Log</span>
+                <div class="app-page-title">
+                    Log
                 </div>
 
                 <div id="logDateText"
-                     class="mt-1 text-[12px] font-semibold text-gray-500"
+                     class="app-page-subtitle"
                      th:text="${date}">2026-05-30</div>
             </div>
 
             <div id="log-count"
-                 class="self-center text-[12px] font-extrabold text-gray-900
-                        bg-emerald-50 border border-emerald-100
-                        px-3 py-1.5 rounded-full hidden">
+                 class="app-pill app-pill-green hidden">
             </div>
         </div>
 
-        <div class="mt-4 border-t border-gray-200 shrink-0"></div>
-
         <div class="mt-4 grid grid-cols-3 gap-2 shrink-0">
             <a id="logPrevLink"
-               class="rounded-xl border border-gray-200 bg-white px-3 py-2 text-center text-[13px] font-extrabold text-gray-700 hover:bg-gray-50"
+               class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-[13px] font-extrabold text-slate-700 hover:bg-slate-50"
                href="#">이전</a>
             <a id="logTodayLink"
-               class="rounded-xl border border-gray-900 bg-gray-900 px-3 py-2 text-center text-[13px] font-extrabold text-white"
+               class="rounded-lg border border-blue-600 bg-blue-600 px-3 py-2 text-center text-[13px] font-extrabold text-white"
                href="/tasks/log">오늘</a>
             <a id="logNextLink"
-               class="rounded-xl border border-gray-200 bg-white px-3 py-2 text-center text-[13px] font-extrabold text-gray-700 hover:bg-gray-50"
+               class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-[13px] font-extrabold text-slate-700 hover:bg-slate-50"
                href="#">다음</a>
         </div>
 
-        <div class="flex-1 min-h-0 overflow-y-auto">
+        <div class="app-scroll">
             <div id="log-loading"
                  class="mt-6 text-gray-500 text-sm">
                 불러오는 중...
@@ -49,7 +44,7 @@
 
             <div id="log-empty"
                  class="hidden mt-16 flex flex-col items-center justify-center text-center select-none">
-                <div class="w-14 h-14 rounded-2xl bg-white/60 border border-gray-200
+                <div class="w-14 h-14 rounded-lg bg-white border border-slate-200
                       flex items-center justify-center shadow-sm">
                     <span class="text-2xl">✓</span>
                 </div>

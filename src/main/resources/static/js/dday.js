@@ -80,7 +80,7 @@
     const tasks = Array.isArray(selectedGoalTasks) ? selectedGoalTasks : [];
     if (!tasks.length) {
       return `
-        <div class="mt-3 rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-4 text-[13px] font-semibold text-gray-500">
+        <div class="app-empty mt-3">
           아직 연결된 오늘 할 일이 없어요
         </div>
       `;
@@ -99,7 +99,7 @@
           }
 
           return `
-            <div class="rounded-xl border border-gray-200 bg-white px-4 py-3">
+            <div class="rounded-lg border border-slate-200 bg-white px-4 py-3">
               <div class="truncate text-[14px] font-black text-gray-900">${escapeHtml(task.title)}</div>
               ${task.targetDate ? `<div class="mt-1 text-[12px] font-semibold text-gray-500">${escapeHtml(task.targetDate)}</div>` : ''}
             </div>
@@ -127,7 +127,7 @@
     $list.innerHTML = items.map(goal => {
       const selected = String(goal.id) === String(selectedGoalId);
       return `
-        <div class="rounded-2xl border ${selected ? 'border-indigo-200 bg-indigo-50/40' : 'border-gray-200 bg-white'} px-5 py-4 shadow-sm"
+        <div class="rounded-lg border ${selected ? 'border-blue-200 bg-blue-50/70' : 'border-slate-200 bg-white'} px-5 py-4 shadow-sm"
              data-action="select-dday"
              data-dday-id="${escapeHtml(goal.id)}">
           <div class="flex items-center justify-between gap-3">
@@ -136,7 +136,7 @@
               <div class="mt-1 text-[12px] font-semibold text-gray-500">${escapeHtml(goal.targetDate)}</div>
             </div>
             <div class="shrink-0 text-right">
-              <div class="text-[18px] font-black text-indigo-600">${escapeHtml(ddayLabel(goal.daysLeft))}</div>
+              <div class="text-[18px] font-black text-blue-700">${escapeHtml(ddayLabel(goal.daysLeft))}</div>
               <button type="button"
                       class="mt-2 text-[12px] font-extrabold text-gray-400 hover:text-red-600"
                       data-action="delete-dday"
@@ -153,10 +153,10 @@
               <input type="text"
                      name="title"
                      maxlength="30"
-                     class="min-w-0 rounded-xl border border-gray-200 bg-white px-4 py-3 text-[14px] font-semibold text-gray-900 outline-none focus:border-gray-900"
+                     class="min-w-0 rounded-lg border border-slate-200 bg-white px-4 py-3 text-[14px] font-semibold text-gray-900 outline-none"
                      placeholder="오늘 할 일" />
               <button type="submit"
-                      class="rounded-xl bg-gray-900 px-4 py-3 text-[13px] font-extrabold text-white disabled:opacity-50">
+                      class="app-primary-btn rounded-lg px-4 py-3 text-[13px] disabled:opacity-50">
                 추가
               </button>
             </form>

@@ -5,10 +5,9 @@
     <button type="button"
             id="floatingCreateBtn"
             data-action="open-create"
-            class="fixed right-6 bottom-[5.5rem] z-50
-               w-14 h-14 rounded-full bg-blue-600 text-white
-               flex items-center justify-center text-3xl
-               shadow-xl active:scale-95 transition">
+            style="position:fixed;right:20px;bottom:84px;z-index:50;display:flex;width:56px;height:56px;align-items:center;justify-content:center;border-radius:9999px;background:#2563eb;color:#fff;"
+            class="text-3xl text-white active:scale-95 transition"
+            aria-label="새 항목 추가">
         +
     </button>
 
@@ -16,7 +15,7 @@
     <!-- Bottom Nav -->
     <footer
             class="fixed bottom-0 inset-x-0 z-40
-           bg-white/80 backdrop-blur border-t border-gray-200
+           bottom-bar backdrop-blur
            pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3">
 
         <nav class="mx-auto max-w-3xl px-4">
@@ -25,12 +24,12 @@
                 <!-- Today -->
                 <a href="/tasks/today"
                    th:class="${activeTab == 'today'}
-               ? 'group flex flex-col items-center justify-center rounded-2xl py-2 transition hover:bg-black/5 bg-blue-600/10 font-semibold'
-               : 'group flex flex-col items-center justify-center rounded-2xl py-2 transition hover:bg-black/5'">
+               ? 'bottom-nav-link bottom-nav-link-active group flex flex-col items-center justify-center py-2 transition font-semibold'
+               : 'bottom-nav-link group flex flex-col items-center justify-center py-2 transition'">
 
                     <svg th:class="${activeTab == 'today'}
-                    ? 'h-6 w-6 mb-1 text-blue-700'
-                    : 'h-6 w-6 mb-1 text-gray-400 group-hover:text-gray-700'"
+                    ? 'h-5 w-5 mb-1 text-blue-700'
+                    : 'h-5 w-5 mb-1 text-slate-400 group-hover:text-slate-700'"
                          viewBox="0 0 24 24" fill="none">
                         <path d="M12 3l1.6 4.2L18 9l-4.4 1.8L12 15l-1.6-4.2L6 9l4.4-1.8L12 3Z"
                               stroke="currentColor" stroke-width="1.6"
@@ -41,8 +40,8 @@
                     </svg>
 
                     <span th:class="${activeTab == 'today'}
-                    ? 'text-[11px] tracking-tight text-blue-700'
-                    : 'text-[11px] tracking-tight text-gray-400 group-hover:text-gray-700'">
+                    ? 'text-[11px] text-blue-700'
+                    : 'text-[11px] text-slate-500 group-hover:text-slate-700'">
             Today
           </span>
                 </a>
@@ -50,12 +49,12 @@
                 <!-- Calendar -->
                 <a href="/tasks/calendar"
                    th:class="${activeTab == 'calendar'}
-               ? 'group flex flex-col items-center justify-center rounded-2xl py-2 transition hover:bg-black/5 bg-blue-600/10 font-semibold'
-               : 'group flex flex-col items-center justify-center rounded-2xl py-2 transition hover:bg-black/5'">
+               ? 'bottom-nav-link bottom-nav-link-active group flex flex-col items-center justify-center py-2 transition font-semibold'
+               : 'bottom-nav-link group flex flex-col items-center justify-center py-2 transition'">
 
                     <svg th:class="${activeTab == 'calendar'}
-                    ? 'h-6 w-6 mb-1 text-blue-700'
-                    : 'h-6 w-6 mb-1 text-gray-400 group-hover:text-gray-700'"
+                    ? 'h-5 w-5 mb-1 text-blue-700'
+                    : 'h-5 w-5 mb-1 text-slate-400 group-hover:text-slate-700'"
                          viewBox="0 0 24 24" fill="none">
                         <path d="M7 3v3M17 3v3M4 8h16"
                               stroke="currentColor" stroke-width="1.6"
@@ -68,8 +67,8 @@
                     </svg>
 
                     <span th:class="${activeTab == 'calendar'}
-                    ? 'text-[11px] tracking-tight text-blue-700'
-                    : 'text-[11px] tracking-tight text-gray-400 group-hover:text-gray-700'">
+                    ? 'text-[11px] text-blue-700'
+                    : 'text-[11px] text-slate-500 group-hover:text-slate-700'">
             Calendar
           </span>
                 </a>
@@ -77,12 +76,12 @@
                 <!-- D-Day -->
                 <a href="/tasks/dday"
                    th:class="${activeTab == 'dday'}
-               ? 'group flex flex-col items-center justify-center rounded-2xl py-2 transition hover:bg-black/5 bg-blue-600/10 font-semibold'
-               : 'group flex flex-col items-center justify-center rounded-2xl py-2 transition hover:bg-black/5'">
+               ? 'bottom-nav-link bottom-nav-link-active group flex flex-col items-center justify-center py-2 transition font-semibold'
+               : 'bottom-nav-link group flex flex-col items-center justify-center py-2 transition'">
 
                     <svg th:class="${activeTab == 'dday'}
-                    ? 'h-6 w-6 mb-1 text-blue-700'
-                    : 'h-6 w-6 mb-1 text-gray-400 group-hover:text-gray-700'"
+                    ? 'h-5 w-5 mb-1 text-blue-700'
+                    : 'h-5 w-5 mb-1 text-slate-400 group-hover:text-slate-700'"
                          viewBox="0 0 24 24" fill="none">
                         <path d="M7 3.5h10A2.5 2.5 0 0 1 19.5 6v12A2.5 2.5 0 0 1 17 20.5H7A2.5 2.5 0 0 1 4.5 18V6A2.5 2.5 0 0 1 7 3.5Z"
                               stroke="currentColor" stroke-width="1.6"/>
@@ -93,8 +92,8 @@
                     </svg>
 
                     <span th:class="${activeTab == 'dday'}
-                    ? 'text-[11px] tracking-tight text-blue-700'
-                    : 'text-[11px] tracking-tight text-gray-400 group-hover:text-gray-700'">
+                    ? 'text-[11px] text-blue-700'
+                    : 'text-[11px] text-slate-500 group-hover:text-slate-700'">
             D-Day
           </span>
                 </a>
@@ -102,20 +101,20 @@
                 <!-- More -->
                 <a href="/tasks/more"
                    th:class="${activeTab == 'more'}
-               ? 'group flex flex-col items-center justify-center rounded-2xl py-2 transition hover:bg-black/5 bg-blue-600/10 font-semibold'
-               : 'group flex flex-col items-center justify-center rounded-2xl py-2 transition hover:bg-black/5'">
+               ? 'bottom-nav-link bottom-nav-link-active group flex flex-col items-center justify-center py-2 transition font-semibold'
+               : 'bottom-nav-link group flex flex-col items-center justify-center py-2 transition'">
 
                     <svg th:class="${activeTab == 'more'}
-                    ? 'h-6 w-6 mb-1 text-blue-700'
-                    : 'h-6 w-6 mb-1 text-gray-400 group-hover:text-gray-700'"
+                    ? 'h-5 w-5 mb-1 text-blue-700'
+                    : 'h-5 w-5 mb-1 text-slate-400 group-hover:text-slate-700'"
                          viewBox="0 0 24 24" fill="none">
                         <path d="M5 12h.01M12 12h.01M19 12h.01"
                               stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/>
                     </svg>
 
                     <span th:class="${activeTab == 'more'}
-                    ? 'text-[11px] tracking-tight text-blue-700'
-                    : 'text-[11px] tracking-tight text-gray-400 group-hover:text-gray-700'">
+                    ? 'text-[11px] text-blue-700'
+                    : 'text-[11px] text-slate-500 group-hover:text-slate-700'">
             More
           </span>
                 </a>

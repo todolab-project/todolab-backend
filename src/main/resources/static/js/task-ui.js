@@ -144,7 +144,7 @@
            ${deferReasonHtml}
            ${options.carryOverAction ? `
            <button type="button"
-                   class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-[12px] font-extrabold text-gray-700 hover:bg-gray-50"
+                   class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-extrabold text-slate-700 hover:bg-slate-50"
                    data-action="carry-over-task"
                    data-task-id="${TaskUI.escapeHtml(task.id)}">
              내일로
@@ -205,7 +205,7 @@
   ${base}
   <div class="mt-2 flex justify-end">
     <button type="button"
-            class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-[12px] font-extrabold text-gray-700 hover:bg-gray-50"
+            class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-extrabold text-slate-700 hover:bg-slate-50"
             data-action="move-to-today"
             data-task-id="${TaskUI.escapeHtml(t?.id)}">
       오늘 할 일로
