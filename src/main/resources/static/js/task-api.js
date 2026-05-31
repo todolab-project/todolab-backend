@@ -142,5 +142,9 @@
     });
   };
 
+  TaskApi.getDdayGoals = () => {
+    return request('/api/ddays');
+  };
+
   window.TaskApi = TaskApi;
 })();
