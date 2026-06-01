@@ -118,13 +118,19 @@
     // ✅ 좌측 바 컬러 (task.color가 있으면 우선)
     const barColor = TaskUI.escapeHtml(task.color || options.barColor || 'rgba(99, 102, 241, 0.55)');
 
-    const checkHtml = options.completeAction
+    const checkDone = Boolean(options.doneState);
+    const checkAction = Boolean(options.completeAction || options.reopenAction);
+    const checkActionName = options.reopenAction ? 'reopen-today-task' : 'complete-task';
+    const checkLabel = options.reopenAction ? '완료 취소' : '완료 처리';
+    const checkClass = checkDone ? 'task-check-done' : 'task-check-empty';
+    const checkMark = checkDone ? '✓' : '';
+    const checkHtml = checkAction
       ? `<button type="button"
-                 class="check-box task-complete-action"
-                 data-action="complete-task"
+                 class="check-box task-check-action ${checkClass}"
+                 data-action="${checkActionName}"
                  data-task-id="${TaskUI.escapeHtml(task.id)}"
-                 aria-label="완료 처리">✓</button>`
-      : `<div class="check-box">✓</div>`;
+                 aria-label="${checkLabel}">${checkMark}</button>`
+      : `<div class="check-box task-check-static ${checkClass}" aria-hidden="true">${checkMark}</div>`;
 
     const deferReasonHtml = options.deferReasonAction
       ? `<label class="sr-only" for="defer-reason-${TaskUI.escapeHtml(task.id)}">미룬 이유</label>
@@ -156,8 +162,8 @@
            </div>
            <div class="task-actions-controls">
              ${deferReasonHtml}
+             ${carryOverHtml}
            </div>
-           ${carryOverHtml ? `<div class="task-actions-carry">${carryOverHtml}</div>` : ''}
          </div>`
       : '';
 
@@ -240,28 +246,13 @@
     const completedTime = TaskUI.toTimeHM(t?.completedAt);
     const meta = completedTime ? `완료 · ${completedTime}` : '완료';
 
-    const base = TaskUI.renderTaskCard(t, {
+    return TaskUI.renderTaskCard(t, {
       showRightTime: false,
       metaText: meta,
-      barColor: 'rgba(16, 185, 129, 0.55)'
+      barColor: 'rgba(148, 163, 184, 0.72)',
+      doneState: true,
+      reopenAction: Boolean(options.reopenAction)
     });
-
-    if (!options.reopenAction) {
-      return base;
-    }
-
-    return `
-<div class="done-task-item" data-done-task-id="${TaskUI.escapeHtml(t?.id)}">
-  ${base}
-  <div class="done-actions">
-    <button type="button"
-            class="task-secondary-action"
-            data-action="reopen-today-task"
-            data-task-id="${TaskUI.escapeHtml(t?.id)}">
-      되돌리기
-    </button>
-  </div>
-</div>`.trim();
   };
 
   // ✅ Week: 우측 시간 O, meta X
