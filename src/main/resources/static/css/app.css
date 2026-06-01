@@ -20,12 +20,14 @@
 
 html{
   background:var(--app-bg);
+  overflow-x:hidden;
 }
 
 body.app-body{
   background:var(--app-bg);
   color:var(--app-text);
   font-feature-settings:"tnum";
+  overflow-x:hidden;
 }
 
 .app-main{
@@ -33,6 +35,8 @@ body.app-body{
 }
 
 .app-page{
+  width:100%;
+  min-width:0;
   padding:24px 16px 96px;
   max-width:768px;
   margin:0 auto;
@@ -70,7 +74,9 @@ body.app-body{
 .app-scroll{
   flex:1 1 auto;
   min-height:0;
+  min-width:0;
   overflow-y:auto;
+  overflow-x:hidden;
   overscroll-behavior:contain;
   padding-top:18px;
 }
@@ -475,17 +481,43 @@ select:focus{
   }
 }
 
-#todayQuickForm,
-#inboxQuickForm{
+.quick-capture-form{
   display:grid;
-  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-columns:minmax(0,1fr) 68px;
   gap:8px;
   align-items:center;
+  width:100%;
+  min-width:0;
 }
 
-#todayQuickSubmit,
-#inboxQuickSubmit{
-  min-width:56px;
+.quick-capture-form .app-input{
+  width:100%;
+  min-width:0;
+}
+
+.quick-capture-submit{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:68px;
+  min-height:44px;
+  padding:0 14px;
+  border-radius:var(--app-radius);
+  font-size:14px;
+  line-height:1;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+@media (max-width:360px){
+  .quick-capture-form{
+    grid-template-columns:minmax(0,1fr) 64px;
+  }
+
+  .quick-capture-submit{
+    min-width:64px;
+    padding-inline:10px;
+  }
 }
 
 #ddayForm{
@@ -504,6 +536,8 @@ select:focus{
   grid-template-columns:repeat(3,minmax(0,1fr));
   gap:8px;
   margin-top:12px;
+  width:100%;
+  min-width:0;
 }
 
 .today-summary-item{

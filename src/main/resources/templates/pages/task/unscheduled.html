@@ -17,7 +17,7 @@
     <div class="app-scroll">
 
         <form id="inboxQuickForm"
-              style="display:grid;grid-template-columns:minmax(0,1fr) 56px;gap:8px;align-items:center;"
+              class="quick-capture-form"
               autocomplete="off">
             <input id="inboxQuickTitle"
                    type="text"
@@ -26,8 +26,7 @@
                    placeholder="생각난 할 일을 바로 기록" />
             <button id="inboxQuickSubmit"
                     type="submit"
-                    style="display:block;background:#2563eb;color:#fff;border-radius:8px;min-width:56px;"
-                    class="app-primary-btn px-4 py-3 text-[14px] disabled:opacity-50">
+                    class="app-primary-btn quick-capture-submit disabled:opacity-50">
                 기록
             </button>
         </form>
