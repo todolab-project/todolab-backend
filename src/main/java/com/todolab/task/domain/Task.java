@@ -138,6 +138,10 @@ public class Task {
         this.completedAt = completedAt;
     }
 
+    public void reopenToday(LocalDate targetDate) {
+        moveToToday(targetDate);
+    }
+
     public void carryOverTo(LocalDate nextDate) {
         validateTargetDate(nextDate);
         this.status = TaskStatus.TODAY;

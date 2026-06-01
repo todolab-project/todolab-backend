@@ -134,7 +134,7 @@
 
     $doneEmpty?.classList.add('hidden');
     $doneCard?.classList.remove('hidden');
-    $doneList.innerHTML = doneTasks.map(TaskUI.renderDoneCard).join('');
+    $doneList.innerHTML = doneTasks.map(t => TaskUI.renderDoneCard(t, { reopenAction: true })).join('');
   }
 
   function renderInbox(tasks) {
@@ -267,6 +267,27 @@
       showError(`미룬 이유 저장 실패: ${err.message}`);
     } finally {
       select.disabled = false;
+    }
+  });
+
+  $doneList?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-action="reopen-today-task"]');
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const id = btn.getAttribute('data-task-id');
+    if (!id) return;
+
+    try {
+      btn.disabled = true;
+      await TaskApi.reopenToday(id, date);
+      await load();
+    } catch (err) {
+      showError(`완료 취소 실패: ${err.message}`);
+    } finally {
+      btn.disabled = false;
     }
   });
 

@@ -822,6 +822,33 @@ class TaskServiceTest {
     }
 
     @Test
+    @DisplayName("완료 취소는 트랜잭션 서비스에 위임하고 Today 응답을 반환한다")
+    void reopenToday_success() {
+        // given
+        long id = 1L;
+        LocalDate targetDate = LocalDate.of(2026, 5, 21);
+        Task reopened = Task.builder()
+                .title("reopened")
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .build();
+
+        given(taskTxService.reopenTodayTx(id, targetDate)).willReturn(reopened);
+
+        // when
+        TaskResponse result = taskService.reopenToday(id, targetDate);
+
+        // then
+        assertThat(result.title()).isEqualTo("reopened");
+        assertThat(result.status()).isEqualTo(TaskStatus.TODAY);
+        assertThat(result.targetDate()).isEqualTo(targetDate);
+        assertThat(result.completedAt()).isNull();
+
+        then(taskTxService).should(times(1)).reopenTodayTx(id, targetDate);
+        then(taskRepository).shouldHaveNoInteractions();
+    }
+
+    @Test
     @DisplayName("이월 처리는 트랜잭션 서비스에 위임하고 응답을 반환한다")
     void carryOver_success() {
         // given

@@ -97,6 +97,11 @@ public class TaskService {
         return TaskResponse.from(completed);
     }
 
+    public TaskResponse reopenToday(Long id, LocalDate targetDate) {
+        Task reopened = taskTxService.reopenTodayTx(id, targetDate);
+        return TaskResponse.from(reopened);
+    }
+
     public TaskResponse carryOver(Long id, LocalDate nextDate) {
         Task carriedOver = taskTxService.carryOverTx(id, nextDate);
         return TaskResponse.from(carriedOver);

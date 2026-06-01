@@ -236,15 +236,32 @@
     });
   };
 
-  TaskUI.renderDoneCard = (t) => {
+  TaskUI.renderDoneCard = (t, options = {}) => {
     const completedTime = TaskUI.toTimeHM(t?.completedAt);
     const meta = completedTime ? `완료 · ${completedTime}` : '완료';
 
-    return TaskUI.renderTaskCard(t, {
+    const base = TaskUI.renderTaskCard(t, {
       showRightTime: false,
       metaText: meta,
       barColor: 'rgba(16, 185, 129, 0.55)'
     });
+
+    if (!options.reopenAction) {
+      return base;
+    }
+
+    return `
+<div class="done-task-item" data-done-task-id="${TaskUI.escapeHtml(t?.id)}">
+  ${base}
+  <div class="done-actions">
+    <button type="button"
+            class="task-secondary-action"
+            data-action="reopen-today-task"
+            data-task-id="${TaskUI.escapeHtml(t?.id)}">
+      되돌리기
+    </button>
+  </div>
+</div>`.trim();
   };
 
   // ✅ Week: 우측 시간 O, meta X

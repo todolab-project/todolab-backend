@@ -171,6 +171,20 @@ public class TaskController {
                 .body(ApiResponse.success(res));
     }
 
+    @PatchMapping("/{id}/done/cancel")
+    public ResponseEntity<ApiResponse<TaskResponse>> reopenToday(
+            @PathVariable Long id,
+            @RequestParam LocalDate date
+    ) {
+        log.info("[API] reopenToday request :: id={}, date={}", id, date);
+
+        TaskResponse res = taskService.reopenToday(id, date);
+
+        log.info("[API] reopenToday success :: id={}, date={}", id, date);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(res));
+    }
+
     @PatchMapping("/{id}/carry-over")
     public ResponseEntity<ApiResponse<TaskResponse>> carryOver(
             @PathVariable Long id,

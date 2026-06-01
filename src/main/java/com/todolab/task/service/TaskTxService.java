@@ -46,6 +46,13 @@ public class TaskTxService {
     }
 
     @Transactional
+    public Task reopenTodayTx(Long id, LocalDate targetDate) {
+        Task task = findTask(id);
+        task.reopenToday(targetDate);
+        return taskRepository.save(task);
+    }
+
+    @Transactional
     public Task carryOverTx(Long id, LocalDate nextDate) {
         Task task = findTask(id);
         task.carryOverTo(nextDate);

@@ -111,6 +111,26 @@ class TaskTest {
     }
 
     @Test
+    @DisplayName("reopenToday는 완료 상태를 취소하고 지정 날짜의 Today로 되돌린다")
+    void reopenToday() {
+        // given
+        Task task = Task.builder()
+                .title("task")
+                .status(TaskStatus.DONE)
+                .completedAt(LocalDateTime.of(2026, 5, 20, 11, 0))
+                .build();
+        LocalDate targetDate = LocalDate.of(2026, 5, 20);
+
+        // when
+        task.reopenToday(targetDate);
+
+        // then
+        assertThat(task.getStatus()).isEqualTo(TaskStatus.TODAY);
+        assertThat(task.getTargetDate()).isEqualTo(targetDate);
+        assertThat(task.getCompletedAt()).isNull();
+    }
+
+    @Test
     @DisplayName("carryOverTo는 Today 상태를 유지하고 실행 날짜를 다음 날짜로 바꾼다")
     void carryOverTo() {
         // given

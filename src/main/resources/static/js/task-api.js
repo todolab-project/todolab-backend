@@ -82,6 +82,13 @@
     });
   };
 
+  TaskApi.reopenToday = (id, date) => {
+    return request(`/api/tasks/${encodeURIComponent(id)}/done/cancel${buildQuery({ date })}`, {
+      method: 'PATCH',
+      headers: { 'X-Requested-With': 'fetch' }
+    });
+  };
+
   TaskApi.carryOver = (id, date) => {
     return request(`/api/tasks/${encodeURIComponent(id)}/carry-over${buildQuery({ date })}`, {
       method: 'PATCH',

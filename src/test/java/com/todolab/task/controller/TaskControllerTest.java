@@ -777,6 +777,36 @@ class TaskControllerTest {
     }
 
     @Test
+    @DisplayName("완료 취소 성공")
+    void reopenToday_success() throws Exception {
+        // given
+        long id = 1L;
+        LocalDate targetDate = LocalDate.of(2026, 5, 21);
+        TaskResponse reopened = TaskResponse.builder()
+                .id(id)
+                .title("reopened")
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .completedAt(null)
+                .build();
+
+        given(taskService.reopenToday(id, targetDate)).willReturn(reopened);
+
+        // when & then
+        mockMvc.perform(patch("/api/tasks/{id}/done/cancel", id)
+                        .param("date", "2026-05-21"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.status").value("TODAY"))
+                .andExpect(jsonPath("$.data.targetDate").value("2026-05-21"))
+                .andExpect(jsonPath("$.data.completedAt").doesNotExist());
+
+        then(taskService).should().reopenToday(id, targetDate);
+        then(taskService).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
     @DisplayName("이월 처리 성공")
     void carryOver_success() throws Exception {
         // given

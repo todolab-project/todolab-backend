@@ -88,6 +88,34 @@ class TaskTxServiceTest {
     }
 
     @Test
+    @DisplayName("reopenTodayTx는 Done Task를 지정 날짜의 Today 상태로 되돌리고 저장한다")
+    void reopenTodayTx_success() {
+        // given
+        long id = 1L;
+        LocalDate targetDate = LocalDate.of(2026, 5, 21);
+        Task task = Task.builder()
+                .title("task")
+                .status(TaskStatus.DONE)
+                .completedAt(LocalDateTime.of(2026, 5, 21, 22, 0))
+                .build();
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
+
+        given(taskRepository.findById(id)).willReturn(Optional.of(task));
+        given(taskRepository.save(task)).willReturn(task);
+
+        // when
+        Task result = service.reopenTodayTx(id, targetDate);
+
+        // then
+        assertThat(result.getStatus()).isEqualTo(TaskStatus.TODAY);
+        assertThat(result.getTargetDate()).isEqualTo(targetDate);
+        assertThat(result.getCompletedAt()).isNull();
+
+        then(taskRepository).should(times(1)).findById(id);
+        then(taskRepository).should(times(1)).save(task);
+    }
+
+    @Test
     @DisplayName("carryOverTx는 Task를 다음 날짜의 Today 상태로 변경하고 저장한다")
     void carryOverTx_success() {
         // given
