@@ -80,12 +80,20 @@ public class Task {
     @Column(name = "`CREATED_AT`")
     private LocalDateTime createdAt;
 
+    @Column(name = "`UPDATED_AT`")
+    private LocalDateTime updatedAt;
+
     @PrePersist
     protected void onCreate() {
         if (this.status == null) {
             applyInitialStatus();
         }
         this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
 

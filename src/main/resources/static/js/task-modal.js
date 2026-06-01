@@ -73,6 +73,43 @@ window.TaskModal = (() => {
     return hm ? `${d}T${hm}` : '';
   }
 
+  function nextDate(date) {
+    const dt = new Date(`${date}T00:00:00`);
+    dt.setDate(dt.getDate() + 1);
+    const year = dt.getFullYear();
+    const month = String(dt.getMonth() + 1).padStart(2, '0');
+    const day = String(dt.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function todayDate() {
+    const dt = new Date();
+    const year = dt.getFullYear();
+    const month = String(dt.getMonth() + 1).padStart(2, '0');
+    const day = String(dt.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function baseScheduleDate() {
+    const page = document.querySelector('.app-page[data-selected-date], .app-page[data-current-date]');
+    return $startAt.value?.slice(0, 10)
+      || $endAt.value?.slice(0, 10)
+      || page?.dataset?.selectedDate
+      || page?.dataset?.currentDate
+      || todayDate();
+  }
+
+  function normalizeAllDayRange() {
+    if (!$allDay.checked) return;
+
+    const startDate = baseScheduleDate();
+    const endDate = $endAt.value ? $endAt.value.slice(0, 10) : nextDate(startDate);
+    const normalizedEndDate = endDate <= startDate ? nextDate(startDate) : endDate;
+
+    $startAt.value = `${startDate}T00:00`;
+    $endAt.value = `${normalizedEndDate}T00:00`;
+  }
+
   function setReadOnly(ro) {
     $title.readOnly = ro;
     $desc.readOnly = ro;
@@ -83,18 +120,23 @@ window.TaskModal = (() => {
     $endAt.disabled = ro;
   }
 
-  function syncDateDisabled() {
+  function syncDateDisabled({ normalize = false } = {}) {
     const hasSchedule = !!($startAt.value || $endAt.value);
     $unscheduled.checked = !hasSchedule;
-    $allDay.disabled = mode === 'detail' || !hasSchedule;
-    if (!hasSchedule) {
+    $allDay.disabled = mode === 'detail';
+    if (!hasSchedule && !$allDay.checked) {
       $allDay.checked = false;
+    } else if (normalize) {
+      normalizeAllDayRange();
     }
     $scheduleFields?.classList.toggle('task-modal-date-grid-empty', !hasSchedule);
   }
 
   $startAt.addEventListener('input', syncDateDisabled);
   $endAt.addEventListener('input', syncDateDisabled);
+  $startAt.addEventListener('change', () => syncDateDisabled({ normalize: true }));
+  $endAt.addEventListener('change', () => syncDateDisabled({ normalize: true }));
+  $allDay.addEventListener('change', () => syncDateDisabled({ normalize: true }));
 
   function reset() {
     mode = 'create';
@@ -143,6 +185,8 @@ window.TaskModal = (() => {
   }
 
   function payloadFromForm() {
+    normalizeAllDayRange();
+
     const startAt = $startAt.value || null;
     const endAt = $endAt.value || null;
     const hasSchedule = !!(startAt || endAt);
