@@ -89,6 +89,20 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
     }
 
     @Override
+    public List<Task> findTodayTasksBetween(LocalDate startDate, LocalDate endDate) {
+        QTask t = QTask.task;
+
+        return queryFactory
+                .selectFrom(t)
+                .where(
+                        t.status.eq(TaskStatus.TODAY),
+                        t.targetDate.between(startDate, endDate)
+                )
+                .orderBy(t.targetDate.asc(), t.createdAt.asc(), t.id.asc())
+                .fetch();
+    }
+
+    @Override
     public List<Task> findDoneTasks(LocalDate completedDate) {
         QTask t = QTask.task;
         LocalDateTime start = completedDate.atStartOfDay();

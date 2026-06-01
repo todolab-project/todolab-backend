@@ -314,11 +314,21 @@ select:focus{
   color:var(--app-muted);
   font-weight:900;
   white-space:nowrap;
-  margin-left:10px;
   flex:0 0 auto;
 
   /* ✅ 첫 줄 기준 살짝 위로 */
-  margin-top:2px;
+  margin-top:0;
+}
+
+.task-row-trailing{
+  display:flex;
+  align-items:flex-start;
+  justify-content:flex-end;
+  gap:8px;
+  flex:0 0 auto;
+  margin-left:8px;
+  min-width:max-content;
+  margin-top:0;
 }
 
 /* 카테고리 뱃지 */
@@ -373,11 +383,11 @@ select:focus{
 }
 
 .task-secondary-action{
-  min-height:34px;
+  min-height:30px;
   border:1px solid var(--app-border);
   border-radius:var(--app-radius);
   background:#fff;
-  padding:0 12px;
+  padding:0 10px;
   color:#334155;
   font-size:12px;
   font-weight:900;
@@ -403,6 +413,19 @@ select:focus{
 }
 
 @media (max-width:420px){
+  .task-row{
+    gap:10px;
+  }
+
+  .task-row-trailing{
+    gap:6px;
+    margin-left:0;
+  }
+
+  .task-row-trailing .task-secondary-action{
+    padding:0 9px;
+  }
+
   .task-actions{
     padding-left:14px;
     flex-wrap:wrap;

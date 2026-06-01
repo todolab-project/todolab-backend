@@ -76,6 +76,12 @@ public class TaskService {
                 .toList();
     }
 
+    public List<TaskResponse> getTodayTasksBetween(LocalDate startDate, LocalDate endDate) {
+        return taskRepository.findTodayTasksBetween(startDate, endDate).stream()
+                .map(TaskResponse::from)
+                .toList();
+    }
+
     public List<TaskResponse> getDoneTasks(LocalDate completedDate) {
         return taskRepository.findDoneTasks(completedDate).stream()
                 .map(TaskResponse::from)

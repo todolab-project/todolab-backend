@@ -1,6 +1,7 @@
 package com.todolab.view;
 
 import com.todolab.dday.dto.DdayGoalResponse;
+import com.todolab.task.domain.TaskStatus;
 import com.todolab.dday.service.DdayGoalService;
 import com.todolab.task.domain.query.TaskQueryType;
 import com.todolab.task.dto.TaskQueryRequest;
@@ -53,6 +54,8 @@ class TaskViewServiceTest {
         );
         given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
                 .willReturn(tasks);
+        given(taskService.getTodayTasksBetween(LocalDate.of(2025, 11, 23), LocalDate.of(2025, 11, 29)))
+                .willReturn(List.of());
         given(ddayGoalService.findByDateRange(LocalDate.of(2025, 11, 23), LocalDate.of(2025, 11, 29)))
                 .willReturn(List.of());
 
@@ -84,6 +87,7 @@ class TaskViewServiceTest {
         then(taskService).should().getTasks(requestCaptor.capture());
         assertThat(requestCaptor.getValue().getType()).isEqualTo(TaskQueryType.WEEK);
         assertThat(requestCaptor.getValue().getDate()).isEqualTo("2025-11-25");
+        then(taskService).should().getTodayTasksBetween(LocalDate.of(2025, 11, 23), LocalDate.of(2025, 11, 29));
         then(ddayGoalService).should().findByDateRange(LocalDate.of(2025, 11, 23), LocalDate.of(2025, 11, 29));
         then(taskService).shouldHaveNoMoreInteractions();
         then(ddayGoalService).shouldHaveNoMoreInteractions();
@@ -94,6 +98,8 @@ class TaskViewServiceTest {
     void getWeekPage_appliesMove() {
         // given
         given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
+                .willReturn(List.of());
+        given(taskService.getTodayTasksBetween(LocalDate.of(2025, 11, 30), LocalDate.of(2025, 12, 6)))
                 .willReturn(List.of());
         given(ddayGoalService.findByDateRange(LocalDate.of(2025, 11, 30), LocalDate.of(2025, 12, 6)))
                 .willReturn(List.of());
@@ -111,6 +117,7 @@ class TaskViewServiceTest {
         then(taskService).should().getTasks(requestCaptor.capture());
         assertThat(requestCaptor.getValue().getType()).isEqualTo(TaskQueryType.WEEK);
         assertThat(requestCaptor.getValue().getDate()).isEqualTo("2025-12-02");
+        then(taskService).should().getTodayTasksBetween(LocalDate.of(2025, 11, 30), LocalDate.of(2025, 12, 6));
         then(ddayGoalService).should().findByDateRange(LocalDate.of(2025, 11, 30), LocalDate.of(2025, 12, 6));
         then(taskService).shouldHaveNoMoreInteractions();
         then(ddayGoalService).shouldHaveNoMoreInteractions();
@@ -127,6 +134,8 @@ class TaskViewServiceTest {
         );
         given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
                 .willReturn(tasks);
+        given(taskService.getTodayTasksBetween(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 28)))
+                .willReturn(List.of());
         given(ddayGoalService.findByDateRange(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 28)))
                 .willReturn(List.of());
 
@@ -156,6 +165,7 @@ class TaskViewServiceTest {
         then(taskService).should().getTasks(requestCaptor.capture());
         assertThat(requestCaptor.getValue().getType()).isEqualTo(TaskQueryType.MONTH);
         assertThat(requestCaptor.getValue().getDate()).isEqualTo("2026-02");
+        then(taskService).should().getTodayTasksBetween(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 28));
         then(ddayGoalService).should().findByDateRange(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 28));
         then(taskService).shouldHaveNoMoreInteractions();
         then(ddayGoalService).shouldHaveNoMoreInteractions();
@@ -166,6 +176,8 @@ class TaskViewServiceTest {
     void getMonthPage_appliesDateAndMove() {
         // given
         given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
+                .willReturn(List.of());
+        given(taskService.getTodayTasksBetween(LocalDate.of(2025, 12, 28), LocalDate.of(2026, 1, 31)))
                 .willReturn(List.of());
         given(ddayGoalService.findByDateRange(LocalDate.of(2025, 12, 28), LocalDate.of(2026, 1, 31)))
                 .willReturn(List.of());
@@ -185,6 +197,7 @@ class TaskViewServiceTest {
         then(taskService).should().getTasks(requestCaptor.capture());
         assertThat(requestCaptor.getValue().getType()).isEqualTo(TaskQueryType.MONTH);
         assertThat(requestCaptor.getValue().getDate()).isEqualTo("2026-01");
+        then(taskService).should().getTodayTasksBetween(LocalDate.of(2025, 12, 28), LocalDate.of(2026, 1, 31));
         then(ddayGoalService).should().findByDateRange(LocalDate.of(2025, 12, 28), LocalDate.of(2026, 1, 31));
         then(taskService).shouldHaveNoMoreInteractions();
         then(ddayGoalService).shouldHaveNoMoreInteractions();
@@ -195,6 +208,8 @@ class TaskViewServiceTest {
     void getWeekPage_buildsDdayGoalsByDate() {
         // given
         given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
+                .willReturn(List.of());
+        given(taskService.getTodayTasksBetween(LocalDate.of(2026, 6, 7), LocalDate.of(2026, 6, 13)))
                 .willReturn(List.of());
         given(ddayGoalService.findByDateRange(LocalDate.of(2026, 6, 7), LocalDate.of(2026, 6, 13)))
                 .willReturn(List.of(new DdayGoalResponse(
@@ -218,6 +233,49 @@ class TaskViewServiceTest {
         then(ddayGoalService).should().findByDateRange(LocalDate.of(2026, 6, 7), LocalDate.of(2026, 6, 13));
     }
 
+    @Test
+    @DisplayName("주간 화면 조회 - Today 할 일을 targetDate 기준 날짜에 포함한다")
+    void getWeekPage_includesTodayTasksByTargetDate() {
+        // given
+        given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
+                .willReturn(List.of());
+        given(taskService.getTodayTasksBetween(LocalDate.of(2026, 5, 31), LocalDate.of(2026, 6, 6)))
+                .willReturn(List.of(todayTask(20L, "3회 이월 Today", LocalDate.of(2026, 6, 1))));
+        given(ddayGoalService.findByDateRange(LocalDate.of(2026, 5, 31), LocalDate.of(2026, 6, 6)))
+                .willReturn(List.of());
+
+        // when
+        WeekPageModel page = taskViewService.getWeekPage(null, "2026-06-01");
+
+        // then
+        DaySchedule monday = page.weeklyTasks().get(1);
+        assertThat(monday.date()).isEqualTo(LocalDate.of(2026, 6, 1));
+        assertThat(monday.tasks()).extracting("title")
+                .containsExactly("3회 이월 Today");
+        assertThat(page.weekTotalCount()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("월간 화면 조회 - Today 할 일을 targetDate 기준 날짜 셀에 포함한다")
+    void getMonthPage_includesTodayTasksByTargetDate() {
+        // given
+        given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
+                .willReturn(List.of());
+        given(taskService.getTodayTasksBetween(LocalDate.of(2026, 5, 31), LocalDate.of(2026, 7, 4)))
+                .willReturn(List.of(todayTask(21L, "3회 이월 Today", LocalDate.of(2026, 6, 1))));
+        given(ddayGoalService.findByDateRange(LocalDate.of(2026, 5, 31), LocalDate.of(2026, 7, 4)))
+                .willReturn(List.of());
+
+        // when
+        MonthPageModel page = taskViewService.getMonthPage(null, "2026-06-01");
+
+        // then
+        CalendarCell june1 = findCell(page, LocalDate.of(2026, 6, 1));
+        assertThat(june1.tasks()).extracting("title")
+                .containsExactly("3회 이월 Today");
+        assertThat(page.monthTotalCount()).isEqualTo(1);
+    }
+
     private TaskResponse task(Long id, String title, LocalDateTime startAt, LocalDateTime endAt, boolean unscheduled) {
         return TaskResponse.builder()
                 .id(id)
@@ -228,6 +286,24 @@ class TaskViewServiceTest {
                 .allDay(false)
                 .unscheduled(unscheduled)
                 .category("일")
+                .createdAt(null)
+                .build();
+    }
+
+    private TaskResponse todayTask(Long id, String title, LocalDate targetDate) {
+        return TaskResponse.builder()
+                .id(id)
+                .title(title)
+                .description(title + " 설명")
+                .startAt(null)
+                .endAt(null)
+                .allDay(false)
+                .unscheduled(true)
+                .category("일")
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .carryOverCount(3)
+                .staleCarryOver(true)
                 .createdAt(null)
                 .build();
     }

@@ -155,14 +155,20 @@
          </button>`
       : '';
 
-    const actionsHtml = (options.carryOverAction || options.deferReasonAction)
+    const trailingHtml = (right || carryOverHtml)
+      ? `<div class="task-row-trailing">
+           ${right ? `<div class="task-right">${right}</div>` : ``}
+           ${carryOverHtml}
+         </div>`
+      : '';
+
+    const actionsHtml = options.deferReasonAction
       ? `<div class="task-actions">
            <div class="task-actions-meta">
-             ${staleCarryOver ? '다시 정리 필요' : '오늘 못 하면'}
+             다시 정리 필요
            </div>
            <div class="task-actions-controls">
              ${deferReasonHtml}
-             ${carryOverHtml}
            </div>
          </div>`
       : '';
@@ -185,7 +191,7 @@
       ${showDesc && desc ? `<div class="task-desc mt-2 whitespace-pre-wrap break-words line-clamp-3">${desc}</div>` : ``}
     </div>
 
-    ${right ? `<div class="task-right">${right}</div>` : ``}
+    ${trailingHtml}
   </div>
   ${actionsHtml}
 </div>`.trim();

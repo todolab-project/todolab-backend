@@ -18,7 +18,9 @@ import org.springframework.stereotype.Service;
 import java.time.*;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -43,16 +45,21 @@ public class TaskViewService {
         List<TaskResponse> taskList = taskService.getTasks(
                 new TaskQueryRequest(TaskQueryType.WEEK, targetDate.toString())
         );
+        List<TaskResponse> todayTaskList = taskService.getTodayTasksBetween(weekStart, weekEnd);
         List<DdayGoalResponse> ddayGoals = ddayGoalService.findByDateRange(weekStart, weekEnd);
 
         List<DaySchedule> weeklyTasks = new ArrayList<>(7);
         for (int i = 0; i < 7; i++) {
             LocalDate day = weekStart.plusDays(i);
 
-            List<TaskUi> uiTasks = taskList.stream()
-                    .filter(t -> occursOn(t, day))
-                    .map(this::toUi)
-                    .toList();
+            List<TaskUi> uiTasks = mergeTaskUi(
+                    taskList.stream()
+                            .filter(t -> occursOn(t, day))
+                            .toList(),
+                    todayTaskList.stream()
+                            .filter(t -> day.equals(t.targetDate()))
+                            .toList()
+            );
 
             List<DdayGoalUi> uiDdayGoals = ddayGoals.stream()
                     .filter(goal -> goal.targetDate().equals(day))
@@ -112,6 +119,7 @@ public class TaskViewService {
         List<TaskResponse> taskList = taskService.getTasks(
                 new TaskQueryRequest(TaskQueryType.MONTH, ymKey)
         );
+        List<TaskResponse> todayTaskList = taskService.getTodayTasksBetween(gridStart, gridEnd);
         List<DdayGoalResponse> ddayGoals = ddayGoalService.findByDateRange(gridStart, gridEnd);
 
         LocalDate selectedDate = (date != null && date.length() == 10)
@@ -123,10 +131,14 @@ public class TaskViewService {
             LocalDate day = gridStart.plusDays(i);
             boolean inMonth = !day.isBefore(monthStart) && !day.isAfter(monthEnd);
 
-            List<TaskUi> uiTasks = taskList.stream()
-                    .filter(t -> occursOn(t, day))
-                    .map(this::toUi)
-                    .toList();
+            List<TaskUi> uiTasks = mergeTaskUi(
+                    taskList.stream()
+                            .filter(t -> occursOn(t, day))
+                            .toList(),
+                    todayTaskList.stream()
+                            .filter(t -> day.equals(t.targetDate()))
+                            .toList()
+            );
 
             List<DdayGoalUi> uiDdayGoals = ddayGoals.stream()
                     .filter(goal -> goal.targetDate().equals(day))
@@ -186,9 +198,16 @@ public class TaskViewService {
         return start.isBefore(dayEnd) && end.isAfter(dayStart);
     }
 
+    private List<TaskUi> mergeTaskUi(List<TaskResponse> schedules, List<TaskResponse> todayTasks) {
+        Map<Long, TaskUi> merged = new LinkedHashMap<>();
+        schedules.forEach(task -> merged.put(task.id(), toUi(task)));
+        todayTasks.forEach(task -> merged.putIfAbsent(task.id(), toUi(task)));
+        return new ArrayList<>(merged.values());
+    }
+
     private TaskUi toUi(TaskResponse task) {
         LocalDateTime startAt = task.startAt();
-        LocalDate date = (startAt != null) ? startAt.toLocalDate() : null;
+        LocalDate date = (startAt != null) ? startAt.toLocalDate() : task.targetDate();
         LocalTime time = (startAt != null && !task.allDay()) ? startAt.toLocalTime() : null;
 
         return new TaskUi(
