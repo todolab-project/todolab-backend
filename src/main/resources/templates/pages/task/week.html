@@ -104,11 +104,15 @@
                                 25
                             </a>
 
-                            <div class="mt-1 h-2 flex items-center justify-center">
-                <span th:if="${ds.tasks != null and !ds.tasks.isEmpty()}"
-                      class="inline-block w-1.5 h-1.5 rounded-full bg-blue-500/80"></span>
+                            <div class="calendar-day-dots">
+                                <span th:if="${ds.tasks != null and !ds.tasks.isEmpty()}"
+                                      class="calendar-day-dot calendar-day-dot-task"></span>
+                                <span th:if="${ds.hasDoneTasks}"
+                                      class="calendar-day-dot calendar-day-dot-done"></span>
+                                <span th:if="${ds.hasStaleTasks}"
+                                      class="calendar-day-dot calendar-day-dot-stale"></span>
                                 <span th:if="${ds.ddayGoals != null and !ds.ddayGoals.isEmpty()}"
-                                      class="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-fuchsia-500/80"></span>
+                                      class="calendar-day-dot calendar-day-dot-dday"></span>
                             </div>
 
                         </div>

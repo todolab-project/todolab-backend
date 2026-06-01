@@ -7,6 +7,8 @@ public record DaySchedule(
         LocalDate date,
         String dayLabel,
         List<TaskUi> tasks,
-        List<DdayGoalUi> ddayGoals
+        List<DdayGoalUi> ddayGoals,
+        boolean hasDoneTasks,
+        boolean hasStaleTasks
 ) {
 }

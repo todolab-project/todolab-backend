@@ -113,11 +113,15 @@
                                 1
                             </a>
 
-                            <div class="mt-1 h-2 flex items-center justify-center">
-                <span th:if="${c.tasks != null and !c.tasks.isEmpty()}"
-                      class="inline-block w-1.5 h-1.5 rounded-full bg-blue-500/80"></span>
+                            <div class="calendar-day-dots">
+                                <span th:if="${c.tasks != null and !c.tasks.isEmpty()}"
+                                      class="calendar-day-dot calendar-day-dot-task"></span>
+                                <span th:if="${c.hasDoneTasks}"
+                                      class="calendar-day-dot calendar-day-dot-done"></span>
+                                <span th:if="${c.hasStaleTasks}"
+                                      class="calendar-day-dot calendar-day-dot-stale"></span>
                                 <span th:if="${c.ddayGoals != null and !c.ddayGoals.isEmpty()}"
-                                      class="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-fuchsia-500/80"></span>
+                                      class="calendar-day-dot calendar-day-dot-dday"></span>
                             </div>
                         </div>
                     </div>

@@ -46,6 +46,7 @@ public class TaskViewService {
                 new TaskQueryRequest(TaskQueryType.WEEK, targetDate.toString())
         );
         List<TaskResponse> todayTaskList = taskService.getTodayTasksBetween(weekStart, weekEnd);
+        List<TaskResponse> doneTaskList = taskService.getDoneTasksBetween(weekStart, weekEnd);
         List<DdayGoalResponse> ddayGoals = ddayGoalService.findByDateRange(weekStart, weekEnd);
 
         List<DaySchedule> weeklyTasks = new ArrayList<>(7);
@@ -66,7 +67,14 @@ public class TaskViewService {
                     .map(this::toUi)
                     .toList();
 
-            weeklyTasks.add(new DaySchedule(day, dayLabels[i], uiTasks, uiDdayGoals));
+            weeklyTasks.add(new DaySchedule(
+                    day,
+                    dayLabels[i],
+                    uiTasks,
+                    uiDdayGoals,
+                    hasDoneOn(doneTaskList, day),
+                    hasStaleOn(todayTaskList, day)
+            ));
         }
 
         LocalDate selectedDate = targetDate;
@@ -120,6 +128,7 @@ public class TaskViewService {
                 new TaskQueryRequest(TaskQueryType.MONTH, ymKey)
         );
         List<TaskResponse> todayTaskList = taskService.getTodayTasksBetween(gridStart, gridEnd);
+        List<TaskResponse> doneTaskList = taskService.getDoneTasksBetween(gridStart, gridEnd);
         List<DdayGoalResponse> ddayGoals = ddayGoalService.findByDateRange(gridStart, gridEnd);
 
         LocalDate selectedDate = (date != null && date.length() == 10)
@@ -145,7 +154,14 @@ public class TaskViewService {
                     .map(this::toUi)
                     .toList();
 
-            monthDays.add(new CalendarCell(day, inMonth, uiTasks, uiDdayGoals));
+            monthDays.add(new CalendarCell(
+                    day,
+                    inMonth,
+                    uiTasks,
+                    uiDdayGoals,
+                    hasDoneOn(doneTaskList, day),
+                    hasStaleOn(todayTaskList, day)
+            ));
         }
 
         int monthTotalCount = monthDays.stream()
@@ -203,6 +219,20 @@ public class TaskViewService {
         schedules.forEach(task -> merged.put(task.id(), toUi(task)));
         todayTasks.forEach(task -> merged.putIfAbsent(task.id(), toUi(task)));
         return new ArrayList<>(merged.values());
+    }
+
+    private boolean hasDoneOn(List<TaskResponse> doneTasks, LocalDate day) {
+        return doneTasks.stream()
+                .map(TaskResponse::completedAt)
+                .filter(completedAt -> completedAt != null)
+                .map(LocalDateTime::toLocalDate)
+                .anyMatch(day::equals);
+    }
+
+    private boolean hasStaleOn(List<TaskResponse> todayTasks, LocalDate day) {
+        return todayTasks.stream()
+                .filter(task -> day.equals(task.targetDate()))
+                .anyMatch(task -> task.staleCarryOver() || task.carryOverCount() >= 3);
     }
 
     private TaskUi toUi(TaskResponse task) {

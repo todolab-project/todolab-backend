@@ -220,7 +220,7 @@ class TaskPageControllerTest {
         LocalDate currentDate = LocalDate.of(2026, 5, 12);
         LocalDate weekStart = LocalDate.of(2026, 5, 10);
         LocalDate weekEnd = LocalDate.of(2026, 5, 16);
-        DaySchedule selectedSchedule = new DaySchedule(currentDate, "화", List.of(), List.of());
+        DaySchedule selectedSchedule = new DaySchedule(currentDate, "화", List.of(), List.of(), false, false);
         List<DaySchedule> weeklyTasks = List.of(selectedSchedule);
         WeekPageModel page = new WeekPageModel(
                 currentDate,
@@ -269,7 +269,7 @@ class TaskPageControllerTest {
         LocalDate selectedDate = LocalDate.of(2026, 5, 12);
         LocalDate monthStart = LocalDate.of(2026, 5, 1);
         LocalDate monthEnd = LocalDate.of(2026, 5, 31);
-        List<CalendarCell> monthDays = List.of(new CalendarCell(selectedDate, true, List.of(), List.of()));
+        List<CalendarCell> monthDays = List.of(new CalendarCell(selectedDate, true, List.of(), List.of(), false, false));
         MonthPageModel page = new MonthPageModel(
                 currentDate,
                 selectedDate,
