@@ -101,6 +101,7 @@
 
     const metaText = TaskUI.escapeHtml((options.metaText || '').trim());
     const showDesc = (options.showDesc !== false);
+    const staleCarryOver = Boolean(task?.staleCarryOver || Number(task?.carryOverCount || 0) >= 3);
 
     // ✅ 우측 시간/텍스트는 옵션으로만 노출
     let right = '';
@@ -119,7 +120,7 @@
 
     const checkHtml = options.completeAction
       ? `<button type="button"
-                 class="check-box hover:bg-emerald-50 hover:text-emerald-700"
+                 class="check-box task-complete-action"
                  data-action="complete-task"
                  data-task-id="${TaskUI.escapeHtml(task.id)}"
                  aria-label="완료 처리">✓</button>`
@@ -128,7 +129,7 @@
     const deferReasonHtml = options.deferReasonAction
       ? `<label class="sr-only" for="defer-reason-${TaskUI.escapeHtml(task.id)}">미룬 이유</label>
          <select id="defer-reason-${TaskUI.escapeHtml(task.id)}"
-                 class="min-w-[150px] rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] font-extrabold text-amber-900"
+                 class="task-action-select"
                  data-action="set-defer-reason"
                  data-task-id="${TaskUI.escapeHtml(task.id)}">
            <option value="">미룬 이유 선택</option>
@@ -139,21 +140,29 @@
          </select>`
       : '';
 
+    const carryOverHtml = options.carryOverAction
+      ? `<button type="button"
+                 class="task-secondary-action"
+                 data-action="carry-over-task"
+                 data-task-id="${TaskUI.escapeHtml(task.id)}">
+           내일로
+         </button>`
+      : '';
+
     const actionsHtml = (options.carryOverAction || options.deferReasonAction)
-      ? `<div class="px-4 pb-4 flex flex-wrap items-center justify-end gap-2">
-           ${deferReasonHtml}
-           ${options.carryOverAction ? `
-           <button type="button"
-                   class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-extrabold text-slate-700 hover:bg-slate-50"
-                   data-action="carry-over-task"
-                   data-task-id="${TaskUI.escapeHtml(task.id)}">
-             내일로
-           </button>` : ''}
+      ? `<div class="task-actions">
+           <div class="task-actions-meta">
+             ${staleCarryOver ? '다시 정리 필요' : '오늘 못 하면'}
+           </div>
+           <div class="task-actions-controls">
+             ${deferReasonHtml}
+           </div>
+           ${carryOverHtml ? `<div class="task-actions-carry">${carryOverHtml}</div>` : ''}
          </div>`
       : '';
 
     return `
-<div class="task-card task-card-clickable cursor-pointer hover:bg-gray-50 active:scale-[0.995]"
+<div class="task-card task-card-clickable ${staleCarryOver ? 'task-card-stale' : ''}"
      data-task-id="${TaskUI.escapeHtml(task.id)}">
   <div class="task-row">
     <div class="task-left-bar" style="background:${barColor};"></div>
@@ -161,13 +170,13 @@
 
     <div class="min-w-0 flex-1">
       <div class="flex items-center gap-2 min-w-0">
-        <div class="text-[16px] font-black text-gray-900 truncate">${title}</div>
+        <div class="task-title truncate">${title}</div>
         ${cat ? `<span class="task-badge">${cat}</span>` : ``}
       </div>
 
-      ${metaText ? `<div class="mt-1 text-[12px] text-gray-500 font-semibold">${metaText}</div>` : ``}
+      ${metaText ? `<div class="task-meta mt-1">${metaText}</div>` : ``}
 
-      ${showDesc && desc ? `<div class="mt-2 text-[13px] text-gray-600 leading-snug whitespace-pre-wrap break-words line-clamp-3">${desc}</div>` : ``}
+      ${showDesc && desc ? `<div class="task-desc mt-2 whitespace-pre-wrap break-words line-clamp-3">${desc}</div>` : ``}
     </div>
 
     ${right ? `<div class="task-right">${right}</div>` : ``}
@@ -216,12 +225,14 @@
 
   // ✅ Today: 우측 시간 O, meta X
   TaskUI.renderTodayCard = (t) => {
+    const staleCarryOver = Boolean(t?.staleCarryOver || Number(t?.carryOverCount || 0) >= 3);
     return TaskUI.renderTaskCard(t, {
       showRightTime: true,
       metaText: TaskUI.joinMeta(TaskUI.formatDdayMeta(t), TaskUI.formatCarryOverMeta(t)),
+      barColor: staleCarryOver ? 'rgba(245, 158, 11, 0.75)' : null,
       completeAction: true,
       carryOverAction: true,
-      deferReasonAction: Boolean(t?.staleCarryOver || Number(t?.carryOverCount || 0) >= 3)
+      deferReasonAction: staleCarryOver
     });
   };
 

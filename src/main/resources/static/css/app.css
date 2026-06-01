@@ -190,6 +190,19 @@ select:focus{
 
 .task-card-clickable{ cursor:pointer; }
 
+.task-card-stale{
+  border-color:#f2c784;
+  background:#fffbeb;
+}
+
+.task-card-stale .task-row{
+  background:linear-gradient(90deg, rgba(245,158,11,0.08), rgba(255,255,255,0));
+}
+
+.task-card-stale .task-meta{
+  color:#92400e;
+}
+
 /* ✅ hover/active: "row" 기준으로 통일 (구조 바뀌어도 안전) */
 .task-card-clickable:hover{ background: transparent; }
 .task-card-clickable:hover .task-row{ background: rgba(15,23,42,0.025); }
@@ -233,6 +246,23 @@ select:focus{
 
   /* ✅ 첫 줄 기준 살짝 위로 */
   margin-top:2px;
+}
+
+.task-complete-action{
+  border:1px solid #bbf7d0;
+  background:#ecfdf5;
+  color:#047857;
+  transition:background .12s ease, color .12s ease, transform .12s ease, box-shadow .12s ease;
+}
+
+.task-complete-action:hover{
+  background:#059669;
+  color:#fff;
+  box-shadow:0 8px 16px rgba(5,150,105,0.18);
+}
+
+.task-complete-action:active{
+  transform:scale(.96);
 }
 
 /* ✅ 타이포 통일 포인트 */
@@ -287,6 +317,103 @@ select:focus{
 
   /* ✅ 뱃지 줄바꿈 방지 */
   white-space:nowrap;
+}
+
+.task-actions{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:flex-start;
+  gap:10px;
+  padding:10px 14px 14px 56px;
+  border-top:1px solid var(--app-border-soft);
+  background:rgba(248,250,252,0.7);
+}
+
+.task-card-stale .task-actions{
+  border-top-color:#fde68a;
+  background:rgba(254,243,199,0.72);
+}
+
+.task-actions-meta{
+  flex:1 1 auto;
+  min-width:0;
+  font-size:12px;
+  line-height:1.25;
+  font-weight:800;
+  color:var(--app-muted);
+}
+
+.task-card-stale .task-actions-meta{
+  color:#92400e;
+}
+
+.task-actions-controls{
+  display:flex;
+  width:100%;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+}
+
+.task-actions-carry{
+  display:flex;
+  justify-content:flex-end;
+  width:100%;
+}
+
+.task-secondary-action{
+  min-height:34px;
+  border:1px solid var(--app-border);
+  border-radius:var(--app-radius);
+  background:#fff;
+  padding:0 12px;
+  color:#334155;
+  font-size:12px;
+  font-weight:900;
+  box-shadow:var(--app-shadow-soft);
+}
+
+.task-secondary-action:hover{
+  background:#f8fafc;
+}
+
+.task-action-select{
+  min-height:34px;
+  min-width:150px;
+  width:100%;
+  border:1px solid #f2c784 !important;
+  border-radius:var(--app-radius) !important;
+  background:#fff7ed;
+  padding:0 10px;
+  color:#92400e;
+  font-size:12px;
+  font-weight:900;
+}
+
+@media (max-width:420px){
+  .task-actions{
+    padding-left:14px;
+  }
+
+  .task-actions-controls{
+    justify-content:stretch;
+  }
+
+  .task-action-select{
+    width:100%;
+    flex:1 1 150px;
+    min-width:0;
+  }
+
+  .task-secondary-action{
+    width:100%;
+    flex:0 0 auto;
+  }
+
+  .task-actions-carry{
+    justify-content:stretch;
+  }
 }
 
 /* clamp */
