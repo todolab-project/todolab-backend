@@ -241,8 +241,9 @@ select:focus{
   width:26px;
   height:26px;
   border-radius:8px;
-  background:#eef2f7;
-  color:var(--app-muted);
+  border:1.5px solid #cbd5e1;
+  background:#fff;
+  color:transparent;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -254,21 +255,30 @@ select:focus{
   margin-top:2px;
 }
 
-.task-complete-action{
-  border:1px solid #bbf7d0;
-  background:#ecfdf5;
-  color:#047857;
-  transition:background .12s ease, color .12s ease, transform .12s ease, box-shadow .12s ease;
+.task-check-action{
+  transition:background .12s ease, border-color .12s ease, color .12s ease, transform .12s ease, box-shadow .12s ease;
 }
 
-.task-complete-action:hover{
-  background:#059669;
-  color:#fff;
-  box-shadow:0 8px 16px rgba(5,150,105,0.18);
+.task-check-action:hover{
+  border-color:#94a3b8;
+  background:#f8fafc;
+  box-shadow:0 8px 16px rgba(15,23,42,0.08);
 }
 
-.task-complete-action:active{
+.task-check-action:active{
   transform:scale(.96);
+}
+
+.task-check-done{
+  border-color:#cbd5e1;
+  background:#e5e7eb;
+  color:#64748b;
+}
+
+.task-check-done:hover{
+  border-color:#94a3b8;
+  background:#dbe2ea;
+  color:#475569;
 }
 
 /* ✅ 타이포 통일 포인트 */
@@ -327,11 +337,10 @@ select:focus{
 
 .task-actions{
   display:flex;
-  flex-direction:column;
-  align-items:stretch;
-  justify-content:flex-start;
+  align-items:center;
+  justify-content:space-between;
   gap:10px;
-  padding:10px 14px 14px 56px;
+  padding:10px 14px 10px 56px;
   border-top:1px solid var(--app-border-soft);
   background:rgba(248,250,252,0.7);
 }
@@ -342,12 +351,12 @@ select:focus{
 }
 
 .task-actions-meta{
-  flex:1 1 auto;
-  min-width:0;
+  flex:0 0 auto;
   font-size:12px;
   line-height:1.25;
   font-weight:800;
   color:var(--app-muted);
+  white-space:nowrap;
 }
 
 .task-card-stale .task-actions-meta{
@@ -356,24 +365,11 @@ select:focus{
 
 .task-actions-controls{
   display:flex;
-  width:100%;
+  flex:1 1 auto;
+  min-width:0;
   align-items:center;
   justify-content:flex-end;
   gap:8px;
-}
-
-.task-actions-carry{
-  display:flex;
-  justify-content:flex-end;
-  width:100%;
-}
-
-.done-actions{
-  display:flex;
-  justify-content:flex-end;
-  padding:10px 14px 14px 56px;
-  border-top:1px solid var(--app-border-soft);
-  background:rgba(248,250,252,0.7);
 }
 
 .task-secondary-action{
@@ -395,7 +391,8 @@ select:focus{
 .task-action-select{
   min-height:34px;
   min-width:150px;
-  width:100%;
+  width:auto;
+  max-width:100%;
   border:1px solid #f2c784 !important;
   border-radius:var(--app-radius) !important;
   background:#fff7ed;
@@ -408,29 +405,37 @@ select:focus{
 @media (max-width:420px){
   .task-actions{
     padding-left:14px;
+    flex-wrap:wrap;
   }
 
   .task-actions-controls{
-    justify-content:stretch;
+    flex:0 1 auto;
+    justify-content:flex-end;
   }
 
   .task-action-select{
-    width:100%;
     flex:1 1 150px;
     min-width:0;
   }
 
   .task-secondary-action{
-    width:100%;
     flex:0 0 auto;
   }
+}
 
-  .task-actions-carry{
+@media (max-width:340px){
+  .task-actions-controls{
+    width:100%;
+    flex:1 1 100%;
     justify-content:stretch;
   }
 
-  .done-actions{
-    padding-left:14px;
+  .task-action-select{
+    width:100%;
+  }
+
+  .task-secondary-action{
+    flex:1 1 auto;
   }
 }
 
