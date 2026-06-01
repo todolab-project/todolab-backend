@@ -528,6 +528,270 @@ select:focus{
   background:#d946ef;
 }
 
+.task-modal-panel{
+  max-height:calc(100vh - 32px);
+}
+
+.task-modal-header{
+  background:#fff;
+}
+
+.task-modal-title{
+  font-size:17px;
+  line-height:1.25;
+  font-weight:900;
+  color:var(--app-text);
+}
+
+.task-modal-body{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  max-height:calc(100vh - 170px);
+}
+
+.task-modal-field,
+.task-modal-section,
+.task-modal-block{
+  min-width:0;
+}
+
+.task-modal-label{
+  margin-bottom:8px;
+  font-size:14px;
+  line-height:1.25;
+  font-weight:900;
+  color:var(--app-text);
+}
+
+.task-modal-sub-label{
+  margin-bottom:0;
+  font-size:13px;
+  line-height:1.25;
+  font-weight:900;
+  color:#475569;
+}
+
+.task-modal-hint{
+  font-size:11px;
+  line-height:1.35;
+  font-weight:800;
+  color:var(--app-muted);
+  white-space:nowrap;
+}
+
+.task-modal-input{
+  background:#fff;
+  color:var(--app-text);
+}
+
+.task-modal-input[readonly],
+.task-modal-input:disabled{
+  background:#f8fafc;
+  color:#64748b;
+}
+
+textarea.task-modal-input{
+  min-height:72px;
+  resize:vertical;
+}
+
+.task-modal-section{
+  border:1px solid var(--app-border-soft);
+  border-radius:var(--app-radius);
+  background:#f8fafc;
+  padding:14px;
+}
+
+.task-modal-block{
+  min-width:0;
+}
+
+.task-modal-section-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+
+.task-modal-section-title-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  flex:1 1 auto;
+}
+
+.task-modal-icon-label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  margin-bottom:8px;
+}
+
+.task-modal-section-icon{
+  width:17px;
+  height:17px;
+  flex:0 0 auto;
+  color:#334155;
+}
+
+.task-modal-date-grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:14px;
+}
+
+.task-modal-date-field{
+  min-width:0;
+}
+
+.task-modal-date-field .task-modal-sub-label{
+  margin-bottom:6px;
+}
+
+.task-modal-check{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-height:30px;
+  padding:0 10px;
+  border:1px solid var(--app-border);
+  border-radius:var(--app-radius);
+  background:#fff;
+  color:#334155;
+  font-size:12px;
+  line-height:1;
+  font-weight:900;
+  white-space:nowrap;
+  box-shadow:var(--app-shadow-soft);
+}
+
+.task-modal-check input{
+  width:15px;
+  height:15px;
+}
+
+.task-modal-check:has(input:disabled){
+  color:#94a3b8;
+  background:#f8fafc;
+  box-shadow:none;
+}
+
+.task-modal-meta{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:0;
+  border:1px solid var(--app-border-soft);
+  border-radius:var(--app-radius);
+  background:#f8fafc;
+  padding:10px 12px;
+}
+
+.task-modal-meta-row{
+  display:grid;
+  grid-template-columns:auto minmax(0, 1fr);
+  align-items:center;
+  gap:8px;
+  min-height:24px;
+  color:var(--app-muted);
+  font-size:12px;
+  line-height:1.3;
+  min-width:0;
+}
+
+.task-modal-meta-row + .task-modal-meta-row{
+  margin-top:0;
+  padding-top:0;
+  padding-left:12px;
+  border-top:0;
+  border-left:1px dashed var(--app-border-soft);
+}
+
+.task-modal-meta-label{
+  font-weight:900;
+  color:#475569;
+  white-space:nowrap;
+}
+
+.task-modal-meta-row > :last-child{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.task-modal-footer{
+  background:#fff;
+}
+
+.task-modal-footer .app-primary-btn{
+  min-height:48px;
+}
+
+.task-modal-delete-btn{
+  min-width:92px;
+  min-height:48px;
+  border:1px solid #fca5a5 !important;
+  background:#fff !important;
+  color:#dc2626 !important;
+  box-shadow:none !important;
+}
+
+.task-modal-delete-btn:hover{
+  background:#fef2f2 !important;
+}
+
+@media (max-width:420px){
+  .task-modal-panel{
+    max-height:calc(100vh - 20px);
+  }
+
+  .task-modal-body{
+    max-height:calc(100vh - 168px) !important;
+  }
+
+  .task-modal-section-header{
+    align-items:center;
+  }
+
+  .task-modal-section-title-row{
+    align-items:center;
+    flex-direction:row;
+    gap:6px;
+  }
+
+  .task-modal-date-grid{
+    gap:10px;
+  }
+
+  .task-modal-date-field .task-modal-input{
+    padding-left:8px;
+    padding-right:8px;
+    font-size:13px;
+  }
+
+  .task-modal-delete-btn{
+    min-width:76px;
+  }
+
+  .task-modal-meta{
+    padding:9px 10px;
+  }
+
+  .task-modal-meta-row{
+    gap:6px;
+    font-size:11px;
+  }
+
+  .task-modal-meta-row + .task-modal-meta-row{
+    padding-left:8px;
+  }
+}
+
 #floatingCreateBtn{
   position:fixed;
   right:20px;

@@ -26,6 +26,7 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
         return queryFactory
                 .selectFrom(t)
+                .leftJoin(t.ddayGoal).fetchJoin()
                 .where(
                         t.startAt.isNotNull(),
                         overlapsRange(t, start, end)
@@ -40,6 +41,7 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
         return queryFactory
                 .selectFrom(t)
+                .leftJoin(t.ddayGoal).fetchJoin()
                 .where(
                         t.type.eq(taskType),
                         t.startAt.isNotNull(),
@@ -80,6 +82,7 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
         return queryFactory
                 .selectFrom(t)
+                .leftJoin(t.ddayGoal).fetchJoin()
                 .where(
                         t.status.eq(TaskStatus.TODAY),
                         t.targetDate.eq(targetDate)
@@ -94,6 +97,7 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
         return queryFactory
                 .selectFrom(t)
+                .leftJoin(t.ddayGoal).fetchJoin()
                 .where(
                         t.status.eq(TaskStatus.TODAY),
                         t.targetDate.between(startDate, endDate)
@@ -110,6 +114,7 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
         return queryFactory
                 .selectFrom(t)
+                .leftJoin(t.ddayGoal).fetchJoin()
                 .where(
                         t.status.eq(TaskStatus.DONE),
                         t.completedAt.goe(start),
@@ -127,6 +132,7 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
         return queryFactory
                 .selectFrom(t)
+                .leftJoin(t.ddayGoal).fetchJoin()
                 .where(
                         t.status.eq(TaskStatus.DONE),
                         t.completedAt.goe(start),
