@@ -23,5 +23,7 @@ public interface TaskRepositoryCustom {
 
     List<Task> findDoneTasks(LocalDate completedDate);
 
+    List<Task> findDoneTasksBetween(LocalDate startDate, LocalDate endDate);
+
     List<Task> findByDdayGoalId(Long ddayGoalId);
 }

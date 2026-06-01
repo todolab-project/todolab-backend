@@ -88,6 +88,12 @@ public class TaskService {
                 .toList();
     }
 
+    public List<TaskResponse> getDoneTasksBetween(LocalDate startDate, LocalDate endDate) {
+        return taskRepository.findDoneTasksBetween(startDate, endDate).stream()
+                .map(TaskResponse::from)
+                .toList();
+    }
+
     public TaskResponse update(Long id, TaskRequest taskRequest) {
         Task updated = taskTxService.updateTx(id, taskRequest);
         return TaskResponse.from(updated);
