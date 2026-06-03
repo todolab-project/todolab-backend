@@ -657,6 +657,20 @@ textarea.task-modal-input{
   margin-bottom:6px;
 }
 
+.task-modal-schedule-state{
+  display:inline-flex;
+  align-items:center;
+  min-height:28px;
+  margin-top:10px;
+  padding:0 10px;
+  border-radius:999px;
+  background:#f1f5f9;
+  color:#475569;
+  font-size:12px;
+  line-height:1;
+  font-weight:900;
+}
+
 .task-modal-check{
   display:inline-flex;
   align-items:center;
