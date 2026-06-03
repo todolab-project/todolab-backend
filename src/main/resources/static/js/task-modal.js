@@ -356,7 +356,8 @@ window.TaskModal = (() => {
 
   $delete.addEventListener('click', async () => {
     if (!currentId) return;
-    if (!confirm('정말 삭제하시겠어요?')) return;
+    const title = (currentTask?.title || $title.value || '이 항목').trim();
+    if (!confirm(`'${title}'을(를) 삭제하시겠어요?`)) return;
 
     try {
       await TaskApi.deleteTask(currentId);

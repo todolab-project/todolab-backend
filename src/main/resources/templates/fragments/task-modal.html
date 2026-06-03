@@ -10,9 +10,20 @@
                 <div class="task-modal-header flex items-center justify-between px-5 py-4 border-b shrink-0">
                     <div id="taskModalTitle" class="task-modal-title">항목</div>
 
-                    <!-- X 닫기 -->
-                    <button type="button" data-action="close"
-                            class="text-gray-400 hover:text-gray-700 text-2xl leading-none">×</button>
+                    <div class="task-modal-header-actions">
+                        <button id="tmDeleteBtn" type="button"
+                                class="task-modal-delete-btn hidden">
+                            삭제
+                        </button>
+
+                        <!-- X 닫기 -->
+                        <button type="button" data-action="close"
+                                class="task-modal-close-btn" aria-label="닫기">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- body -->
@@ -95,14 +106,9 @@
 
                 <!-- footer (닫기 버튼 제거) -->
                 <div class="task-modal-footer shrink-0 border-t bg-white">
-                    <div class="p-4 flex items-center gap-2">
-                        <button id="tmDeleteBtn" type="button"
-                                class="task-modal-delete-btn hidden px-4 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700">
-                            삭제
-                        </button>
-
+                    <div class="p-4">
                         <button id="tmPrimaryBtn" type="button"
-                                class="app-primary-btn flex-1 py-3">
+                                class="app-primary-btn w-full py-3">
                             저장
                         </button>
                     </div>
