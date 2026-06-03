@@ -21,6 +21,7 @@ window.TaskModal = (() => {
   const $startLabel = document.getElementById('tmStartLabel');
   const $endLabel = document.getElementById('tmEndLabel');
   const $scheduleFields = document.getElementById('tmScheduleFields');
+  const $scheduleState = document.getElementById('tmScheduleState');
 
   const $meta = document.getElementById('tmMeta');
   const $createdAt = document.getElementById('tmCreatedAt');
@@ -33,6 +34,12 @@ window.TaskModal = (() => {
   let currentId = null;
   let currentType = null;
   let currentTask = null;
+
+  function basePrimaryText() {
+    if (mode === 'detail') return '수정';
+    if (mode === 'edit') return '저장';
+    return '항목 등록';
+  }
 
   /* -----------------------------
    * open / close
@@ -182,6 +189,11 @@ window.TaskModal = (() => {
       $allDay.checked = false;
     }
     $scheduleFields?.classList.toggle('task-modal-date-grid-empty', !hasSchedule);
+
+    $scheduleState.textContent = '날짜가 없어 캘린더에 표시되지 않음';
+    $scheduleState.dataset.state = hasSchedule ? 'hidden' : 'todo';
+    $scheduleState.classList.toggle('hidden', hasSchedule);
+    $primary.textContent = basePrimaryText();
   }
 
   $startAt.addEventListener('input', syncDateDisabled);
@@ -209,7 +221,6 @@ window.TaskModal = (() => {
     $updatedAt.textContent = '-';
 
     $delete.classList.add('hidden');
-    $primary.textContent = '항목 등록';
     $titleBar.textContent = '항목 등록';
 
     setReadOnly(false);
@@ -265,7 +276,6 @@ window.TaskModal = (() => {
     currentId = null;
 
     $titleBar.textContent = '항목 등록';
-    $primary.textContent = '항목 등록';
     $delete.classList.add('hidden');
     $meta.classList.add('hidden');
 
