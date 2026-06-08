@@ -153,8 +153,14 @@
       ? `<button type="button"
                  class="task-secondary-action"
                  data-action="carry-over-task"
-                 data-task-id="${TaskUI.escapeHtml(task.id)}">
-           내일로
+                 data-task-id="${TaskUI.escapeHtml(task.id)}"
+                 aria-label="내일로 이동">
+           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+             <path d="M4 10h11M11 6l4 4-4 4"
+                   stroke="currentColor" stroke-width="1.8"
+                   stroke-linecap="round" stroke-linejoin="round"/>
+           </svg>
+           <span>내일로</span>
          </button>`
       : '';
 
@@ -246,13 +252,15 @@
   // ✅ Today: 우측 시간 O, meta X
   TaskUI.renderTodayCard = (t) => {
     const staleCarryOver = Boolean(t?.staleCarryOver || Number(t?.carryOverCount || 0) >= 3);
+    const time = TaskUI.formatRightTime(t);
     return TaskUI.renderTaskCard(t, {
-      showRightTime: true,
-      metaText: TaskUI.joinMeta(TaskUI.formatDdayMeta(t), TaskUI.formatCarryOverMeta(t)),
+      showRightTime: false,
+      metaText: TaskUI.joinMeta(time, TaskUI.formatDdayMeta(t), TaskUI.formatCarryOverMeta(t)),
       barColor: staleCarryOver ? 'rgba(245, 158, 11, 0.75)' : null,
       completeAction: true,
       carryOverAction: true,
-      deferReasonAction: staleCarryOver
+      deferReasonAction: staleCarryOver,
+      rowClass: 'task-row-today'
     });
   };
 
