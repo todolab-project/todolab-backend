@@ -118,19 +118,22 @@
     // ✅ 좌측 바 컬러 (task.color가 있으면 우선)
     const barColor = TaskUI.escapeHtml(task.color || options.barColor || 'rgba(99, 102, 241, 0.55)');
 
+    const showCheck = options.showCheck !== false;
     const checkDone = Boolean(options.doneState);
     const checkAction = Boolean(options.completeAction || options.reopenAction);
     const checkActionName = options.reopenAction ? 'reopen-today-task' : 'complete-task';
     const checkLabel = options.reopenAction ? '완료 취소' : '완료 처리';
     const checkClass = checkDone ? 'task-check-done' : 'task-check-empty';
     const checkMark = checkDone ? '✓' : '';
-    const checkHtml = checkAction
-      ? `<button type="button"
-                 class="check-box task-check-action ${checkClass}"
-                 data-action="${checkActionName}"
-                 data-task-id="${TaskUI.escapeHtml(task.id)}"
-                 aria-label="${checkLabel}">${checkMark}</button>`
-      : `<div class="check-box task-check-static ${checkClass}" aria-hidden="true">${checkMark}</div>`;
+    const checkHtml = !showCheck
+      ? ''
+      : checkAction
+        ? `<button type="button"
+                   class="check-box task-check-action ${checkClass}"
+                   data-action="${checkActionName}"
+                   data-task-id="${TaskUI.escapeHtml(task.id)}"
+                   aria-label="${checkLabel}">${checkMark}</button>`
+        : `<div class="check-box task-check-static ${checkClass}" aria-hidden="true">${checkMark}</div>`;
 
     const deferReasonHtml = options.deferReasonAction
       ? `<label class="sr-only" for="defer-reason-${TaskUI.escapeHtml(task.id)}">미룬 이유</label>
@@ -155,10 +158,25 @@
          </button>`
       : '';
 
-    const trailingHtml = (right || carryOverHtml)
+    const moveToTodayHtml = options.moveToTodayAction
+      ? `<button type="button"
+                 class="task-inline-action"
+                 data-action="move-to-today"
+                 data-task-id="${TaskUI.escapeHtml(task.id)}"
+                 aria-label="오늘 할 일로 이동">
+           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+             <path d="M10 3.5v13M3.5 10h13"
+                   stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+           </svg>
+           <span>오늘 할 일로</span>
+         </button>`
+      : '';
+
+    const trailingHtml = (right || carryOverHtml || moveToTodayHtml)
       ? `<div class="task-row-trailing">
            ${right ? `<div class="task-right">${right}</div>` : ``}
            ${carryOverHtml}
+           ${moveToTodayHtml}
          </div>`
       : '';
 
@@ -176,7 +194,7 @@
     return `
 <div class="task-card task-card-clickable ${staleCarryOver ? 'task-card-stale' : ''}"
      data-task-id="${TaskUI.escapeHtml(task.id)}">
-  <div class="task-row">
+  <div class="task-row ${options.rowClass || ''}">
     <div class="task-left-bar" style="background:${barColor};"></div>
     ${checkHtml}
 
@@ -215,24 +233,14 @@
   TaskUI.renderInboxCard = (t) => {
     const created = TaskUI.toDate(t?.createdAt);
     const meta = created ? `기록일 · ${created}` : null;
-    const base = TaskUI.renderTaskCard(t, {
+    return TaskUI.renderTaskCard(t, {
       showRightTime: false,
       metaText: meta,
-      barColor: 'rgba(59, 130, 246, 0.55)'
+      barColor: 'rgba(59, 130, 246, 0.55)',
+      showCheck: false,
+      moveToTodayAction: true,
+      rowClass: 'task-row-inbox'
     });
-
-    return `
-<div class="inbox-task-item" data-inbox-task-id="${TaskUI.escapeHtml(t?.id)}">
-  ${base}
-  <div class="mt-2 flex justify-end">
-    <button type="button"
-            class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-extrabold text-slate-700 hover:bg-slate-50"
-            data-action="move-to-today"
-            data-task-id="${TaskUI.escapeHtml(t?.id)}">
-      오늘 할 일로
-    </button>
-  </div>
-</div>`.trim();
   };
 
   // ✅ Today: 우측 시간 O, meta X
