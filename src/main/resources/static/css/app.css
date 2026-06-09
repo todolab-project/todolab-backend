@@ -793,6 +793,10 @@ textarea.task-modal-input{
   flex:1 1 auto;
 }
 
+.task-modal-section-title-row .task-modal-hint{
+  white-space:normal;
+}
+
 .task-modal-icon-label{
   display:flex;
   align-items:center;
@@ -966,7 +970,13 @@ textarea.task-modal-input{
   .task-modal-section-title-row{
     align-items:center;
     flex-direction:row;
+    flex-wrap:wrap;
     gap:6px;
+  }
+
+  .task-modal-section-title-row .task-modal-hint{
+    flex-basis:100%;
+    padding-left:23px;
   }
 
   .task-modal-date-grid{
