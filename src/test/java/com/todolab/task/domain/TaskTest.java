@@ -13,6 +13,60 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class TaskTest {
 
     @Test
+    @DisplayName("일정 없이 생성한 Task는 일정 출처가 없다")
+    void scheduleSource_unscheduledIsNull() {
+        // given
+        Task task = Task.builder()
+                .title("task")
+                .build();
+
+        // then
+        assertThat(task.getScheduleSource()).isNull();
+    }
+
+    @Test
+    @DisplayName("사용자가 입력한 일정은 USER 출처로 저장한다")
+    void scheduleSource_scheduledDefaultsToUser() {
+        // given
+        Task task = Task.builder()
+                .title("task")
+                .startAt(LocalDateTime.of(2026, 6, 10, 10, 0))
+                .build();
+
+        // then
+        assertThat(task.getScheduleSource()).isEqualTo(ScheduleSource.USER);
+    }
+
+    @Test
+    @DisplayName("자동 생성 일정은 AUTO_TODAY 출처를 유지한다")
+    void scheduleSource_autoTodayIsPreserved() {
+        // given
+        Task task = Task.builder()
+                .title("task")
+                .startAt(LocalDateTime.of(2026, 6, 10, 0, 0))
+                .endAt(LocalDateTime.of(2026, 6, 11, 0, 0))
+                .allDay(true)
+                .scheduleSource(ScheduleSource.AUTO_TODAY)
+                .build();
+
+        // then
+        assertThat(task.getScheduleSource()).isEqualTo(ScheduleSource.AUTO_TODAY);
+    }
+
+    @Test
+    @DisplayName("일정이 없는 Task는 전달된 일정 출처를 제거한다")
+    void scheduleSource_unscheduledClearsSource() {
+        // given
+        Task task = Task.builder()
+                .title("task")
+                .scheduleSource(ScheduleSource.AUTO_TODAY)
+                .build();
+
+        // then
+        assertThat(task.getScheduleSource()).isNull();
+    }
+
+    @Test
     @DisplayName("새 Task의 이월 횟수 기본값은 0이다")
     void carryOverCount_defaultZero() {
         // given
@@ -209,6 +263,55 @@ class TaskTest {
         // then
         assertThat(task.getStatus()).isEqualTo(TaskStatus.TODAY);
         assertThat(task.getTargetDate()).isEqualTo(LocalDate.of(2026, 6, 12));
+        assertThat(task.getScheduleSource()).isEqualTo(ScheduleSource.USER);
+    }
+
+    @Test
+    @DisplayName("자동 생성 일정을 사용자가 수정하면 USER 일정으로 전환한다")
+    void update_autoSchedule_changesSourceToUser() {
+        // given
+        Task task = Task.builder()
+                .title("기존 제목")
+                .startAt(LocalDateTime.of(2026, 6, 10, 0, 0))
+                .endAt(LocalDateTime.of(2026, 6, 11, 0, 0))
+                .allDay(true)
+                .scheduleSource(ScheduleSource.AUTO_TODAY)
+                .build();
+
+        // when
+        task.update(
+                "수정 제목",
+                null,
+                TaskType.SCHEDULE,
+                LocalDateTime.of(2026, 6, 10, 14, 0),
+                LocalDateTime.of(2026, 6, 10, 15, 0),
+                false,
+                null
+        );
+
+        // then
+        assertThat(task.getScheduleSource()).isEqualTo(ScheduleSource.USER);
+    }
+
+    @Test
+    @DisplayName("자동 생성 일정의 내용만 수정하면 AUTO_TODAY 출처를 유지한다")
+    void update_autoScheduleContent_preservesSource() {
+        // given
+        LocalDateTime startAt = LocalDateTime.of(2026, 6, 10, 0, 0);
+        LocalDateTime endAt = LocalDateTime.of(2026, 6, 11, 0, 0);
+        Task task = Task.builder()
+                .title("기존 제목")
+                .startAt(startAt)
+                .endAt(endAt)
+                .allDay(true)
+                .scheduleSource(ScheduleSource.AUTO_TODAY)
+                .build();
+
+        // when
+        task.update("수정 제목", "설명 추가", TaskType.SCHEDULE, startAt, endAt, true, null);
+
+        // then
+        assertThat(task.getScheduleSource()).isEqualTo(ScheduleSource.AUTO_TODAY);
     }
 
     @Test
