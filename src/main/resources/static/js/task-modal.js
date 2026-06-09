@@ -14,14 +14,12 @@ window.TaskModal = (() => {
   const $unscheduled = document.getElementById('tmUnscheduled');
   const $allDay = document.getElementById('tmAllDay');
   const $allDayLabel = document.getElementById('tmAllDayLabel');
-  const $dateTitle = document.getElementById('tmDateTitle');
   const $dateHint = document.getElementById('tmDateHint');
   const $startAt = document.getElementById('tmStartAt');
   const $endAt = document.getElementById('tmEndAt');
   const $startLabel = document.getElementById('tmStartLabel');
   const $endLabel = document.getElementById('tmEndLabel');
   const $scheduleFields = document.getElementById('tmScheduleFields');
-  const $scheduleState = document.getElementById('tmScheduleState');
   const $executionDate = document.getElementById('tmExecutionDate');
   const $executionDateValue = document.getElementById('tmExecutionDateValue');
 
@@ -140,8 +138,6 @@ window.TaskModal = (() => {
     $startAt.type = isAllDay ? 'date' : 'datetime-local';
     $endAt.type = isAllDay ? 'date' : 'datetime-local';
 
-    $dateTitle.textContent = isAllDay ? '날짜' : '날짜/시간';
-    $dateHint.textContent = isAllDay ? '종일 일정은 날짜만 선택' : '날짜 없으면 할 일로 저장';
     $startLabel.textContent = isAllDay ? '시작일' : '시작';
     $endLabel.textContent = isAllDay ? '종료일' : '종료';
     $scheduleFields?.classList.toggle('is-all-day', isAllDay);
@@ -200,9 +196,9 @@ window.TaskModal = (() => {
     }
     $scheduleFields?.classList.toggle('task-modal-date-grid-empty', !hasSchedule);
 
-    $scheduleState.textContent = '날짜가 없어 캘린더에 표시되지 않음';
-    $scheduleState.dataset.state = hasSchedule ? 'hidden' : 'todo';
-    $scheduleState.classList.toggle('hidden', hasSchedule);
+    $dateHint.textContent = hasSchedule
+      ? ($allDay.checked ? '캘린더에 표시할 종일 일정' : '캘린더에 표시할 날짜와 시간')
+      : '일정 없음 · 기록함에서 관리';
     $primary.textContent = basePrimaryText();
   }
 

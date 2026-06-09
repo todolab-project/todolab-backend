@@ -55,10 +55,10 @@
                             </svg>
                         </div>
                         <div class="min-w-0 flex-1">
-                            <div class="task-modal-execution-label">실행일</div>
+                            <div class="task-modal-execution-label">Today 실행일</div>
                             <div id="tmExecutionDateValue" class="task-modal-execution-value">-</div>
                             <div class="task-modal-execution-copy">
-                                Today 목록에서 실행하기로 정한 날짜
+                                오늘 할 일 목록에 배치한 날짜이며 캘린더 일정과는 별개예요
                             </div>
                         </div>
                     </div>
@@ -70,8 +70,10 @@
                                     <rect x="5" y="5.5" width="14" height="14" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
                                     <path d="M8 3.5v4M16 3.5v4M5 10h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                 </svg>
-                                <div id="tmDateTitle" class="task-modal-label mb-0">날짜/시간</div>
-                                <div id="tmDateHint" class="task-modal-hint">날짜 없으면 할 일로 저장</div>
+                                <div id="tmDateTitle" class="task-modal-label mb-0">캘린더 일정</div>
+                                <div id="tmDateHint" class="task-modal-hint">
+                                    일정 없음 · 기록함에서 관리
+                                </div>
                             </div>
 
                             <label id="tmAllDayLabel" class="task-modal-check">
@@ -84,18 +86,17 @@
                             <div class="task-modal-date-field">
                                 <div id="tmStartLabel" class="task-modal-sub-label">시작</div>
                                 <input id="tmStartAt" type="datetime-local"
+                                       aria-describedby="tmDateHint"
                                        class="task-modal-input w-full border rounded-lg px-3 py-3 text-[15px]" />
                             </div>
                             <div class="task-modal-date-field">
                                 <div id="tmEndLabel" class="task-modal-sub-label">종료</div>
                                 <input id="tmEndAt" type="datetime-local"
+                                       aria-describedby="tmDateHint"
                                        class="task-modal-input w-full border rounded-lg px-3 py-3 text-[15px]" />
                             </div>
                         </div>
 
-                        <div id="tmScheduleState" class="task-modal-schedule-state">
-                            날짜가 없어 캘린더에 표시되지 않음
-                        </div>
                     </div>
 
                     <div class="task-modal-field">
