@@ -11,6 +11,8 @@
   const nextBtn = document.getElementById('weekNextHint');
 
   const $error = document.getElementById('week-error');
+  const $errorMessage = document.getElementById('week-error-message');
+  const $retry = document.getElementById('week-retry');
   const $empty = document.getElementById('week-empty');
   const $card  = document.getElementById('week-card');
   const $list  = document.getElementById('week-list');
@@ -30,27 +32,25 @@
     setTimeout(() => (navLocked = false), NAV_LOCK_MS);
   }
 
-  function hideAll() {
+  function hideFeedback() {
     $error?.classList.add('hidden');
     $empty?.classList.add('hidden');
-    $card?.classList.add('hidden');
   }
 
   function showError(msg) {
-    hideAll();
-    if ($error) {
-      $error.textContent = msg;
-      $error.classList.remove('hidden');
-    }
+    $empty?.classList.add('hidden');
+    if ($errorMessage) $errorMessage.textContent = msg;
+    $error?.classList.remove('hidden');
   }
 
   function showEmpty() {
-    hideAll();
+    hideFeedback();
+    $card?.classList.add('hidden');
     $empty?.classList.remove('hidden');
   }
 
   function showList() {
-    hideAll();
+    hideFeedback();
     $card?.classList.remove('hidden');
   }
 
@@ -71,6 +71,31 @@
     $doneEmpty?.classList.add('hidden');
     $doneCard?.classList.remove('hidden');
     $doneList.innerHTML = doneTasks.map(TaskUI.renderDoneCard).join('');
+  }
+
+  function taskDate(t) {
+    return (t?.startAt || t?.targetDate || '').split('T')[0];
+  }
+
+  function isTaskOnDate(t, date) {
+    if (!date) return true;
+    const s = taskDate(t);
+    const e = (t?.endAt || '').split('T')[0];
+    if (!s) return false;
+    if (!e) return s === date;
+    return (s <= date && date <= e);
+  }
+
+  function mergeTasks(...groups) {
+    const seen = new Set();
+    return groups
+      .flatMap(group => Array.isArray(group) ? group : [])
+      .filter(task => {
+        const id = String(task?.id || '');
+        if (!id || seen.has(id)) return false;
+        seen.add(id);
+        return true;
+      });
   }
 
   function gotoWeek(deltaWeeks) {
@@ -115,26 +140,23 @@
   }
 
   async function load() {
+    $retry?.setAttribute('disabled', '');
+
     try {
       $error?.classList.add('hidden');
       applyTodayRing();
 
       const date = selectedDate || weekStart;
-      const [tasks, doneTasks] = await Promise.all([
+      const [tasks, todayTasks, doneTasks] = await Promise.all([
         TaskApi.getWeekTasks(date),
+        selectedDate ? TaskApi.getTodayTasks(selectedDate) : Promise.resolve([]),
         selectedDate ? TaskApi.getDoneTasks(selectedDate) : Promise.resolve([])
       ]);
       renderDone(doneTasks);
 
+      const mergedTasks = mergeTasks(tasks, todayTasks);
       const filtered = Array.isArray(tasks)
-        ? tasks.filter(t => {
-            if (!selectedDate) return true;
-            const s = (t.startAt || '').split('T')[0];
-            const e = (t.endAt || '').split('T')[0];
-            if (!s) return false;
-            if (!e) return s === selectedDate;
-            return (s <= selectedDate && selectedDate <= e);
-          })
+        ? mergedTasks.filter(t => isTaskOnDate(t, selectedDate))
         : [];
 
       if (!filtered.length) {
@@ -144,17 +166,19 @@
 
       if (!window.TaskUI || typeof window.TaskUI.renderWeekCard !== 'function') {
         showError('렌더 실패: TaskUI.renderWeekCard를 찾을 수 없습니다. (task-ui.js 로드 순서 확인)');
-        showEmpty();
         return;
       }
 
-      showList();
       $list.innerHTML = filtered.map(TaskUI.renderWeekCard).join('');
+      showList();
     } catch (e) {
       showError(`Week 로딩 실패: ${e.message}`);
-      showEmpty();
+    } finally {
+      $retry?.removeAttribute('disabled');
     }
   }
+
+  $retry?.addEventListener('click', load);
 
   if (strip) {
     strip.addEventListener('wheel', (e) => {

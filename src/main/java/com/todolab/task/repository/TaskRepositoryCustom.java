@@ -19,7 +19,11 @@ public interface TaskRepositoryCustom {
 
     List<Task> findTodayTasks(LocalDate targetDate);
 
+    List<Task> findTodayTasksBetween(LocalDate startDate, LocalDate endDate);
+
     List<Task> findDoneTasks(LocalDate completedDate);
+
+    List<Task> findDoneTasksBetween(LocalDate startDate, LocalDate endDate);
 
     List<Task> findByDdayGoalId(Long ddayGoalId);
 }

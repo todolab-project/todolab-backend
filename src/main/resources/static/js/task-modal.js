@@ -13,16 +13,19 @@ window.TaskModal = (() => {
   const $category = document.getElementById('tmCategory');
   const $unscheduled = document.getElementById('tmUnscheduled');
   const $allDay = document.getElementById('tmAllDay');
+  const $allDayLabel = document.getElementById('tmAllDayLabel');
+  const $dateHint = document.getElementById('tmDateHint');
   const $startAt = document.getElementById('tmStartAt');
   const $endAt = document.getElementById('tmEndAt');
+  const $startLabel = document.getElementById('tmStartLabel');
+  const $endLabel = document.getElementById('tmEndLabel');
+  const $scheduleFields = document.getElementById('tmScheduleFields');
+  const $executionDate = document.getElementById('tmExecutionDate');
+  const $executionDateValue = document.getElementById('tmExecutionDateValue');
 
   const $meta = document.getElementById('tmMeta');
   const $createdAt = document.getElementById('tmCreatedAt');
   const $updatedAt = document.getElementById('tmUpdatedAt');
-  const $ddaySection = document.getElementById('tmDdaySection');
-  const $ddaySelect = document.getElementById('tmDdaySelect');
-  const $ddayCurrent = document.getElementById('tmDdayCurrent');
-  const $ddayDisconnect = document.getElementById('tmDdayDisconnectBtn');
 
   const $primary = document.getElementById('tmPrimaryBtn');
   const $delete = document.getElementById('tmDeleteBtn');
@@ -31,9 +34,12 @@ window.TaskModal = (() => {
   let currentId = null;
   let currentType = null;
   let currentTask = null;
-  let ddayGoals = [];
-  let ddayLoading = null;
-  let reloadOnClose = false;
+
+  function basePrimaryText() {
+    if (mode === 'detail') return '수정';
+    if (mode === 'edit') return '저장';
+    return '항목 등록';
+  }
 
   /* -----------------------------
    * open / close
@@ -46,9 +52,7 @@ window.TaskModal = (() => {
   function close() {
     $modal.classList.add('hidden');
     document.body.style.overflow = '';
-    const shouldReload = reloadOnClose;
     reset();
-    if (shouldReload) location.reload();
   }
 
   // 닫기: X/닫기 버튼(data-action="close"), dim 클릭, ESC
@@ -81,14 +85,90 @@ window.TaskModal = (() => {
     return hm ? `${d}T${hm}` : '';
   }
 
-  function formatDdayLabel(daysLeft) {
-    if (window.TaskUI?.formatDdayLabel) return TaskUI.formatDdayLabel(daysLeft);
-    if (daysLeft === null || daysLeft === undefined || daysLeft === '') return null;
-    const n = Number(daysLeft);
-    if (Number.isNaN(n)) return null;
-    if (n === 0) return 'D-Day';
-    if (n > 0) return `D-${n}`;
-    return `D+${Math.abs(n)}`;
+  function nextDate(date) {
+    const dt = new Date(`${date}T00:00:00`);
+    dt.setDate(dt.getDate() + 1);
+    const year = dt.getFullYear();
+    const month = String(dt.getMonth() + 1).padStart(2, '0');
+    const day = String(dt.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function todayDate() {
+    const dt = new Date();
+    const year = dt.getFullYear();
+    const month = String(dt.getMonth() + 1).padStart(2, '0');
+    const day = String(dt.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function baseScheduleDate() {
+    const page = document.querySelector('.app-page[data-selected-date], .app-page[data-current-date]');
+    return $startAt.value?.slice(0, 10)
+      || $endAt.value?.slice(0, 10)
+      || page?.dataset?.selectedDate
+      || page?.dataset?.currentDate
+      || todayDate();
+  }
+
+  function datePart(value) {
+    const text = String(value || '');
+    return /^\d{4}-\d{2}-\d{2}/.test(text) ? text.slice(0, 10) : '';
+  }
+
+  function dateTimeAtStartOfDay(date) {
+    return date ? `${date}T00:00` : null;
+  }
+
+  function syncExecutionDate(task = null) {
+    const targetDate = task?.status === 'TODAY' ? String(task.targetDate || '').trim() : '';
+    $executionDate?.classList.toggle('hidden', !targetDate);
+    if ($executionDateValue) {
+      $executionDateValue.textContent = targetDate || '-';
+    }
+  }
+
+  function setScheduleInputMode() {
+    const isAllDay = !!$allDay.checked;
+    const startValue = $startAt.value;
+    const endValue = $endAt.value;
+    const startDate = datePart(startValue);
+    const endDate = datePart(endValue);
+
+    $startAt.type = isAllDay ? 'date' : 'datetime-local';
+    $endAt.type = isAllDay ? 'date' : 'datetime-local';
+
+    $startLabel.textContent = isAllDay ? '시작일' : '시작';
+    $endLabel.textContent = isAllDay ? '종료일' : '종료';
+    $scheduleFields?.classList.toggle('is-all-day', isAllDay);
+    $allDayLabel?.classList.toggle('is-active', isAllDay);
+
+    if (isAllDay) {
+      $startAt.value = startDate;
+      $endAt.value = endDate;
+      return;
+    }
+
+    $startAt.value = startValue && !startValue.includes('T') ? (dateTimeAtStartOfDay(startDate) || '') : startValue;
+    $endAt.value = endValue && !endValue.includes('T') ? (dateTimeAtStartOfDay(endDate) || '') : endValue;
+  }
+
+  function normalizeAllDayRange() {
+    if (!$allDay.checked) return null;
+
+    setScheduleInputMode();
+
+    const startDate = datePart($startAt.value) || baseScheduleDate();
+    const endDate = datePart($endAt.value) || nextDate(startDate);
+    const normalizedEndDate = endDate <= startDate ? nextDate(startDate) : endDate;
+
+    $startAt.value = startDate;
+    $endAt.value = normalizedEndDate;
+
+    return {
+      startAt: dateTimeAtStartOfDay(startDate),
+      endAt: dateTimeAtStartOfDay(normalizedEndDate),
+    };
   }
 
   function setReadOnly(ro) {
@@ -96,50 +176,58 @@ window.TaskModal = (() => {
     $desc.readOnly = ro;
     $category.readOnly = ro;
 
-    // checkbox + datetime-local은 disabled 처리
-    $unscheduled.disabled = ro;
     $allDay.disabled = ro;
-    $startAt.disabled = ro || $unscheduled.checked;
-    $endAt.disabled = ro || $unscheduled.checked;
+    $startAt.disabled = ro;
+    $endAt.disabled = ro;
   }
 
-  function syncDateDisabled() {
-    const dis = $unscheduled.checked;
-    $startAt.disabled = dis || mode === 'detail';
-    $endAt.disabled = dis || mode === 'detail';
-    if (dis) {
-      $startAt.value = '';
-      $endAt.value = '';
+  function syncDateDisabled({ normalize = false } = {}) {
+    setScheduleInputMode();
+
+    if (normalize) {
+      normalizeAllDayRange();
     }
+
+    const hasSchedule = !!($startAt.value || $endAt.value);
+    $unscheduled.checked = !hasSchedule;
+    $allDay.disabled = mode === 'detail';
+    if (!hasSchedule && !$allDay.checked) {
+      $allDay.checked = false;
+    }
+    $scheduleFields?.classList.toggle('task-modal-date-grid-empty', !hasSchedule);
+
+    $dateHint.textContent = hasSchedule
+      ? ($allDay.checked ? '캘린더에 표시할 종일 일정' : '캘린더에 표시할 날짜와 시간')
+      : '일정 없음 · 기록함에서 관리';
+    $primary.textContent = basePrimaryText();
   }
 
-  $unscheduled.addEventListener('change', syncDateDisabled);
+  $startAt.addEventListener('input', syncDateDisabled);
+  $endAt.addEventListener('input', syncDateDisabled);
+  $startAt.addEventListener('change', () => syncDateDisabled({ normalize: true }));
+  $endAt.addEventListener('change', () => syncDateDisabled({ normalize: true }));
+  $allDay.addEventListener('change', () => syncDateDisabled({ normalize: true }));
 
   function reset() {
     mode = 'create';
     currentId = null;
     currentType = null;
     currentTask = null;
-    reloadOnClose = false;
 
     $title.value = '';
     $desc.value = '';
     $category.value = '';
-    $unscheduled.checked = false;
+    $unscheduled.checked = true;
     $allDay.checked = false;
     $startAt.value = '';
     $endAt.value = '';
+    syncExecutionDate();
 
     $meta.classList.add('hidden');
     $createdAt.textContent = '-';
     $updatedAt.textContent = '-';
-    $ddaySection?.classList.add('hidden');
-    if ($ddaySelect) $ddaySelect.innerHTML = '<option value="">연결된 목표 없음</option>';
-    if ($ddayCurrent) $ddayCurrent.textContent = '-';
-    $ddayDisconnect?.classList.add('hidden');
 
     $delete.classList.add('hidden');
-    $primary.textContent = '항목 등록';
     $titleBar.textContent = '항목 등록';
 
     setReadOnly(false);
@@ -154,11 +242,12 @@ window.TaskModal = (() => {
     $desc.value = task.description ?? '';
     $category.value = task.category ?? '';
 
-    $unscheduled.checked = !!task.unscheduled;
+    $unscheduled.checked = !(task.startAt || task.endAt);
     $allDay.checked = !!task.allDay;
 
     $startAt.value = toInputLocal(task.startAt);
     $endAt.value = toInputLocal(task.endAt);
+    syncExecutionDate(task);
 
     $createdAt.textContent = fmtIso(task.createdAt);
     $updatedAt.textContent = fmtIso(task.updatedAt || task.timestamp);
@@ -166,77 +255,13 @@ window.TaskModal = (() => {
     syncDateDisabled();
   }
 
-  async function loadDdayGoals() {
-    if (!ddayLoading) {
-      ddayLoading = TaskApi.getDdayGoals()
-        .then((goals) => {
-          ddayGoals = Array.isArray(goals) ? goals : [];
-          return ddayGoals;
-        })
-        .finally(() => {
-          ddayLoading = null;
-        });
-    }
-    return ddayLoading;
-  }
-
-  function renderDdayOptions(task) {
-    if (!$ddaySelect) return;
-
-    const selectedId = task?.ddayGoalId == null ? '' : String(task.ddayGoalId);
-    const options = ['<option value="">연결된 목표 없음</option>']
-      .concat(ddayGoals.map((goal) => {
-        const label = formatDdayLabel(goal.daysLeft);
-        const text = label ? `${goal.title} ${label}` : goal.title;
-        const selected = String(goal.id) === selectedId ? ' selected' : '';
-        return `<option value="${String(goal.id).replaceAll('"', '&quot;')}"${selected}>${String(text)
-          .replaceAll('&', '&amp;')
-          .replaceAll('<', '&lt;')
-          .replaceAll('>', '&gt;')
-          .replaceAll('"', '&quot;')}</option>`;
-      }));
-
-    $ddaySelect.innerHTML = options.join('');
-  }
-
-  function renderDdayCurrent(task) {
-    if (!$ddayCurrent || !$ddayDisconnect) return;
-
-    if (!task?.ddayGoalId) {
-      $ddayCurrent.textContent = '연결된 목표가 없습니다.';
-      $ddayDisconnect.classList.add('hidden');
-      return;
-    }
-
-    const label = formatDdayLabel(task.ddayDaysLeft);
-    const title = task.ddayGoalTitle || 'D-Day 목표';
-    $ddayCurrent.textContent = label ? `현재 연결 · ${title} ${label}` : `현재 연결 · ${title}`;
-    $ddayDisconnect.classList.remove('hidden');
-  }
-
-  async function showDdayControl(task) {
-    if (!$ddaySection || !$ddaySelect) return;
-
-    $ddaySection.classList.remove('hidden');
-    $ddaySelect.disabled = true;
-    if ($ddayCurrent) $ddayCurrent.textContent = 'D-Day 목표를 불러오는 중...';
-
-    try {
-      await loadDdayGoals();
-      renderDdayOptions(task);
-      renderDdayCurrent(task);
-    } catch (e) {
-      if ($ddayCurrent) $ddayCurrent.textContent = `D-Day 목표 로딩 실패: ${e.message || e}`;
-    } finally {
-      $ddaySelect.disabled = false;
-    }
-  }
-
   function payloadFromForm() {
-    const startAt = $startAt.value || null;
-    const endAt = $endAt.value || null;
-    const isUnscheduled = !!$unscheduled.checked;
-    const hasSchedule = !isUnscheduled && !!(startAt || endAt);
+    const allDayRange = normalizeAllDayRange();
+
+    const startAt = allDayRange?.startAt ?? ($startAt.value || null);
+    const endAt = allDayRange?.endAt ?? ($endAt.value || null);
+    const hasSchedule = !!(startAt || endAt);
+    const isUnscheduled = !hasSchedule;
     const type = hasSchedule ? 'SCHEDULE' : (currentType === 'IDEA' ? 'IDEA' : 'TODO');
 
     return {
@@ -245,7 +270,7 @@ window.TaskModal = (() => {
       category: $category.value || '',
       type,
       unscheduled: isUnscheduled,
-      allDay: !!$allDay.checked,
+      allDay: hasSchedule && !!$allDay.checked,
       startAt: isUnscheduled ? null : startAt,
       endAt: isUnscheduled ? null : endAt,
     };
@@ -259,10 +284,8 @@ window.TaskModal = (() => {
     currentId = null;
 
     $titleBar.textContent = '항목 등록';
-    $primary.textContent = '항목 등록';
     $delete.classList.add('hidden');
     $meta.classList.add('hidden');
-    $ddaySection?.classList.add('hidden');
 
     setReadOnly(false);
 
@@ -289,7 +312,6 @@ window.TaskModal = (() => {
 
     fill(task);
     setReadOnly(true);
-    showDdayControl(task);
   }
 
   function setModeEdit(id) {
@@ -303,7 +325,6 @@ window.TaskModal = (() => {
 
     setReadOnly(false);
     syncDateDisabled();
-    showDdayControl(currentTask);
   }
 
   /* -----------------------------
@@ -343,7 +364,8 @@ window.TaskModal = (() => {
 
   $delete.addEventListener('click', async () => {
     if (!currentId) return;
-    if (!confirm('정말 삭제하시겠어요?')) return;
+    const title = (currentTask?.title || $title.value || '이 항목').trim();
+    if (!confirm(`'${title}'을(를) 삭제하시겠어요?`)) return;
 
     try {
       await TaskApi.deleteTask(currentId);
@@ -351,44 +373,6 @@ window.TaskModal = (() => {
       location.reload();
     } catch (e) {
       alert(`${e.message || e}`);
-    }
-  });
-
-  $ddaySelect?.addEventListener('change', async () => {
-    if (!currentId || !currentTask) return;
-
-    const value = $ddaySelect.value;
-    $ddaySelect.disabled = true;
-
-    try {
-      const updated = value
-        ? await TaskApi.connectDdayGoal(currentId, value)
-        : await TaskApi.disconnectDdayGoal(currentId);
-      reloadOnClose = true;
-      fill(updated);
-      await showDdayControl(updated);
-    } catch (e) {
-      alert(`D-Day 연결 변경 실패: ${e.message || e}`);
-      renderDdayOptions(currentTask);
-      renderDdayCurrent(currentTask);
-    } finally {
-      $ddaySelect.disabled = false;
-    }
-  });
-
-  $ddayDisconnect?.addEventListener('click', async () => {
-    if (!currentId || !currentTask?.ddayGoalId) return;
-
-    try {
-      $ddayDisconnect.disabled = true;
-      const updated = await TaskApi.disconnectDdayGoal(currentId);
-      reloadOnClose = true;
-      fill(updated);
-      await showDdayControl(updated);
-    } catch (e) {
-      alert(`D-Day 연결 해제 실패: ${e.message || e}`);
-    } finally {
-      $ddayDisconnect.disabled = false;
     }
   });
 

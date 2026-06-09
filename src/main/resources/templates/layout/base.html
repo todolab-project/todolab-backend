@@ -3,14 +3,14 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head(${title})}"></head>
 
-<body class="bg-[#F7F6F2] h-screen flex flex-col">
+<body class="app-body h-screen flex flex-col">
 
 <header th:if="${showBaseHeader == null || showBaseHeader}"
         class="w-full py-6 text-center shrink-0">
     <h1 class="text-3xl font-bold" th:text="${headerTitle}">ToDoLab</h1>
 </header>
 
-<main class="flex-1 w-full max-w-7xl mx-auto overflow-y-auto pb-28">
+<main class="app-main flex-1 w-full max-w-7xl mx-auto overflow-y-auto pb-28">
     <div th:if="${contentView != null}"
          th:replace="~{${contentView} :: content}"></div>
 

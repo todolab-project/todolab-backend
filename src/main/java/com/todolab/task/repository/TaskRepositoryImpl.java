@@ -26,6 +26,7 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
         return queryFactory
                 .selectFrom(t)
+                .leftJoin(t.ddayGoal).fetchJoin()
                 .where(
                         t.startAt.isNotNull(),
                         overlapsRange(t, start, end)
@@ -40,6 +41,7 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
         return queryFactory
                 .selectFrom(t)
+                .leftJoin(t.ddayGoal).fetchJoin()
                 .where(
                         t.type.eq(taskType),
                         t.startAt.isNotNull(),
@@ -80,11 +82,27 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
         return queryFactory
                 .selectFrom(t)
+                .leftJoin(t.ddayGoal).fetchJoin()
                 .where(
                         t.status.eq(TaskStatus.TODAY),
                         t.targetDate.eq(targetDate)
                 )
                 .orderBy(t.createdAt.asc(), t.id.asc())
+                .fetch();
+    }
+
+    @Override
+    public List<Task> findTodayTasksBetween(LocalDate startDate, LocalDate endDate) {
+        QTask t = QTask.task;
+
+        return queryFactory
+                .selectFrom(t)
+                .leftJoin(t.ddayGoal).fetchJoin()
+                .where(
+                        t.status.eq(TaskStatus.TODAY),
+                        t.targetDate.between(startDate, endDate)
+                )
+                .orderBy(t.targetDate.asc(), t.createdAt.asc(), t.id.asc())
                 .fetch();
     }
 
@@ -96,12 +114,31 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
         return queryFactory
                 .selectFrom(t)
+                .leftJoin(t.ddayGoal).fetchJoin()
                 .where(
                         t.status.eq(TaskStatus.DONE),
                         t.completedAt.goe(start),
                         t.completedAt.lt(end)
                 )
                 .orderBy(t.completedAt.desc(), t.id.asc())
+                .fetch();
+    }
+
+    @Override
+    public List<Task> findDoneTasksBetween(LocalDate startDate, LocalDate endDate) {
+        QTask t = QTask.task;
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.plusDays(1).atStartOfDay();
+
+        return queryFactory
+                .selectFrom(t)
+                .leftJoin(t.ddayGoal).fetchJoin()
+                .where(
+                        t.status.eq(TaskStatus.DONE),
+                        t.completedAt.goe(start),
+                        t.completedAt.lt(end)
+                )
+                .orderBy(t.completedAt.asc(), t.id.asc())
                 .fetch();
     }
 

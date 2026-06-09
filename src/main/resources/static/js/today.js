@@ -18,6 +18,9 @@
   const $quickForm = document.getElementById('todayQuickForm');
   const $quickTitle = document.getElementById('todayQuickTitle');
   const $quickSubmit = document.getElementById('todayQuickSubmit');
+  const $summaryToday = document.getElementById('today-summary-today');
+  const $summaryInbox = document.getElementById('today-summary-inbox');
+  const $summaryDone = document.getElementById('today-summary-done');
   const $inboxEmpty = document.getElementById('today-inbox-empty');
   const $inboxCard = document.getElementById('today-inbox-card');
   const $inboxList = document.getElementById('today-inbox-list');
@@ -35,6 +38,7 @@
   }
 
   function setCount(n) {
+    if ($summaryToday) $summaryToday.textContent = String(Math.max(0, n || 0));
     if (!$count) return;
     if (n <= 0) {
       $count.classList.add('hidden');
@@ -88,11 +92,13 @@
   }
 
   function setDoneCount(n) {
+    if ($summaryDone) $summaryDone.textContent = String(Math.max(0, n || 0));
     if (!$doneCount) return;
     $doneCount.textContent = `${n}개`;
   }
 
   function setInboxCount(n) {
+    if ($summaryInbox) $summaryInbox.textContent = String(Math.max(0, n || 0));
     if (!$inboxCount) return;
     $inboxCount.textContent = `${n}개`;
   }
@@ -128,7 +134,7 @@
 
     $doneEmpty?.classList.add('hidden');
     $doneCard?.classList.remove('hidden');
-    $doneList.innerHTML = doneTasks.map(TaskUI.renderDoneCard).join('');
+    $doneList.innerHTML = doneTasks.map(t => TaskUI.renderDoneCard(t, { reopenAction: true })).join('');
   }
 
   function renderInbox(tasks) {
@@ -261,6 +267,27 @@
       showError(`미룬 이유 저장 실패: ${err.message}`);
     } finally {
       select.disabled = false;
+    }
+  });
+
+  $doneList?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-action="reopen-today-task"]');
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const id = btn.getAttribute('data-task-id');
+    if (!id) return;
+
+    try {
+      btn.disabled = true;
+      await TaskApi.reopenToday(id, date);
+      await load();
+    } catch (err) {
+      showError(`완료 취소 실패: ${err.message}`);
+    } finally {
+      btn.disabled = false;
     }
   });
 

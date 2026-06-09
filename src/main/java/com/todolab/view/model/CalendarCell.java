@@ -7,6 +7,8 @@ public record CalendarCell(
         LocalDate date,
         boolean inMonth,
         List<TaskUi> tasks,
-        List<DdayGoalUi> ddayGoals
+        List<DdayGoalUi> ddayGoals,
+        boolean hasDoneTasks,
+        boolean hasStaleTasks
 ) {
 }

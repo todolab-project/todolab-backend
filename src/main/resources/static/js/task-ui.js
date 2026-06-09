@@ -101,6 +101,7 @@
 
     const metaText = TaskUI.escapeHtml((options.metaText || '').trim());
     const showDesc = (options.showDesc !== false);
+    const staleCarryOver = Boolean(task?.staleCarryOver || Number(task?.carryOverCount || 0) >= 3);
 
     // ✅ 우측 시간/텍스트는 옵션으로만 노출
     let right = '';
@@ -117,18 +118,27 @@
     // ✅ 좌측 바 컬러 (task.color가 있으면 우선)
     const barColor = TaskUI.escapeHtml(task.color || options.barColor || 'rgba(99, 102, 241, 0.55)');
 
-    const checkHtml = options.completeAction
-      ? `<button type="button"
-                 class="check-box hover:bg-emerald-50 hover:text-emerald-700"
-                 data-action="complete-task"
-                 data-task-id="${TaskUI.escapeHtml(task.id)}"
-                 aria-label="완료 처리">✓</button>`
-      : `<div class="check-box">✓</div>`;
+    const showCheck = options.showCheck !== false;
+    const checkDone = Boolean(options.doneState);
+    const checkAction = Boolean(options.completeAction || options.reopenAction);
+    const checkActionName = options.reopenAction ? 'reopen-today-task' : 'complete-task';
+    const checkLabel = options.reopenAction ? '완료 취소' : '완료 처리';
+    const checkClass = checkDone ? 'task-check-done' : 'task-check-empty';
+    const checkMark = checkDone ? '✓' : '';
+    const checkHtml = !showCheck
+      ? ''
+      : checkAction
+        ? `<button type="button"
+                   class="check-box task-check-action ${checkClass}"
+                   data-action="${checkActionName}"
+                   data-task-id="${TaskUI.escapeHtml(task.id)}"
+                   aria-label="${checkLabel}">${checkMark}</button>`
+        : `<div class="check-box task-check-static ${checkClass}" aria-hidden="true">${checkMark}</div>`;
 
     const deferReasonHtml = options.deferReasonAction
       ? `<label class="sr-only" for="defer-reason-${TaskUI.escapeHtml(task.id)}">미룬 이유</label>
          <select id="defer-reason-${TaskUI.escapeHtml(task.id)}"
-                 class="min-w-[150px] rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] font-extrabold text-amber-900"
+                 class="task-action-select"
                  data-action="set-defer-reason"
                  data-task-id="${TaskUI.escapeHtml(task.id)}">
            <option value="">미룬 이유 선택</option>
@@ -139,38 +149,73 @@
          </select>`
       : '';
 
-    const actionsHtml = (options.carryOverAction || options.deferReasonAction)
-      ? `<div class="px-4 pb-4 flex flex-wrap items-center justify-end gap-2">
-           ${deferReasonHtml}
-           ${options.carryOverAction ? `
-           <button type="button"
-                   class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-[12px] font-extrabold text-gray-700 hover:bg-gray-50"
-                   data-action="carry-over-task"
-                   data-task-id="${TaskUI.escapeHtml(task.id)}">
-             내일로
-           </button>` : ''}
+    const carryOverHtml = options.carryOverAction
+      ? `<button type="button"
+                 class="task-secondary-action"
+                 data-action="carry-over-task"
+                 data-task-id="${TaskUI.escapeHtml(task.id)}"
+                 aria-label="내일로 이동">
+           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+             <path d="M4 10h11M11 6l4 4-4 4"
+                   stroke="currentColor" stroke-width="1.8"
+                   stroke-linecap="round" stroke-linejoin="round"/>
+           </svg>
+           <span>내일로</span>
+         </button>`
+      : '';
+
+    const moveToTodayHtml = options.moveToTodayAction
+      ? `<button type="button"
+                 class="task-inline-action"
+                 data-action="move-to-today"
+                 data-task-id="${TaskUI.escapeHtml(task.id)}"
+                 aria-label="오늘 할 일로 이동">
+           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+             <path d="M10 3.5v13M3.5 10h13"
+                   stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+           </svg>
+           <span>오늘 할 일로</span>
+         </button>`
+      : '';
+
+    const trailingHtml = (right || carryOverHtml || moveToTodayHtml)
+      ? `<div class="task-row-trailing">
+           ${right ? `<div class="task-right">${right}</div>` : ``}
+           ${carryOverHtml}
+           ${moveToTodayHtml}
+         </div>`
+      : '';
+
+    const actionsHtml = options.deferReasonAction
+      ? `<div class="task-actions">
+           <div class="task-actions-meta">
+             다시 정리 필요
+           </div>
+           <div class="task-actions-controls">
+             ${deferReasonHtml}
+           </div>
          </div>`
       : '';
 
     return `
-<div class="task-card task-card-clickable cursor-pointer hover:bg-gray-50 active:scale-[0.995]"
+<div class="task-card task-card-clickable ${staleCarryOver ? 'task-card-stale' : ''}"
      data-task-id="${TaskUI.escapeHtml(task.id)}">
-  <div class="task-row">
+  <div class="task-row ${options.rowClass || ''}">
     <div class="task-left-bar" style="background:${barColor};"></div>
     ${checkHtml}
 
     <div class="min-w-0 flex-1">
       <div class="flex items-center gap-2 min-w-0">
-        <div class="text-[16px] font-black text-gray-900 truncate">${title}</div>
+        <div class="task-title truncate">${title}</div>
         ${cat ? `<span class="task-badge">${cat}</span>` : ``}
       </div>
 
-      ${metaText ? `<div class="mt-1 text-[12px] text-gray-500 font-semibold">${metaText}</div>` : ``}
+      ${metaText ? `<div class="task-meta mt-1">${metaText}</div>` : ``}
 
-      ${showDesc && desc ? `<div class="mt-2 text-[13px] text-gray-600 leading-snug whitespace-pre-wrap break-words line-clamp-3">${desc}</div>` : ``}
+      ${showDesc && desc ? `<div class="task-desc mt-2 whitespace-pre-wrap break-words line-clamp-3">${desc}</div>` : ``}
     </div>
 
-    ${right ? `<div class="task-right">${right}</div>` : ``}
+    ${trailingHtml}
   </div>
   ${actionsHtml}
 </div>`.trim();
@@ -194,45 +239,41 @@
   TaskUI.renderInboxCard = (t) => {
     const created = TaskUI.toDate(t?.createdAt);
     const meta = created ? `기록일 · ${created}` : null;
-    const base = TaskUI.renderTaskCard(t, {
+    return TaskUI.renderTaskCard(t, {
       showRightTime: false,
       metaText: meta,
-      barColor: 'rgba(59, 130, 246, 0.55)'
+      barColor: 'rgba(59, 130, 246, 0.55)',
+      showCheck: false,
+      moveToTodayAction: true,
+      rowClass: 'task-row-inbox'
     });
-
-    return `
-<div class="inbox-task-item" data-inbox-task-id="${TaskUI.escapeHtml(t?.id)}">
-  ${base}
-  <div class="mt-2 flex justify-end">
-    <button type="button"
-            class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-[12px] font-extrabold text-gray-700 hover:bg-gray-50"
-            data-action="move-to-today"
-            data-task-id="${TaskUI.escapeHtml(t?.id)}">
-      오늘 할 일로
-    </button>
-  </div>
-</div>`.trim();
   };
 
   // ✅ Today: 우측 시간 O, meta X
   TaskUI.renderTodayCard = (t) => {
+    const staleCarryOver = Boolean(t?.staleCarryOver || Number(t?.carryOverCount || 0) >= 3);
+    const time = TaskUI.formatRightTime(t);
     return TaskUI.renderTaskCard(t, {
-      showRightTime: true,
-      metaText: TaskUI.joinMeta(TaskUI.formatDdayMeta(t), TaskUI.formatCarryOverMeta(t)),
+      showRightTime: false,
+      metaText: TaskUI.joinMeta(time, TaskUI.formatDdayMeta(t), TaskUI.formatCarryOverMeta(t)),
+      barColor: staleCarryOver ? 'rgba(245, 158, 11, 0.75)' : null,
       completeAction: true,
       carryOverAction: true,
-      deferReasonAction: Boolean(t?.staleCarryOver || Number(t?.carryOverCount || 0) >= 3)
+      deferReasonAction: staleCarryOver,
+      rowClass: 'task-row-today'
     });
   };
 
-  TaskUI.renderDoneCard = (t) => {
+  TaskUI.renderDoneCard = (t, options = {}) => {
     const completedTime = TaskUI.toTimeHM(t?.completedAt);
     const meta = completedTime ? `완료 · ${completedTime}` : '완료';
 
     return TaskUI.renderTaskCard(t, {
       showRightTime: false,
       metaText: meta,
-      barColor: 'rgba(16, 185, 129, 0.55)'
+      barColor: 'rgba(148, 163, 184, 0.72)',
+      doneState: true,
+      reopenAction: Boolean(options.reopenAction)
     });
   };
 

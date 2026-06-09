@@ -76,8 +76,20 @@ public class TaskService {
                 .toList();
     }
 
+    public List<TaskResponse> getTodayTasksBetween(LocalDate startDate, LocalDate endDate) {
+        return taskRepository.findTodayTasksBetween(startDate, endDate).stream()
+                .map(TaskResponse::from)
+                .toList();
+    }
+
     public List<TaskResponse> getDoneTasks(LocalDate completedDate) {
         return taskRepository.findDoneTasks(completedDate).stream()
+                .map(TaskResponse::from)
+                .toList();
+    }
+
+    public List<TaskResponse> getDoneTasksBetween(LocalDate startDate, LocalDate endDate) {
+        return taskRepository.findDoneTasksBetween(startDate, endDate).stream()
                 .map(TaskResponse::from)
                 .toList();
     }
@@ -95,6 +107,11 @@ public class TaskService {
     public TaskResponse complete(Long id, LocalDateTime completedAt) {
         Task completed = taskTxService.completeTx(id, completedAt);
         return TaskResponse.from(completed);
+    }
+
+    public TaskResponse reopenToday(Long id, LocalDate targetDate) {
+        Task reopened = taskTxService.reopenTodayTx(id, targetDate);
+        return TaskResponse.from(reopened);
     }
 
     public TaskResponse carryOver(Long id, LocalDate nextDate) {

@@ -80,12 +80,20 @@ public class Task {
     @Column(name = "`CREATED_AT`")
     private LocalDateTime createdAt;
 
+    @Column(name = "`UPDATED_AT`")
+    private LocalDateTime updatedAt;
+
     @PrePersist
     protected void onCreate() {
         if (this.status == null) {
             applyInitialStatus();
         }
         this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
 
@@ -102,7 +110,7 @@ public class Task {
 
     public void update(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category) {
         apply(title, description, type, startAt, endAt, allDay, category);
-        if (this.status != TaskStatus.DONE) {
+        if (this.status != TaskStatus.DONE && !isUnscheduled()) {
             applyInitialStatus();
         }
     }
@@ -136,6 +144,10 @@ public class Task {
         validateCompletedAt(completedAt);
         this.status = TaskStatus.DONE;
         this.completedAt = completedAt;
+    }
+
+    public void reopenToday(LocalDate targetDate) {
+        moveToToday(targetDate);
     }
 
     public void carryOverTo(LocalDate nextDate) {

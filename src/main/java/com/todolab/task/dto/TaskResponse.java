@@ -32,7 +32,8 @@ public record TaskResponse(
         String ddayGoalTitle,
         LocalDate ddayGoalTargetDate,
         Long ddayDaysLeft,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ) {
     public TaskResponse(
             Long id,
@@ -45,7 +46,7 @@ public record TaskResponse(
             String category,
             LocalDateTime createdAt
     ) {
-        this(id, TaskType.defaultType(), title, description, startAt, endAt, allDay, unscheduled, category, null, null, null, 0, false, null, null, null, null, null, null, createdAt);
+        this(id, TaskType.defaultType(), title, description, startAt, endAt, allDay, unscheduled, category, null, null, null, 0, false, null, null, null, null, null, null, createdAt, null);
     }
 
     public static TaskResponse from(Task t) {
@@ -72,6 +73,7 @@ public record TaskResponse(
                 .ddayGoalTargetDate(ddayGoal == null ? null : ddayGoal.getTargetDate())
                 .ddayDaysLeft(ddayGoal == null ? null : ChronoUnit.DAYS.between(LocalDate.now(), ddayGoal.getTargetDate()))
                 .createdAt(t.getCreatedAt())
+                .updatedAt(t.getUpdatedAt())
                 .build();
     }
 }
