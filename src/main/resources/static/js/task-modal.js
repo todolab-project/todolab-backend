@@ -22,6 +22,8 @@ window.TaskModal = (() => {
   const $endLabel = document.getElementById('tmEndLabel');
   const $scheduleFields = document.getElementById('tmScheduleFields');
   const $scheduleState = document.getElementById('tmScheduleState');
+  const $executionDate = document.getElementById('tmExecutionDate');
+  const $executionDateValue = document.getElementById('tmExecutionDateValue');
 
   const $meta = document.getElementById('tmMeta');
   const $createdAt = document.getElementById('tmCreatedAt');
@@ -120,6 +122,14 @@ window.TaskModal = (() => {
     return date ? `${date}T00:00` : null;
   }
 
+  function syncExecutionDate(task = null) {
+    const targetDate = task?.status === 'TODAY' ? String(task.targetDate || '').trim() : '';
+    $executionDate?.classList.toggle('hidden', !targetDate);
+    if ($executionDateValue) {
+      $executionDateValue.textContent = targetDate || '-';
+    }
+  }
+
   function setScheduleInputMode() {
     const isAllDay = !!$allDay.checked;
     const startValue = $startAt.value;
@@ -215,6 +225,7 @@ window.TaskModal = (() => {
     $allDay.checked = false;
     $startAt.value = '';
     $endAt.value = '';
+    syncExecutionDate();
 
     $meta.classList.add('hidden');
     $createdAt.textContent = '-';
@@ -240,6 +251,7 @@ window.TaskModal = (() => {
 
     $startAt.value = toInputLocal(task.startAt);
     $endAt.value = toInputLocal(task.endAt);
+    syncExecutionDate(task);
 
     $createdAt.textContent = fmtIso(task.createdAt);
     $updatedAt.textContent = fmtIso(task.updatedAt || task.timestamp);

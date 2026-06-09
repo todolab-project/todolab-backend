@@ -705,6 +705,62 @@ select:focus{
   color:#64748b;
 }
 
+.task-modal-execution{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+  border:1px solid #bfdbfe;
+  border-radius:var(--app-radius);
+  background:#eff6ff;
+  padding:12px 14px;
+}
+
+.task-modal-execution.hidden{
+  display:none;
+}
+
+.task-modal-execution-icon{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:38px;
+  height:38px;
+  flex:0 0 auto;
+  border:1px solid #bfdbfe;
+  border-radius:var(--app-radius);
+  background:#fff;
+  color:#2563eb;
+}
+
+.task-modal-execution-icon svg{
+  width:20px;
+  height:20px;
+}
+
+.task-modal-execution-label{
+  font-size:11px;
+  line-height:1.2;
+  font-weight:900;
+  color:#2563eb;
+}
+
+.task-modal-execution-value{
+  margin-top:3px;
+  font-size:15px;
+  line-height:1.25;
+  font-weight:900;
+  color:#1e3a8a;
+}
+
+.task-modal-execution-copy{
+  margin-top:3px;
+  font-size:11px;
+  line-height:1.35;
+  font-weight:700;
+  color:#64748b;
+}
+
 textarea.task-modal-input{
   min-height:72px;
   resize:vertical;
