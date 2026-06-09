@@ -124,7 +124,16 @@
 
         <!-- 아래 스크롤 -->
         <div class="app-scroll touch-pan-y">
-            <div id="week-error" class="mt-6 text-red-600 text-sm hidden"></div>
+            <div id="week-error" class="calendar-error hidden" role="alert" aria-live="polite">
+                <div class="calendar-error-icon" aria-hidden="true">!</div>
+                <div class="calendar-error-content">
+                    <div class="calendar-error-title">일정을 불러오지 못했어요</div>
+                    <div id="week-error-message" class="calendar-error-message"></div>
+                </div>
+                <button id="week-retry" type="button" class="calendar-error-retry">
+                    다시 시도
+                </button>
+            </div>
 
             <div id="week-empty"
                  class="hidden mt-14 flex flex-col items-center justify-center text-center select-none">

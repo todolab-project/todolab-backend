@@ -1147,3 +1147,91 @@ textarea.task-modal-input{
 .today-section{
   margin-top:22px;
 }
+
+.calendar-error{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-top:16px;
+  padding:14px;
+  border:1px solid #fecaca;
+  border-radius:var(--app-radius);
+  background:#fff7f7;
+}
+
+.calendar-error.hidden{
+  display:none;
+}
+
+.calendar-error-icon{
+  display:flex;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:center;
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:#fee2e2;
+  color:#dc2626;
+  font-size:16px;
+  font-weight:900;
+}
+
+.calendar-error-content{
+  min-width:0;
+  flex:1;
+}
+
+.calendar-error-title{
+  color:#991b1b;
+  font-size:14px;
+  line-height:1.35;
+  font-weight:900;
+}
+
+.calendar-error-message{
+  overflow:hidden;
+  margin-top:3px;
+  color:#b91c1c;
+  font-size:12px;
+  line-height:1.4;
+  font-weight:600;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.calendar-error-retry{
+  flex:0 0 auto;
+  min-height:40px;
+  padding:0 13px;
+  border:1px solid #fecaca;
+  border-radius:var(--app-radius);
+  background:#fff;
+  color:#b91c1c;
+  font-size:13px;
+  font-weight:900;
+}
+
+.calendar-error-retry:hover{
+  background:#fef2f2;
+}
+
+.calendar-error-retry:disabled{
+  cursor:wait;
+  opacity:0.55;
+}
+
+@media (max-width:420px){
+  .calendar-error{
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+
+  .calendar-error-content{
+    padding-top:1px;
+  }
+
+  .calendar-error-retry{
+    width:100%;
+  }
+}

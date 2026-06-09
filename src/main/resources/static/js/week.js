@@ -11,6 +11,8 @@
   const nextBtn = document.getElementById('weekNextHint');
 
   const $error = document.getElementById('week-error');
+  const $errorMessage = document.getElementById('week-error-message');
+  const $retry = document.getElementById('week-retry');
   const $empty = document.getElementById('week-empty');
   const $card  = document.getElementById('week-card');
   const $list  = document.getElementById('week-list');
@@ -30,27 +32,25 @@
     setTimeout(() => (navLocked = false), NAV_LOCK_MS);
   }
 
-  function hideAll() {
+  function hideFeedback() {
     $error?.classList.add('hidden');
     $empty?.classList.add('hidden');
-    $card?.classList.add('hidden');
   }
 
   function showError(msg) {
-    hideAll();
-    if ($error) {
-      $error.textContent = msg;
-      $error.classList.remove('hidden');
-    }
+    $empty?.classList.add('hidden');
+    if ($errorMessage) $errorMessage.textContent = msg;
+    $error?.classList.remove('hidden');
   }
 
   function showEmpty() {
-    hideAll();
+    hideFeedback();
+    $card?.classList.add('hidden');
     $empty?.classList.remove('hidden');
   }
 
   function showList() {
-    hideAll();
+    hideFeedback();
     $card?.classList.remove('hidden');
   }
 
@@ -140,6 +140,8 @@
   }
 
   async function load() {
+    $retry?.setAttribute('disabled', '');
+
     try {
       $error?.classList.add('hidden');
       applyTodayRing();
@@ -164,17 +166,19 @@
 
       if (!window.TaskUI || typeof window.TaskUI.renderWeekCard !== 'function') {
         showError('렌더 실패: TaskUI.renderWeekCard를 찾을 수 없습니다. (task-ui.js 로드 순서 확인)');
-        showEmpty();
         return;
       }
 
-      showList();
       $list.innerHTML = filtered.map(TaskUI.renderWeekCard).join('');
+      showList();
     } catch (e) {
       showError(`Week 로딩 실패: ${e.message}`);
-      showEmpty();
+    } finally {
+      $retry?.removeAttribute('disabled');
     }
   }
+
+  $retry?.addEventListener('click', load);
 
   if (strip) {
     strip.addEventListener('wheel', (e) => {
