@@ -6,6 +6,8 @@ import com.todolab.dday.repository.DdayGoalRepository;
 import com.todolab.task.domain.DeferReason;
 import com.todolab.task.domain.Task;
 import com.todolab.task.domain.TaskStatus;
+import com.todolab.task.domain.TaskType;
+import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.exception.TaskNotFoundException;
 import com.todolab.task.repository.TaskRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -32,6 +34,43 @@ class TaskTxServiceTest {
 
     @Mock
     DdayGoalRepository ddayGoalRepository;
+
+    @Test
+    @DisplayName("updateTx는 날짜 없는 Today Task의 설명을 수정해도 실행 상태를 유지한다")
+    void updateTx_unscheduledToday_preservesWorkflowState() {
+        // given
+        long id = 1L;
+        LocalDate targetDate = LocalDate.of(2026, 6, 9);
+        Task task = Task.builder()
+                .title("기존 제목")
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .build();
+        TaskRequest request = new TaskRequest(
+                "기존 제목",
+                "새 설명",
+                TaskType.TODO,
+                null,
+                null,
+                null,
+                false
+        );
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
+
+        given(taskRepository.findById(id)).willReturn(Optional.of(task));
+        given(taskRepository.save(task)).willReturn(task);
+
+        // when
+        Task result = service.updateTx(id, request);
+
+        // then
+        assertThat(result.getDescription()).isEqualTo("새 설명");
+        assertThat(result.getStatus()).isEqualTo(TaskStatus.TODAY);
+        assertThat(result.getTargetDate()).isEqualTo(targetDate);
+
+        then(taskRepository).should(times(1)).findById(id);
+        then(taskRepository).should(times(1)).save(task);
+    }
 
     @Test
     @DisplayName("moveToTodayTx는 Task를 Today 상태로 변경하고 저장한다")

@@ -154,6 +154,64 @@ class TaskTest {
     }
 
     @Test
+    @DisplayName("날짜 없는 Today Task의 내용을 수정해도 실행 상태와 날짜를 유지한다")
+    void update_unscheduledToday_preservesWorkflowState() {
+        // given
+        LocalDate targetDate = LocalDate.of(2026, 6, 9);
+        Task task = Task.builder()
+                .title("기존 제목")
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .carryOverCount(2)
+                .build();
+
+        // when
+        task.update("수정 제목", "설명 추가", TaskType.TODO, null, null, false, null);
+
+        // then
+        assertThat(task.getTitle()).isEqualTo("수정 제목");
+        assertThat(task.getDescription()).isEqualTo("설명 추가");
+        assertThat(task.getStatus()).isEqualTo(TaskStatus.TODAY);
+        assertThat(task.getTargetDate()).isEqualTo(targetDate);
+        assertThat(task.getCarryOverCount()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("날짜 없는 Inbox Task의 내용을 수정해도 Inbox 상태를 유지한다")
+    void update_unscheduledInbox_preservesWorkflowState() {
+        // given
+        Task task = Task.builder()
+                .title("기존 제목")
+                .status(TaskStatus.INBOX)
+                .build();
+
+        // when
+        task.update("수정 제목", "설명 추가", TaskType.TODO, null, null, false, null);
+
+        // then
+        assertThat(task.getStatus()).isEqualTo(TaskStatus.INBOX);
+        assertThat(task.getTargetDate()).isNull();
+    }
+
+    @Test
+    @DisplayName("일정 날짜를 지정해 수정하면 Today 상태와 실행 날짜를 일정 시작일로 갱신한다")
+    void update_scheduledTask_updatesWorkflowDate() {
+        // given
+        Task task = Task.builder()
+                .title("기존 제목")
+                .status(TaskStatus.INBOX)
+                .build();
+        LocalDateTime startAt = LocalDateTime.of(2026, 6, 12, 14, 0);
+
+        // when
+        task.update("일정 제목", null, TaskType.SCHEDULE, startAt, null, false, null);
+
+        // then
+        assertThat(task.getStatus()).isEqualTo(TaskStatus.TODAY);
+        assertThat(task.getTargetDate()).isEqualTo(LocalDate.of(2026, 6, 12));
+    }
+
+    @Test
     @DisplayName("moveToToday는 targetDate가 없으면 실패한다")
     void moveToToday_requiresTargetDate() {
         // given

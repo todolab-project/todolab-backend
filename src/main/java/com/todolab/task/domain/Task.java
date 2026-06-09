@@ -110,7 +110,7 @@ public class Task {
 
     public void update(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category) {
         apply(title, description, type, startAt, endAt, allDay, category);
-        if (this.status != TaskStatus.DONE) {
+        if (this.status != TaskStatus.DONE && !isUnscheduled()) {
             applyInitialStatus();
         }
     }
