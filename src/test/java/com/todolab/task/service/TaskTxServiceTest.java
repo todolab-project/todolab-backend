@@ -4,6 +4,7 @@ import com.todolab.dday.domain.DdayGoal;
 import com.todolab.dday.exception.DdayGoalNotFoundException;
 import com.todolab.dday.repository.DdayGoalRepository;
 import com.todolab.task.domain.DeferReason;
+import com.todolab.task.domain.ScheduleSource;
 import com.todolab.task.domain.Task;
 import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.domain.TaskType;
@@ -73,13 +74,14 @@ class TaskTxServiceTest {
     }
 
     @Test
-    @DisplayName("moveToTodayTx는 Task를 Today 상태로 변경하고 저장한다")
-    void moveToTodayTx_success() {
+    @DisplayName("moveToTodayTx는 일정 없는 Task에 자동 종일 일정을 만들고 저장한다")
+    void moveToTodayTx_createsAutoAllDaySchedule() {
         // given
         long id = 1L;
         LocalDate targetDate = LocalDate.of(2026, 5, 21);
         Task task = Task.builder()
                 .title("task")
+                .type(TaskType.TODO)
                 .build();
         TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
 
@@ -93,6 +95,41 @@ class TaskTxServiceTest {
         assertThat(result.getStatus()).isEqualTo(TaskStatus.TODAY);
         assertThat(result.getTargetDate()).isEqualTo(targetDate);
         assertThat(result.getCompletedAt()).isNull();
+        assertThat(result.getStartAt()).isEqualTo(targetDate.atStartOfDay());
+        assertThat(result.getEndAt()).isEqualTo(targetDate.plusDays(1).atStartOfDay());
+        assertThat(result.isAllDay()).isTrue();
+        assertThat(result.getScheduleSource()).isEqualTo(ScheduleSource.AUTO_TODAY);
+
+        then(taskRepository).should(times(1)).findById(id);
+        then(taskRepository).should(times(1)).save(task);
+    }
+
+    @Test
+    @DisplayName("moveToTodayTx는 기존 수동 일정을 변경하지 않는다")
+    void moveToTodayTx_preservesUserSchedule() {
+        // given
+        long id = 1L;
+        LocalDate targetDate = LocalDate.of(2026, 5, 21);
+        LocalDateTime startAt = LocalDateTime.of(2026, 5, 20, 10, 0);
+        LocalDateTime endAt = LocalDateTime.of(2026, 5, 20, 11, 0);
+        Task task = Task.builder()
+                .title("task")
+                .startAt(startAt)
+                .endAt(endAt)
+                .build();
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
+
+        given(taskRepository.findById(id)).willReturn(Optional.of(task));
+        given(taskRepository.save(task)).willReturn(task);
+
+        // when
+        Task result = service.moveToTodayTx(id, targetDate);
+
+        // then
+        assertThat(result.getTargetDate()).isEqualTo(targetDate);
+        assertThat(result.getStartAt()).isEqualTo(startAt);
+        assertThat(result.getEndAt()).isEqualTo(endAt);
+        assertThat(result.getScheduleSource()).isEqualTo(ScheduleSource.USER);
 
         then(taskRepository).should(times(1)).findById(id);
         then(taskRepository).should(times(1)).save(task);

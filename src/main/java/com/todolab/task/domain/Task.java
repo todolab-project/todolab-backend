@@ -141,6 +141,12 @@ public class Task {
 
     public void moveToToday(LocalDate targetDate) {
         validateTargetDate(targetDate);
+        if (isUnscheduled()) {
+            this.startAt = targetDate.atStartOfDay();
+            this.endAt = targetDate.plusDays(1).atStartOfDay();
+            this.allDay = true;
+            this.scheduleSource = ScheduleSource.AUTO_TODAY;
+        }
         this.status = TaskStatus.TODAY;
         this.targetDate = targetDate;
         this.completedAt = null;

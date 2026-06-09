@@ -3,6 +3,7 @@ package com.todolab.task.service;
 import com.todolab.common.api.ErrorCode;
 import com.todolab.dday.domain.DdayGoal;
 import com.todolab.task.domain.DeferReason;
+import com.todolab.task.domain.ScheduleSource;
 import com.todolab.task.domain.Task;
 import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.domain.TaskType;
@@ -776,6 +777,10 @@ class TaskServiceTest {
         LocalDate targetDate = LocalDate.of(2026, 5, 21);
         Task moved = Task.builder()
                 .title("moved")
+                .startAt(targetDate.atStartOfDay())
+                .endAt(targetDate.plusDays(1).atStartOfDay())
+                .allDay(true)
+                .scheduleSource(ScheduleSource.AUTO_TODAY)
                 .status(TaskStatus.TODAY)
                 .targetDate(targetDate)
                 .build();
@@ -790,6 +795,10 @@ class TaskServiceTest {
         assertThat(result.status()).isEqualTo(TaskStatus.TODAY);
         assertThat(result.targetDate()).isEqualTo(targetDate);
         assertThat(result.completedAt()).isNull();
+        assertThat(result.startAt()).isEqualTo(targetDate.atStartOfDay());
+        assertThat(result.endAt()).isEqualTo(targetDate.plusDays(1).atStartOfDay());
+        assertThat(result.allDay()).isTrue();
+        assertThat(result.scheduleSource()).isEqualTo(ScheduleSource.AUTO_TODAY);
 
         then(taskTxService).should(times(1)).moveToTodayTx(id, targetDate);
         then(taskRepository).shouldHaveNoInteractions();

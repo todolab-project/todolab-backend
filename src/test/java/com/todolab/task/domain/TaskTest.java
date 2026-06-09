@@ -130,11 +130,12 @@ class TaskTest {
     }
 
     @Test
-    @DisplayName("moveToToday는 Today 상태로 바꾸고 실행 날짜를 지정한다")
-    void moveToToday() {
+    @DisplayName("일정 없는 Task를 Today로 이동하면 실행 날짜의 자동 종일 일정을 만든다")
+    void moveToToday_createsAutoAllDaySchedule() {
         // given
         Task task = Task.builder()
                 .title("task")
+                .type(TaskType.TODO)
                 .build();
         LocalDate targetDate = LocalDate.of(2026, 5, 20);
 
@@ -145,6 +146,36 @@ class TaskTest {
         assertThat(task.getStatus()).isEqualTo(TaskStatus.TODAY);
         assertThat(task.getTargetDate()).isEqualTo(targetDate);
         assertThat(task.getCompletedAt()).isNull();
+        assertThat(task.getStartAt()).isEqualTo(targetDate.atStartOfDay());
+        assertThat(task.getEndAt()).isEqualTo(targetDate.plusDays(1).atStartOfDay());
+        assertThat(task.isAllDay()).isTrue();
+        assertThat(task.getScheduleSource()).isEqualTo(ScheduleSource.AUTO_TODAY);
+        assertThat(task.getType()).isEqualTo(TaskType.TODO);
+    }
+
+    @Test
+    @DisplayName("기존 수동 일정이 있는 Task를 Today로 이동해도 일정은 변경하지 않는다")
+    void moveToToday_preservesUserSchedule() {
+        // given
+        LocalDateTime startAt = LocalDateTime.of(2026, 5, 19, 14, 0);
+        LocalDateTime endAt = LocalDateTime.of(2026, 5, 19, 15, 0);
+        Task task = Task.builder()
+                .title("task")
+                .startAt(startAt)
+                .endAt(endAt)
+                .build();
+        LocalDate targetDate = LocalDate.of(2026, 5, 20);
+
+        // when
+        task.moveToToday(targetDate);
+
+        // then
+        assertThat(task.getStatus()).isEqualTo(TaskStatus.TODAY);
+        assertThat(task.getTargetDate()).isEqualTo(targetDate);
+        assertThat(task.getStartAt()).isEqualTo(startAt);
+        assertThat(task.getEndAt()).isEqualTo(endAt);
+        assertThat(task.isAllDay()).isFalse();
+        assertThat(task.getScheduleSource()).isEqualTo(ScheduleSource.USER);
     }
 
     @Test
