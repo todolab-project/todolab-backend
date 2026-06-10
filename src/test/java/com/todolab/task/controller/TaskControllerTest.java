@@ -824,6 +824,10 @@ class TaskControllerTest {
         TaskResponse carriedOver = TaskResponse.builder()
                 .id(id)
                 .title("carried over")
+                .startAt(nextDate.atStartOfDay())
+                .endAt(nextDate.plusDays(1).atStartOfDay())
+                .allDay(true)
+                .scheduleSource(ScheduleSource.AUTO_TODAY)
                 .status(TaskStatus.TODAY)
                 .targetDate(nextDate)
                 .carryOverCount(3)
@@ -841,7 +845,10 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.data.status").value("TODAY"))
                 .andExpect(jsonPath("$.data.targetDate").value("2026-05-22"))
                 .andExpect(jsonPath("$.data.carryOverCount").value(3))
-                .andExpect(jsonPath("$.data.staleCarryOver").value(true));
+                .andExpect(jsonPath("$.data.staleCarryOver").value(true))
+                .andExpect(jsonPath("$.data.startAt").value("2026-05-22T00:00:00"))
+                .andExpect(jsonPath("$.data.endAt").value("2026-05-23T00:00:00"))
+                .andExpect(jsonPath("$.data.scheduleSource").value("AUTO_TODAY"));
 
         then(taskService).should().carryOver(id, nextDate);
         then(taskService).shouldHaveNoMoreInteractions();

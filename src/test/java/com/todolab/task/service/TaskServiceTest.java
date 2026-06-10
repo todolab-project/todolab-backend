@@ -865,6 +865,10 @@ class TaskServiceTest {
         LocalDate nextDate = LocalDate.of(2026, 5, 22);
         Task carriedOver = Task.builder()
                 .title("carried over")
+                .startAt(nextDate.atStartOfDay())
+                .endAt(nextDate.plusDays(1).atStartOfDay())
+                .allDay(true)
+                .scheduleSource(ScheduleSource.AUTO_TODAY)
                 .status(TaskStatus.TODAY)
                 .targetDate(nextDate)
                 .carryOverCount(3)
@@ -882,6 +886,9 @@ class TaskServiceTest {
         assertThat(result.completedAt()).isNull();
         assertThat(result.carryOverCount()).isEqualTo(3);
         assertThat(result.staleCarryOver()).isTrue();
+        assertThat(result.startAt()).isEqualTo(nextDate.atStartOfDay());
+        assertThat(result.endAt()).isEqualTo(nextDate.plusDays(1).atStartOfDay());
+        assertThat(result.scheduleSource()).isEqualTo(ScheduleSource.AUTO_TODAY);
 
         then(taskTxService).should(times(1)).carryOverTx(id, nextDate);
         then(taskRepository).shouldHaveNoInteractions();

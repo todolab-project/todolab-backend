@@ -192,15 +192,20 @@ class TaskTxServiceTest {
     }
 
     @Test
-    @DisplayName("carryOverTx는 Task를 다음 날짜의 Today 상태로 변경하고 저장한다")
-    void carryOverTx_success() {
+    @DisplayName("carryOverTx는 자동 종일 일정과 실행일을 함께 다음 날짜로 이동한다")
+    void carryOverTx_movesAutoTodaySchedule() {
         // given
         long id = 1L;
+        LocalDate currentDate = LocalDate.of(2026, 5, 21);
         LocalDate nextDate = LocalDate.of(2026, 5, 22);
         Task task = Task.builder()
                 .title("task")
+                .startAt(currentDate.atStartOfDay())
+                .endAt(currentDate.plusDays(1).atStartOfDay())
+                .allDay(true)
+                .scheduleSource(ScheduleSource.AUTO_TODAY)
                 .status(TaskStatus.TODAY)
-                .targetDate(LocalDate.of(2026, 5, 21))
+                .targetDate(currentDate)
                 .carryOverCount(1)
                 .build();
         TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
@@ -216,6 +221,43 @@ class TaskTxServiceTest {
         assertThat(result.getTargetDate()).isEqualTo(nextDate);
         assertThat(result.getCompletedAt()).isNull();
         assertThat(result.getCarryOverCount()).isEqualTo(2);
+        assertThat(result.getStartAt()).isEqualTo(nextDate.atStartOfDay());
+        assertThat(result.getEndAt()).isEqualTo(nextDate.plusDays(1).atStartOfDay());
+        assertThat(result.getScheduleSource()).isEqualTo(ScheduleSource.AUTO_TODAY);
+
+        then(taskRepository).should(times(1)).findById(id);
+        then(taskRepository).should(times(1)).save(task);
+    }
+
+    @Test
+    @DisplayName("carryOverTx는 사용자 지정 캘린더 일정을 변경하지 않는다")
+    void carryOverTx_preservesUserSchedule() {
+        // given
+        long id = 1L;
+        LocalDate nextDate = LocalDate.of(2026, 5, 22);
+        LocalDateTime startAt = LocalDateTime.of(2026, 5, 21, 10, 0);
+        LocalDateTime endAt = LocalDateTime.of(2026, 5, 21, 11, 0);
+        Task task = Task.builder()
+                .title("task")
+                .startAt(startAt)
+                .endAt(endAt)
+                .status(TaskStatus.TODAY)
+                .targetDate(LocalDate.of(2026, 5, 21))
+                .carryOverCount(1)
+                .build();
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
+
+        given(taskRepository.findById(id)).willReturn(Optional.of(task));
+        given(taskRepository.save(task)).willReturn(task);
+
+        // when
+        Task result = service.carryOverTx(id, nextDate);
+
+        // then
+        assertThat(result.getTargetDate()).isEqualTo(nextDate);
+        assertThat(result.getStartAt()).isEqualTo(startAt);
+        assertThat(result.getEndAt()).isEqualTo(endAt);
+        assertThat(result.getScheduleSource()).isEqualTo(ScheduleSource.USER);
 
         then(taskRepository).should(times(1)).findById(id);
         then(taskRepository).should(times(1)).save(task);

@@ -216,13 +216,18 @@ class TaskTest {
     }
 
     @Test
-    @DisplayName("carryOverTo는 Today 상태를 유지하고 실행 날짜를 다음 날짜로 바꾼다")
-    void carryOverTo() {
+    @DisplayName("자동 종일 일정을 이월하면 실행일과 캘린더 일정을 함께 이동한다")
+    void carryOverTo_movesAutoTodaySchedule() {
         // given
+        LocalDate currentDate = LocalDate.of(2026, 5, 20);
         Task task = Task.builder()
                 .title("task")
+                .startAt(currentDate.atStartOfDay())
+                .endAt(currentDate.plusDays(1).atStartOfDay())
+                .allDay(true)
+                .scheduleSource(ScheduleSource.AUTO_TODAY)
                 .status(TaskStatus.DONE)
-                .targetDate(LocalDate.of(2026, 5, 20))
+                .targetDate(currentDate)
                 .completedAt(LocalDateTime.of(2026, 5, 20, 21, 0))
                 .carryOverCount(2)
                 .build();
@@ -236,6 +241,37 @@ class TaskTest {
         assertThat(task.getTargetDate()).isEqualTo(nextDate);
         assertThat(task.getCompletedAt()).isNull();
         assertThat(task.getCarryOverCount()).isEqualTo(3);
+        assertThat(task.getStartAt()).isEqualTo(nextDate.atStartOfDay());
+        assertThat(task.getEndAt()).isEqualTo(nextDate.plusDays(1).atStartOfDay());
+        assertThat(task.isAllDay()).isTrue();
+        assertThat(task.getScheduleSource()).isEqualTo(ScheduleSource.AUTO_TODAY);
+    }
+
+    @Test
+    @DisplayName("사용자 지정 일정을 이월해도 캘린더 일정은 변경하지 않는다")
+    void carryOverTo_preservesUserSchedule() {
+        // given
+        LocalDateTime startAt = LocalDateTime.of(2026, 5, 20, 14, 0);
+        LocalDateTime endAt = LocalDateTime.of(2026, 5, 20, 15, 0);
+        Task task = Task.builder()
+                .title("task")
+                .startAt(startAt)
+                .endAt(endAt)
+                .status(TaskStatus.TODAY)
+                .targetDate(LocalDate.of(2026, 5, 20))
+                .carryOverCount(1)
+                .build();
+        LocalDate nextDate = LocalDate.of(2026, 5, 21);
+
+        // when
+        task.carryOverTo(nextDate);
+
+        // then
+        assertThat(task.getTargetDate()).isEqualTo(nextDate);
+        assertThat(task.getStartAt()).isEqualTo(startAt);
+        assertThat(task.getEndAt()).isEqualTo(endAt);
+        assertThat(task.getScheduleSource()).isEqualTo(ScheduleSource.USER);
+        assertThat(task.getCarryOverCount()).isEqualTo(2);
     }
 
     @Test

@@ -164,6 +164,11 @@ public class Task {
 
     public void carryOverTo(LocalDate nextDate) {
         validateTargetDate(nextDate);
+        if (this.scheduleSource == ScheduleSource.AUTO_TODAY) {
+            this.startAt = nextDate.atStartOfDay();
+            this.endAt = nextDate.plusDays(1).atStartOfDay();
+            this.allDay = true;
+        }
         this.status = TaskStatus.TODAY;
         this.targetDate = nextDate;
         this.completedAt = null;
