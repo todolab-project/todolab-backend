@@ -6,6 +6,7 @@ import com.todolab.dday.exception.DdayGoalNotFoundException;
 import com.todolab.task.domain.DeferReason;
 import com.todolab.task.domain.ScheduleSource;
 import com.todolab.task.domain.TaskStatus;
+import com.todolab.task.domain.TaskType;
 import com.todolab.task.dto.TaskCategoryGroupResponse;
 import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.dto.TaskResponse;
@@ -754,6 +755,34 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.data.scheduleSource").value("AUTO_TODAY"));
 
         then(taskService).should().moveToToday(id, targetDate);
+        then(taskService).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("기록함 이동 성공")
+    void moveToInbox_success() throws Exception {
+        // given
+        long id = 1L;
+        TaskResponse moved = TaskResponse.builder()
+                .id(id)
+                .title("moved")
+                .type(TaskType.TODO)
+                .status(TaskStatus.INBOX)
+                .build();
+
+        given(taskService.moveToInbox(id, true)).willReturn(moved);
+
+        // when & then
+        mockMvc.perform(patch("/api/tasks/{id}/inbox", id)
+                        .param("removeSchedule", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.status").value("INBOX"))
+                .andExpect(jsonPath("$.data.startAt").doesNotExist())
+                .andExpect(jsonPath("$.data.scheduleSource").doesNotExist());
+
+        then(taskService).should().moveToInbox(id, true);
         then(taskService).shouldHaveNoMoreInteractions();
     }
 

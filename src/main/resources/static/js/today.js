@@ -219,7 +219,9 @@
   });
 
   $list?.addEventListener('click', async (e) => {
-    const btn = e.target.closest('[data-action="complete-task"], [data-action="carry-over-task"]');
+    const btn = e.target.closest(
+      '[data-action="complete-task"], [data-action="carry-over-task"], [data-action="move-to-inbox"]'
+    );
     if (!btn) return;
 
     e.preventDefault();
@@ -227,6 +229,25 @@
 
     const id = btn.getAttribute('data-task-id');
     if (!id) return;
+
+    if (btn.dataset.action === 'move-to-inbox') {
+      if (!confirm('이 할 일을 기록함으로 이동할까요?')) return;
+
+      const removeSchedule = btn.dataset.scheduleSource === 'USER'
+        ? confirm('캘린더 일정도 함께 제거할까요?\n취소를 누르면 일정은 유지됩니다.')
+        : false;
+
+      try {
+        btn.disabled = true;
+        await TaskApi.moveToInbox(id, removeSchedule);
+        await load();
+      } catch (err) {
+        showError(`기록함 이동 실패: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+      }
+      return;
+    }
 
     try {
       btn.disabled = true;

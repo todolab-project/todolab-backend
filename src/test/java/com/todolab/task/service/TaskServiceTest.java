@@ -805,6 +805,31 @@ class TaskServiceTest {
     }
 
     @Test
+    @DisplayName("기록함 이동은 일정 제거 선택과 함께 트랜잭션 서비스에 위임한다")
+    void moveToInbox_success() {
+        // given
+        long id = 1L;
+        Task moved = Task.builder()
+                .title("moved")
+                .type(TaskType.TODO)
+                .status(TaskStatus.INBOX)
+                .build();
+
+        given(taskTxService.moveToInboxTx(id, true)).willReturn(moved);
+
+        // when
+        TaskResponse result = taskService.moveToInbox(id, true);
+
+        // then
+        assertThat(result.status()).isEqualTo(TaskStatus.INBOX);
+        assertThat(result.startAt()).isNull();
+        assertThat(result.scheduleSource()).isNull();
+
+        then(taskTxService).should(times(1)).moveToInboxTx(id, true);
+        then(taskRepository).shouldHaveNoInteractions();
+    }
+
+    @Test
     @DisplayName("완료 처리는 트랜잭션 서비스에 위임하고 응답을 반환한다")
     void complete_success() {
         // given

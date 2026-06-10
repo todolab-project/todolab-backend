@@ -164,6 +164,22 @@
          </button>`
       : '';
 
+    const moveToInboxHtml = options.moveToInboxAction
+      ? `<button type="button"
+                 class="task-secondary-action"
+                 data-action="move-to-inbox"
+                 data-task-id="${TaskUI.escapeHtml(task.id)}"
+                 data-schedule-source="${TaskUI.escapeHtml(task.scheduleSource || '')}"
+                 aria-label="기록함으로 이동">
+           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+             <path d="M4 5.5h12v10H4zM7 3.5h6"
+                   stroke="currentColor" stroke-width="1.7"
+                   stroke-linecap="round" stroke-linejoin="round"/>
+           </svg>
+           <span>기록함</span>
+         </button>`
+      : '';
+
     const moveToTodayHtml = options.moveToTodayAction
       ? `<button type="button"
                  class="task-inline-action"
@@ -178,9 +194,10 @@
          </button>`
       : '';
 
-    const trailingHtml = (right || carryOverHtml || moveToTodayHtml)
+    const trailingHtml = (right || moveToInboxHtml || carryOverHtml || moveToTodayHtml)
       ? `<div class="task-row-trailing">
            ${right ? `<div class="task-right">${right}</div>` : ``}
+           ${moveToInboxHtml}
            ${carryOverHtml}
            ${moveToTodayHtml}
          </div>`
@@ -258,6 +275,7 @@
       metaText: TaskUI.joinMeta(time, TaskUI.formatDdayMeta(t), TaskUI.formatCarryOverMeta(t)),
       barColor: staleCarryOver ? 'rgba(245, 158, 11, 0.75)' : null,
       completeAction: true,
+      moveToInboxAction: true,
       carryOverAction: true,
       deferReasonAction: staleCarryOver,
       rowClass: 'task-row-today'

@@ -136,6 +136,71 @@ class TaskTxServiceTest {
     }
 
     @Test
+    @DisplayName("moveToInboxTx는 자동 종일 일정을 제거하고 기록함으로 이동한다")
+    void moveToInboxTx_removesAutoTodaySchedule() {
+        // given
+        long id = 1L;
+        LocalDate targetDate = LocalDate.of(2026, 6, 11);
+        Task task = Task.builder()
+                .title("task")
+                .type(TaskType.TODO)
+                .startAt(targetDate.atStartOfDay())
+                .endAt(targetDate.plusDays(1).atStartOfDay())
+                .allDay(true)
+                .scheduleSource(ScheduleSource.AUTO_TODAY)
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .build();
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
+
+        given(taskRepository.findById(id)).willReturn(Optional.of(task));
+        given(taskRepository.save(task)).willReturn(task);
+
+        // when
+        Task result = service.moveToInboxTx(id, false);
+
+        // then
+        assertThat(result.getStatus()).isEqualTo(TaskStatus.INBOX);
+        assertThat(result.getTargetDate()).isNull();
+        assertThat(result.getStartAt()).isNull();
+        assertThat(result.getScheduleSource()).isNull();
+
+        then(taskRepository).should(times(1)).findById(id);
+        then(taskRepository).should(times(1)).save(task);
+    }
+
+    @Test
+    @DisplayName("moveToInboxTx는 요청에 따라 사용자 지정 일정도 제거한다")
+    void moveToInboxTx_removesUserScheduleWhenRequested() {
+        // given
+        long id = 1L;
+        Task task = Task.builder()
+                .title("task")
+                .type(TaskType.SCHEDULE)
+                .startAt(LocalDateTime.of(2026, 6, 11, 14, 0))
+                .endAt(LocalDateTime.of(2026, 6, 11, 15, 0))
+                .status(TaskStatus.TODAY)
+                .targetDate(LocalDate.of(2026, 6, 11))
+                .build();
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
+
+        given(taskRepository.findById(id)).willReturn(Optional.of(task));
+        given(taskRepository.save(task)).willReturn(task);
+
+        // when
+        Task result = service.moveToInboxTx(id, true);
+
+        // then
+        assertThat(result.getStatus()).isEqualTo(TaskStatus.INBOX);
+        assertThat(result.getStartAt()).isNull();
+        assertThat(result.getEndAt()).isNull();
+        assertThat(result.getType()).isEqualTo(TaskType.TODO);
+
+        then(taskRepository).should(times(1)).findById(id);
+        then(taskRepository).should(times(1)).save(task);
+    }
+
+    @Test
     @DisplayName("completeTx는 Task를 Done 상태로 변경하고 저장한다")
     void completeTx_success() {
         // given

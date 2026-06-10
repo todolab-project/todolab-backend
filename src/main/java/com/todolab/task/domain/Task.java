@@ -134,6 +134,13 @@ public class Task {
     }
 
     public void moveToInbox() {
+        moveToInbox(false);
+    }
+
+    public void moveToInbox(boolean removeUserSchedule) {
+        if (this.scheduleSource == ScheduleSource.AUTO_TODAY || removeUserSchedule) {
+            clearSchedule();
+        }
         this.status = TaskStatus.INBOX;
         this.targetDate = null;
         this.completedAt = null;
@@ -258,6 +265,16 @@ public class Task {
             return this.scheduleSource;
         }
         return ScheduleSource.USER;
+    }
+
+    private void clearSchedule() {
+        this.startAt = null;
+        this.endAt = null;
+        this.allDay = false;
+        this.scheduleSource = null;
+        if (this.type == TaskType.SCHEDULE) {
+            this.type = TaskType.TODO;
+        }
     }
 
     private void validateTargetDate(LocalDate targetDate) {

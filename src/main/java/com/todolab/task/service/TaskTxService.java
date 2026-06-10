@@ -39,6 +39,13 @@ public class TaskTxService {
     }
 
     @Transactional
+    public Task moveToInboxTx(Long id, boolean removeSchedule) {
+        Task task = findTask(id);
+        task.moveToInbox(removeSchedule);
+        return taskRepository.save(task);
+    }
+
+    @Transactional
     public Task completeTx(Long id, LocalDateTime completedAt) {
         Task task = findTask(id);
         task.complete(completedAt);

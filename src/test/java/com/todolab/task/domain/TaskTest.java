@@ -130,6 +130,84 @@ class TaskTest {
     }
 
     @Test
+    @DisplayName("자동 종일 Task를 기록함으로 이동하면 캘린더 일정도 제거한다")
+    void moveToInbox_removesAutoTodaySchedule() {
+        // given
+        LocalDate targetDate = LocalDate.of(2026, 6, 11);
+        Task task = Task.builder()
+                .title("task")
+                .type(TaskType.TODO)
+                .startAt(targetDate.atStartOfDay())
+                .endAt(targetDate.plusDays(1).atStartOfDay())
+                .allDay(true)
+                .scheduleSource(ScheduleSource.AUTO_TODAY)
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .build();
+
+        // when
+        task.moveToInbox();
+
+        // then
+        assertThat(task.getStatus()).isEqualTo(TaskStatus.INBOX);
+        assertThat(task.getTargetDate()).isNull();
+        assertThat(task.getStartAt()).isNull();
+        assertThat(task.getEndAt()).isNull();
+        assertThat(task.isAllDay()).isFalse();
+        assertThat(task.getScheduleSource()).isNull();
+        assertThat(task.getType()).isEqualTo(TaskType.TODO);
+    }
+
+    @Test
+    @DisplayName("사용자 지정 일정은 기록함으로 이동해도 기본적으로 유지한다")
+    void moveToInbox_preservesUserSchedule() {
+        // given
+        LocalDateTime startAt = LocalDateTime.of(2026, 6, 11, 14, 0);
+        LocalDateTime endAt = LocalDateTime.of(2026, 6, 11, 15, 0);
+        Task task = Task.builder()
+                .title("task")
+                .startAt(startAt)
+                .endAt(endAt)
+                .status(TaskStatus.TODAY)
+                .targetDate(LocalDate.of(2026, 6, 11))
+                .build();
+
+        // when
+        task.moveToInbox(false);
+
+        // then
+        assertThat(task.getStatus()).isEqualTo(TaskStatus.INBOX);
+        assertThat(task.getTargetDate()).isNull();
+        assertThat(task.getStartAt()).isEqualTo(startAt);
+        assertThat(task.getEndAt()).isEqualTo(endAt);
+        assertThat(task.getScheduleSource()).isEqualTo(ScheduleSource.USER);
+    }
+
+    @Test
+    @DisplayName("사용자가 선택하면 기록함 이동 시 수동 일정도 제거한다")
+    void moveToInbox_removesUserScheduleWhenRequested() {
+        // given
+        Task task = Task.builder()
+                .title("task")
+                .type(TaskType.SCHEDULE)
+                .startAt(LocalDateTime.of(2026, 6, 11, 14, 0))
+                .endAt(LocalDateTime.of(2026, 6, 11, 15, 0))
+                .status(TaskStatus.TODAY)
+                .targetDate(LocalDate.of(2026, 6, 11))
+                .build();
+
+        // when
+        task.moveToInbox(true);
+
+        // then
+        assertThat(task.getStartAt()).isNull();
+        assertThat(task.getEndAt()).isNull();
+        assertThat(task.isAllDay()).isFalse();
+        assertThat(task.getScheduleSource()).isNull();
+        assertThat(task.getType()).isEqualTo(TaskType.TODO);
+    }
+
+    @Test
     @DisplayName("일정 없는 Task를 Today로 이동하면 실행 날짜의 자동 종일 일정을 만든다")
     void moveToToday_createsAutoAllDaySchedule() {
         // given

@@ -104,6 +104,11 @@ public class TaskService {
         return TaskResponse.from(moved);
     }
 
+    public TaskResponse moveToInbox(Long id, boolean removeSchedule) {
+        Task moved = taskTxService.moveToInboxTx(id, removeSchedule);
+        return TaskResponse.from(moved);
+    }
+
     public TaskResponse complete(Long id, LocalDateTime completedAt) {
         Task completed = taskTxService.completeTx(id, completedAt);
         return TaskResponse.from(completed);
