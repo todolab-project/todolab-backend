@@ -107,6 +107,21 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
     }
 
     @Override
+    public List<Task> findOverdueTasks(LocalDate beforeDate) {
+        QTask t = QTask.task;
+
+        return queryFactory
+                .selectFrom(t)
+                .leftJoin(t.ddayGoal).fetchJoin()
+                .where(
+                        t.status.eq(TaskStatus.TODAY),
+                        t.targetDate.lt(beforeDate)
+                )
+                .orderBy(t.targetDate.asc(), t.createdAt.asc(), t.id.asc())
+                .fetch();
+    }
+
+    @Override
     public List<Task> findDoneTasks(LocalDate completedDate) {
         QTask t = QTask.task;
         LocalDateTime start = completedDate.atStartOfDay();

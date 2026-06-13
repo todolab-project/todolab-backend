@@ -375,6 +375,59 @@ class TaskRepositoryTest extends RepositoryTestSupport {
     }
 
     @Test
+    @DisplayName("findOverdueTasks()는 기준일 이전의 미완료 Today Task만 오래된 실행일순으로 조회한다")
+    void findOverdueTasks_filters_beforeDate() {
+        // given
+        LocalDate referenceDate = LocalDate.of(2026, 5, 20);
+
+        Task oldest = Task.builder()
+                .title("oldest")
+                .status(TaskStatus.TODAY)
+                .targetDate(referenceDate.minusDays(3))
+                .build();
+
+        Task yesterday = Task.builder()
+                .title("yesterday")
+                .status(TaskStatus.TODAY)
+                .targetDate(referenceDate.minusDays(1))
+                .build();
+
+        Task today = Task.builder()
+                .title("today")
+                .status(TaskStatus.TODAY)
+                .targetDate(referenceDate)
+                .build();
+
+        Task future = Task.builder()
+                .title("future")
+                .status(TaskStatus.TODAY)
+                .targetDate(referenceDate.plusDays(1))
+                .build();
+
+        Task done = Task.builder()
+                .title("done")
+                .status(TaskStatus.DONE)
+                .targetDate(referenceDate.minusDays(2))
+                .completedAt(referenceDate.minusDays(2).atTime(18, 0))
+                .build();
+
+        Task inbox = Task.builder()
+                .title("inbox")
+                .status(TaskStatus.INBOX)
+                .build();
+
+        taskRepository.saveAll(List.of(yesterday, today, done, oldest, future, inbox));
+        flushAndClear();
+
+        // when
+        List<Task> result = taskRepository.findOverdueTasks(referenceDate);
+
+        // then
+        then(result).extracting("title")
+                .containsExactly("oldest", "yesterday");
+    }
+
+    @Test
     @DisplayName("findDoneTasks()는 지정한 날짜에 완료한 Done Task만 완료 시간 최신순으로 조회한다")
     void findDoneTasks_filters_completedDate() {
         // given

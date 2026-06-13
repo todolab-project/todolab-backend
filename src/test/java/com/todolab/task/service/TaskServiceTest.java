@@ -741,6 +741,35 @@ class TaskServiceTest {
     }
 
     @Test
+    @DisplayName("지난 미완료 조회는 기준일 이전의 Today Task를 반환한다")
+    void getOverdueTasks_success() {
+        // given
+        LocalDate referenceDate = LocalDate.of(2026, 5, 20);
+        LocalDate targetDate = referenceDate.minusDays(2);
+        Task overdue = Task.builder()
+                .title("overdue")
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .build();
+
+        given(taskRepository.findOverdueTasks(referenceDate))
+                .willReturn(List.of(overdue));
+
+        // when
+        List<TaskResponse> result = taskService.getOverdueTasks(referenceDate);
+
+        // then
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().title()).isEqualTo("overdue");
+        assertThat(result.getFirst().status()).isEqualTo(TaskStatus.TODAY);
+        assertThat(result.getFirst().targetDate()).isEqualTo(targetDate);
+
+        then(taskRepository).should(times(1)).findOverdueTasks(referenceDate);
+        then(taskRepository).shouldHaveNoMoreInteractions();
+        then(taskTxService).shouldHaveNoInteractions();
+    }
+
+    @Test
     @DisplayName("Done 조회는 completedAt 날짜 기준 Task를 반환한다")
     void getDoneTasks_success() {
         // given

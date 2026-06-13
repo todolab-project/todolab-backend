@@ -113,6 +113,19 @@ public class TaskController {
                 .body(ApiResponse.success(res));
     }
 
+    @GetMapping("/overdue")
+    public ResponseEntity<ApiResponse<List<TaskResponse>>> getOverdueTasks(
+            @RequestParam LocalDate date
+    ) {
+        log.info("[API] getOverdueTasks request :: date={}", date);
+
+        List<TaskResponse> res = taskService.getOverdueTasks(date);
+
+        log.info("[API] getOverdueTasks success :: date={}, taskCount={}", date, res.size());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(res));
+    }
+
     @GetMapping("/done")
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getDoneTasks(
             @RequestParam LocalDate date

@@ -64,6 +64,10 @@
     return request(`/api/tasks/today${buildQuery({ date })}`);
   };
 
+  TaskApi.getOverdueTasks = (date) => {
+    return request(`/api/tasks/overdue${buildQuery({ date })}`);
+  };
+
   TaskApi.getDoneTasks = (date) => {
     return request(`/api/tasks/done${buildQuery({ date })}`);
   };

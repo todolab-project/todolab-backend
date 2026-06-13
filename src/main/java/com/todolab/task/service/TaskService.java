@@ -82,6 +82,12 @@ public class TaskService {
                 .toList();
     }
 
+    public List<TaskResponse> getOverdueTasks(LocalDate beforeDate) {
+        return taskRepository.findOverdueTasks(beforeDate).stream()
+                .map(TaskResponse::from)
+                .toList();
+    }
+
     public List<TaskResponse> getDoneTasks(LocalDate completedDate) {
         return taskRepository.findDoneTasks(completedDate).stream()
                 .map(TaskResponse::from)

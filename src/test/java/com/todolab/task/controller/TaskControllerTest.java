@@ -455,6 +455,35 @@ class TaskControllerTest {
     }
 
     @Test
+    @DisplayName("지난 미완료 조회 성공")
+    void getOverdueTasks_success() throws Exception {
+        // given
+        LocalDate referenceDate = LocalDate.of(2026, 5, 21);
+        LocalDate targetDate = referenceDate.minusDays(2);
+        TaskResponse overdue = TaskResponse.builder()
+                .id(1L)
+                .title("overdue")
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .build();
+
+        given(taskService.getOverdueTasks(referenceDate)).willReturn(List.of(overdue));
+
+        // when & then
+        mockMvc.perform(get("/api/tasks/overdue")
+                        .param("date", "2026-05-21"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].id").value(1))
+                .andExpect(jsonPath("$.data[0].status").value("TODAY"))
+                .andExpect(jsonPath("$.data[0].targetDate").value("2026-05-19"));
+
+        then(taskService).should().getOverdueTasks(referenceDate);
+        then(taskService).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
     @DisplayName("Done 조회 성공")
     void getDoneTasks_success() throws Exception {
         // given
@@ -487,6 +516,18 @@ class TaskControllerTest {
     @DisplayName("Today 조회 실패 - date 형식이 잘못되면 400 에러를 반환한다")
     void getTodayTasks_fail_invalidDate() throws Exception {
         mockMvc.perform(get("/api/tasks/today")
+                        .param("date", "20260521"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.error.code").value(ErrorCode.INVALID_INPUT.getCode()));
+
+        then(taskService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("지난 미완료 조회 실패 - date 형식이 잘못되면 400 에러를 반환한다")
+    void getOverdueTasks_fail_invalidDate() throws Exception {
+        mockMvc.perform(get("/api/tasks/overdue")
                         .param("date", "20260521"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value("fail"))
