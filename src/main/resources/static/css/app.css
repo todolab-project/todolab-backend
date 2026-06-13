@@ -1158,6 +1158,29 @@ textarea.task-modal-input{
   margin-top:22px;
 }
 
+.today-overdue-section{
+  margin-top:18px;
+  padding:16px;
+  border:1px solid #f2c784;
+  border-radius:var(--app-radius);
+  background:linear-gradient(145deg, rgba(255,251,235,0.92), rgba(255,255,255,0.82));
+  box-shadow:var(--app-shadow-soft);
+}
+
+.today-overdue-count{
+  border-color:#f2c784;
+  background:#fff7dd;
+  color:#92400e;
+}
+
+.task-row-overdue{
+  background:linear-gradient(90deg, rgba(245,158,11,0.07), rgba(255,255,255,0));
+}
+
+.task-row-overdue .task-meta{
+  color:#92400e;
+}
+
 .calendar-error{
   display:flex;
   align-items:center;

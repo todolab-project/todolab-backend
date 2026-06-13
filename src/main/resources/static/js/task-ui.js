@@ -75,6 +75,25 @@
     return `${n}회 이월`;
   };
 
+  TaskUI.daysBetween = (fromDate, toDate) => {
+    const parse = (value) => {
+      const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!match) return null;
+      return Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    };
+
+    const from = parse(fromDate);
+    const to = parse(toDate);
+    if (from === null || to === null) return null;
+    return Math.floor((to - from) / 86400000);
+  };
+
+  TaskUI.formatOverdueLabel = (task, referenceDate) => {
+    const elapsedDays = TaskUI.daysBetween(task?.targetDate, referenceDate);
+    if (!Number.isFinite(elapsedDays) || elapsedDays <= 0) return null;
+    return elapsedDays === 1 ? '어제 못 끝냄' : `${elapsedDays}일 지남`;
+  };
+
   TaskUI.joinMeta = (...items) => {
     return items
       .map(v => (v === null || v === undefined ? '' : String(v).trim()))
@@ -279,6 +298,21 @@
       carryOverAction: true,
       deferReasonAction: staleCarryOver,
       rowClass: 'task-row-today'
+    });
+  };
+
+  TaskUI.renderOverdueCard = (t, referenceDate) => {
+    const time = TaskUI.formatRightTime(t);
+    return TaskUI.renderTaskCard(t, {
+      showRightTime: false,
+      metaText: TaskUI.joinMeta(
+        TaskUI.formatOverdueLabel(t, referenceDate),
+        time,
+        TaskUI.formatDdayMeta(t),
+        TaskUI.formatCarryOverMeta(t)
+      ),
+      barColor: 'rgba(245, 158, 11, 0.82)',
+      rowClass: 'task-row-overdue'
     });
   };
 

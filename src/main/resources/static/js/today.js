@@ -21,6 +21,9 @@
   const $summaryToday = document.getElementById('today-summary-today');
   const $summaryInbox = document.getElementById('today-summary-inbox');
   const $summaryDone = document.getElementById('today-summary-done');
+  const $overdueSection = document.getElementById('today-overdue-section');
+  const $overdueList = document.getElementById('today-overdue-list');
+  const $overdueCount = document.getElementById('today-overdue-count');
   const $inboxEmpty = document.getElementById('today-inbox-empty');
   const $inboxCard = document.getElementById('today-inbox-card');
   const $inboxList = document.getElementById('today-inbox-list');
@@ -51,6 +54,7 @@
 
   function showError(msg) {
     hideAll();
+    $overdueSection?.classList.add('hidden');
     if ($error) {
       $error.textContent = msg;
       $error.classList.remove('hidden');
@@ -118,6 +122,30 @@
     $list.innerHTML = tasks.map(TaskUI.renderTodayCard).join('');
   }
 
+  function renderOverdue(tasks) {
+    const overdueTasks = Array.isArray(tasks) ? tasks : [];
+
+    if (overdueTasks.length === 0) {
+      $overdueSection?.classList.add('hidden');
+      if ($overdueList) $overdueList.innerHTML = '';
+      if ($overdueCount) $overdueCount.textContent = '0개';
+      return;
+    }
+
+    if (!window.TaskUI || typeof window.TaskUI.renderOverdueCard !== 'function') {
+      showError('렌더 실패: TaskUI.renderOverdueCard를 찾을 수 없습니다. (task-ui.js 로드 순서 확인)');
+      return;
+    }
+
+    if ($overdueCount) $overdueCount.textContent = `${overdueTasks.length}개`;
+    if ($overdueList) {
+      $overdueList.innerHTML = overdueTasks
+        .map(task => TaskUI.renderOverdueCard(task, date))
+        .join('');
+    }
+    $overdueSection?.classList.remove('hidden');
+  }
+
   function renderDone(tasks) {
     const doneTasks = Array.isArray(tasks) ? tasks : [];
     setDoneCount(doneTasks.length);
@@ -168,12 +196,14 @@
         $dateText.textContent = dow ? `${date} (${dow})` : date;
       }
 
-      const [todayTasks, inboxTasks, doneTasks] = await Promise.all([
+      const [todayTasks, overdueTasks, inboxTasks, doneTasks] = await Promise.all([
         TaskApi.getTodayTasks(date),
+        TaskApi.getOverdueTasks(date),
         TaskApi.getInboxTasks(),
         TaskApi.getDoneTasks(date)
       ]);
 
+      renderOverdue(overdueTasks ?? []);
       renderToday(todayTasks ?? []);
       renderInbox(inboxTasks ?? []);
       renderDone(doneTasks ?? []);

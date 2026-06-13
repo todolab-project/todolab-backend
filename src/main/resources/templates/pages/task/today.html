@@ -62,6 +62,25 @@
             <div id="today-error"
                  class="mt-6 text-red-600 text-sm hidden"></div>
 
+            <section id="today-overdue-section"
+                     class="app-section today-overdue-section hidden"
+                     aria-labelledby="today-overdue-title">
+                <div class="app-section-header">
+                    <div>
+                        <div id="today-overdue-title"
+                             class="app-section-title">지난 미완료</div>
+                        <div class="app-section-subtitle">놓친 일을 확인하고 다시 정리해요</div>
+                    </div>
+                    <div id="today-overdue-count"
+                         class="app-pill today-overdue-count">
+                        0개
+                    </div>
+                </div>
+
+                <div id="today-overdue-list"
+                     class="mt-4 space-y-3"></div>
+            </section>
+
             <!-- Empty State -->
             <div id="today-empty"
                  class="today-empty-state hidden">
