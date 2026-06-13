@@ -382,6 +382,69 @@ select:focus{
   gap:8px;
 }
 
+.task-overdue-actions{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+  padding:10px 14px 12px;
+  border-top:1px solid #fde68a;
+  background:rgba(255,251,235,0.76);
+}
+
+.task-overdue-action{
+  min-width:0;
+  min-height:38px;
+  border:1px solid #e2e8f0;
+  border-radius:var(--app-radius);
+  background:#fff;
+  padding:0 10px;
+  color:#475569;
+  font-size:12px;
+  line-height:1;
+  font-weight:900;
+  white-space:nowrap;
+  transition:background .12s ease, border-color .12s ease, color .12s ease, transform .12s ease;
+}
+
+.task-overdue-action:hover{
+  border-color:#cbd5e1;
+  background:#f8fafc;
+  color:#334155;
+}
+
+.task-overdue-action:active{
+  transform:scale(.98);
+}
+
+.task-overdue-action:disabled{
+  cursor:wait;
+  opacity:.55;
+}
+
+.task-overdue-action-primary{
+  border-color:#bfdbfe;
+  background:#eff6ff;
+  color:#1d4ed8;
+}
+
+.task-overdue-action-primary:hover{
+  border-color:#93c5fd;
+  background:#dbeafe;
+  color:#1e40af;
+}
+
+.task-overdue-action-complete{
+  border-color:#bbf7d0;
+  background:#f0fdf4;
+  color:#15803d;
+}
+
+.task-overdue-action-complete:hover{
+  border-color:#86efac;
+  background:#dcfce7;
+  color:#166534;
+}
+
 .task-secondary-action{
   display:inline-flex;
   align-items:center;
@@ -521,6 +584,10 @@ select:focus{
 
   .task-secondary-action{
     flex:0 0 auto;
+  }
+
+  .task-overdue-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr));
   }
 }
 

@@ -222,7 +222,37 @@
          </div>`
       : '';
 
-    const actionsHtml = options.deferReasonAction
+    const overdueActionsHtml = options.overdueActions
+      ? `<div class="task-overdue-actions" aria-label="지난 미완료 정리">
+           <button type="button"
+                   class="task-overdue-action task-overdue-action-primary"
+                   data-action="overdue-today"
+                   data-task-id="${TaskUI.escapeHtml(task.id)}">
+             오늘 하기
+           </button>
+           <button type="button"
+                   class="task-overdue-action"
+                   data-action="overdue-tomorrow"
+                   data-task-id="${TaskUI.escapeHtml(task.id)}">
+             내일 하기
+           </button>
+           <button type="button"
+                   class="task-overdue-action"
+                   data-action="overdue-inbox"
+                   data-task-id="${TaskUI.escapeHtml(task.id)}"
+                   data-schedule-source="${TaskUI.escapeHtml(task.scheduleSource || '')}">
+             기록함
+           </button>
+           <button type="button"
+                   class="task-overdue-action task-overdue-action-complete"
+                   data-action="overdue-complete"
+                   data-task-id="${TaskUI.escapeHtml(task.id)}">
+             완료
+           </button>
+         </div>`
+      : '';
+
+    const deferReasonActionsHtml = options.deferReasonAction
       ? `<div class="task-actions">
            <div class="task-actions-meta">
              다시 정리 필요
@@ -232,6 +262,7 @@
            </div>
          </div>`
       : '';
+    const actionsHtml = overdueActionsHtml || deferReasonActionsHtml;
 
     return `
 <div class="task-card task-card-clickable ${staleCarryOver ? 'task-card-stale' : ''}"
@@ -312,6 +343,8 @@
         TaskUI.formatCarryOverMeta(t)
       ),
       barColor: 'rgba(245, 158, 11, 0.82)',
+      showCheck: false,
+      overdueActions: true,
       rowClass: 'task-row-overdue'
     });
   };

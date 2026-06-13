@@ -321,6 +321,53 @@
     }
   });
 
+  $overdueList?.addEventListener('click', async (e) => {
+    const btn = e.target.closest(
+      '[data-action="overdue-today"], [data-action="overdue-tomorrow"], ' +
+      '[data-action="overdue-inbox"], [data-action="overdue-complete"]'
+    );
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const id = btn.getAttribute('data-task-id');
+    if (!id) return;
+
+    const action = btn.dataset.action;
+    let removeSchedule = false;
+    if (action === 'overdue-inbox') {
+      if (!confirm('이 할 일을 기록함으로 이동할까요?')) return;
+      removeSchedule = btn.dataset.scheduleSource === 'USER'
+        ? confirm('캘린더 일정도 함께 제거할까요?\n취소를 누르면 일정은 유지됩니다.')
+        : false;
+    }
+
+    try {
+      btn.disabled = true;
+      if (action === 'overdue-today') {
+        await TaskApi.carryOver(id, date);
+      } else if (action === 'overdue-tomorrow') {
+        await TaskApi.carryOver(id, shiftDate(date, 1));
+      } else if (action === 'overdue-inbox') {
+        await TaskApi.moveToInbox(id, removeSchedule);
+      } else {
+        await TaskApi.completeTask(id);
+      }
+      await load();
+    } catch (err) {
+      const labels = {
+        'overdue-today': '오늘 이동',
+        'overdue-tomorrow': '내일 이동',
+        'overdue-inbox': '기록함 이동',
+        'overdue-complete': '완료 처리'
+      };
+      showError(`${labels[action] || '지난 미완료 정리'} 실패: ${err.message}`);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
   $doneList?.addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-action="reopen-today-task"]');
     if (!btn) return;
