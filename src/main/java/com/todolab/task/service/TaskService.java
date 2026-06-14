@@ -110,8 +110,8 @@ public class TaskService {
         return TaskResponse.from(moved);
     }
 
-    public TaskResponse moveToInbox(Long id, boolean removeSchedule) {
-        Task moved = taskTxService.moveToInboxTx(id, removeSchedule);
+    public TaskResponse moveToInbox(Long id) {
+        Task moved = taskTxService.moveToInboxTx(id);
         return TaskResponse.from(moved);
     }
 

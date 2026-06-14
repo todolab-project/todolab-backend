@@ -159,8 +159,8 @@ class TaskTest {
     }
 
     @Test
-    @DisplayName("사용자 지정 일정은 기록함으로 이동해도 기본적으로 유지한다")
-    void moveToInbox_preservesUserSchedule() {
+    @DisplayName("사용자 지정 일정도 기록함으로 이동하면 제거한다")
+    void moveToInbox_removesUserSchedule() {
         // given
         LocalDateTime startAt = LocalDateTime.of(2026, 6, 11, 14, 0);
         LocalDateTime endAt = LocalDateTime.of(2026, 6, 11, 15, 0);
@@ -173,33 +173,11 @@ class TaskTest {
                 .build();
 
         // when
-        task.moveToInbox(false);
+        task.moveToInbox();
 
         // then
         assertThat(task.getStatus()).isEqualTo(TaskStatus.INBOX);
         assertThat(task.getTargetDate()).isNull();
-        assertThat(task.getStartAt()).isEqualTo(startAt);
-        assertThat(task.getEndAt()).isEqualTo(endAt);
-        assertThat(task.getScheduleSource()).isEqualTo(ScheduleSource.USER);
-    }
-
-    @Test
-    @DisplayName("사용자가 선택하면 기록함 이동 시 수동 일정도 제거한다")
-    void moveToInbox_removesUserScheduleWhenRequested() {
-        // given
-        Task task = Task.builder()
-                .title("task")
-                .type(TaskType.SCHEDULE)
-                .startAt(LocalDateTime.of(2026, 6, 11, 14, 0))
-                .endAt(LocalDateTime.of(2026, 6, 11, 15, 0))
-                .status(TaskStatus.TODAY)
-                .targetDate(LocalDate.of(2026, 6, 11))
-                .build();
-
-        // when
-        task.moveToInbox(true);
-
-        // then
         assertThat(task.getStartAt()).isNull();
         assertThat(task.getEndAt()).isNull();
         assertThat(task.isAllDay()).isFalse();

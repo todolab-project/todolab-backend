@@ -134,13 +134,7 @@ public class Task {
     }
 
     public void moveToInbox() {
-        moveToInbox(false);
-    }
-
-    public void moveToInbox(boolean removeUserSchedule) {
-        if (this.scheduleSource == ScheduleSource.AUTO_TODAY || removeUserSchedule) {
-            clearSchedule();
-        }
+        clearSchedule();
         this.status = TaskStatus.INBOX;
         this.targetDate = null;
         this.completedAt = null;

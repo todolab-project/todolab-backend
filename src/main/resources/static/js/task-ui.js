@@ -207,7 +207,6 @@
                  class="task-secondary-action"
                  data-action="move-to-inbox"
                  data-task-id="${TaskUI.escapeHtml(task.id)}"
-                 data-schedule-source="${TaskUI.escapeHtml(task.scheduleSource || '')}"
                  aria-label="기록함으로 이동">
            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
              <path d="M4 5.5h12v10H4zM7 3.5h6"
@@ -304,8 +303,7 @@
                <button type="button"
                        class="task-overdue-menu-action"
                        data-action="overdue-inbox"
-                       data-task-id="${TaskUI.escapeHtml(task.id)}"
-                       data-schedule-source="${TaskUI.escapeHtml(task.scheduleSource || '')}">
+                       data-task-id="${TaskUI.escapeHtml(task.id)}">
                  기록함으로 이동
                </button>
                <button type="button"

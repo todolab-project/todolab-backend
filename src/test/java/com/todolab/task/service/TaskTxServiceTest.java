@@ -157,7 +157,7 @@ class TaskTxServiceTest {
         given(taskRepository.save(task)).willReturn(task);
 
         // when
-        Task result = service.moveToInboxTx(id, false);
+        Task result = service.moveToInboxTx(id);
 
         // then
         assertThat(result.getStatus()).isEqualTo(TaskStatus.INBOX);
@@ -170,8 +170,8 @@ class TaskTxServiceTest {
     }
 
     @Test
-    @DisplayName("moveToInboxTx는 요청에 따라 사용자 지정 일정도 제거한다")
-    void moveToInboxTx_removesUserScheduleWhenRequested() {
+    @DisplayName("moveToInboxTx는 사용자 지정 일정도 제거한다")
+    void moveToInboxTx_removesUserSchedule() {
         // given
         long id = 1L;
         Task task = Task.builder()
@@ -188,7 +188,7 @@ class TaskTxServiceTest {
         given(taskRepository.save(task)).willReturn(task);
 
         // when
-        Task result = service.moveToInboxTx(id, true);
+        Task result = service.moveToInboxTx(id);
 
         // then
         assertThat(result.getStatus()).isEqualTo(TaskStatus.INBOX);

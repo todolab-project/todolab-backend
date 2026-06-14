@@ -277,17 +277,13 @@
     if (!id) return;
 
     if (btn.dataset.action === 'move-to-inbox') {
-      if (!confirm('이 할 일을 기록함으로 이동할까요?')) return;
-
-      const removeSchedule = btn.dataset.scheduleSource === 'USER'
-        ? confirm('캘린더 일정도 함께 제거할까요?\n취소를 누르면 일정은 유지됩니다.')
-        : false;
+      if (!confirm('캘린더 일정과 실행일을 제거하고 기록함으로 이동할까요?')) return;
 
       try {
         btn.disabled = true;
-        await TaskApi.moveToInbox(id, removeSchedule);
+        await TaskApi.moveToInbox(id);
         await load();
-        showActionSuccess('기록함으로 이동했어요.');
+        showActionSuccess('일정을 제거하고 기록함으로 이동했어요.');
       } catch (err) {
         showActionError(`기록함 이동 실패: ${err.message}`);
       } finally {
@@ -386,12 +382,8 @@
     if (!id) return;
 
     const action = btn.dataset.action;
-    let removeSchedule = false;
     if (action === 'overdue-inbox') {
-      if (!confirm('이 할 일을 기록함으로 이동할까요?')) return;
-      removeSchedule = btn.dataset.scheduleSource === 'USER'
-        ? confirm('캘린더 일정도 함께 제거할까요?\n취소를 누르면 일정은 유지됩니다.')
-        : false;
+      if (!confirm('캘린더 일정과 실행일을 제거하고 기록함으로 이동할까요?')) return;
     }
     if (action === 'overdue-delete') {
       const title = (btn.dataset.taskTitle || '이 할 일').trim();
@@ -417,7 +409,7 @@
       } else if (action === 'overdue-tomorrow') {
         await TaskApi.carryOver(id, shiftDate(date, 1));
       } else if (action === 'overdue-inbox') {
-        await TaskApi.moveToInbox(id, removeSchedule);
+        await TaskApi.moveToInbox(id);
       } else if (action === 'overdue-reschedule') {
         await TaskApi.carryOver(id, rescheduleDate);
       } else if (action === 'overdue-delete') {
@@ -429,7 +421,7 @@
       const successMessages = {
         'overdue-today': '오늘 할 일로 옮겼어요.',
         'overdue-tomorrow': '내일 할 일로 옮겼어요.',
-        'overdue-inbox': '기록함으로 이동했어요.',
+        'overdue-inbox': '일정을 제거하고 기록함으로 이동했어요.',
         'overdue-complete': '완료했어요.',
         'overdue-reschedule': '실행 날짜를 변경했어요.',
         'overdue-delete': '할 일을 삭제했어요.'

@@ -811,11 +811,10 @@ class TaskControllerTest {
                 .status(TaskStatus.INBOX)
                 .build();
 
-        given(taskService.moveToInbox(id, true)).willReturn(moved);
+        given(taskService.moveToInbox(id)).willReturn(moved);
 
         // when & then
-        mockMvc.perform(patch("/api/tasks/{id}/inbox", id)
-                        .param("removeSchedule", "true"))
+        mockMvc.perform(patch("/api/tasks/{id}/inbox", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.id").value(1))
@@ -823,7 +822,7 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.data.startAt").doesNotExist())
                 .andExpect(jsonPath("$.data.scheduleSource").doesNotExist());
 
-        then(taskService).should().moveToInbox(id, true);
+        then(taskService).should().moveToInbox(id);
         then(taskService).shouldHaveNoMoreInteractions();
     }
 

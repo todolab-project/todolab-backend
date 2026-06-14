@@ -834,7 +834,7 @@ class TaskServiceTest {
     }
 
     @Test
-    @DisplayName("기록함 이동은 일정 제거 선택과 함께 트랜잭션 서비스에 위임한다")
+    @DisplayName("기록함 이동은 일정 제거를 포함해 트랜잭션 서비스에 위임한다")
     void moveToInbox_success() {
         // given
         long id = 1L;
@@ -844,17 +844,17 @@ class TaskServiceTest {
                 .status(TaskStatus.INBOX)
                 .build();
 
-        given(taskTxService.moveToInboxTx(id, true)).willReturn(moved);
+        given(taskTxService.moveToInboxTx(id)).willReturn(moved);
 
         // when
-        TaskResponse result = taskService.moveToInbox(id, true);
+        TaskResponse result = taskService.moveToInbox(id);
 
         // then
         assertThat(result.status()).isEqualTo(TaskStatus.INBOX);
         assertThat(result.startAt()).isNull();
         assertThat(result.scheduleSource()).isNull();
 
-        then(taskTxService).should(times(1)).moveToInboxTx(id, true);
+        then(taskTxService).should(times(1)).moveToInboxTx(id);
         then(taskRepository).shouldHaveNoInteractions();
     }
 

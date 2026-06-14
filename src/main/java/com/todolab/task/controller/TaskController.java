@@ -171,14 +171,13 @@ public class TaskController {
 
     @PatchMapping("/{id}/inbox")
     public ResponseEntity<ApiResponse<TaskResponse>> moveToInbox(
-            @PathVariable Long id,
-            @RequestParam(defaultValue = "false") boolean removeSchedule
+            @PathVariable Long id
     ) {
-        log.info("[API] moveToInbox request :: id={}, removeSchedule={}", id, removeSchedule);
+        log.info("[API] moveToInbox request :: id={}", id);
 
-        TaskResponse res = taskService.moveToInbox(id, removeSchedule);
+        TaskResponse res = taskService.moveToInbox(id);
 
-        log.info("[API] moveToInbox success :: id={}, removeSchedule={}", id, removeSchedule);
+        log.info("[API] moveToInbox success :: id={}", id);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(res));
     }

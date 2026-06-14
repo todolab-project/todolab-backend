@@ -79,8 +79,8 @@
     });
   };
 
-  TaskApi.moveToInbox = (id, removeSchedule = false) => {
-    return request(`/api/tasks/${encodeURIComponent(id)}/inbox${buildQuery({ removeSchedule })}`, {
+  TaskApi.moveToInbox = (id) => {
+    return request(`/api/tasks/${encodeURIComponent(id)}/inbox`, {
       method: 'PATCH',
       headers: { 'X-Requested-With': 'fetch' }
     });
