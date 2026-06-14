@@ -224,31 +224,56 @@
 
     const overdueActionsHtml = options.overdueActions
       ? `<div class="task-overdue-actions" aria-label="지난 미완료 정리">
-           <button type="button"
-                   class="task-overdue-action task-overdue-action-primary"
-                   data-action="overdue-today"
-                   data-task-id="${TaskUI.escapeHtml(task.id)}">
-             오늘 하기
-           </button>
-           <button type="button"
-                   class="task-overdue-action"
-                   data-action="overdue-tomorrow"
-                   data-task-id="${TaskUI.escapeHtml(task.id)}">
-             내일 하기
-           </button>
-           <button type="button"
-                   class="task-overdue-action"
-                   data-action="overdue-inbox"
-                   data-task-id="${TaskUI.escapeHtml(task.id)}"
-                   data-schedule-source="${TaskUI.escapeHtml(task.scheduleSource || '')}">
-             기록함
-           </button>
-           <button type="button"
-                   class="task-overdue-action task-overdue-action-complete"
-                   data-action="overdue-complete"
-                   data-task-id="${TaskUI.escapeHtml(task.id)}">
-             완료
-           </button>
+           <div class="task-overdue-primary-actions">
+             <button type="button"
+                     class="task-overdue-action task-overdue-action-primary"
+                     data-action="overdue-today"
+                     data-task-id="${TaskUI.escapeHtml(task.id)}">
+               오늘 하기
+             </button>
+             <button type="button"
+                     class="task-overdue-action"
+                     data-action="overdue-tomorrow"
+                     data-task-id="${TaskUI.escapeHtml(task.id)}">
+               내일 하기
+             </button>
+             <button type="button"
+                     class="task-overdue-action"
+                     data-action="overdue-inbox"
+                     data-task-id="${TaskUI.escapeHtml(task.id)}"
+                     data-schedule-source="${TaskUI.escapeHtml(task.scheduleSource || '')}">
+               기록함
+             </button>
+             <button type="button"
+                     class="task-overdue-action task-overdue-action-complete"
+                     data-action="overdue-complete"
+                     data-task-id="${TaskUI.escapeHtml(task.id)}">
+               완료
+             </button>
+           </div>
+           <div class="task-overdue-secondary-actions">
+             <label class="task-overdue-date-control">
+               <span>날짜 다시 정하기</span>
+               <input type="date"
+                      value="${TaskUI.escapeHtml(options.overdueReferenceDate || '')}"
+                      min="${TaskUI.escapeHtml(options.overdueReferenceDate || '')}"
+                      data-role="overdue-date"
+                      aria-label="새 실행 날짜" />
+             </label>
+             <button type="button"
+                     class="task-overdue-action task-overdue-date-apply"
+                     data-action="overdue-reschedule"
+                     data-task-id="${TaskUI.escapeHtml(task.id)}">
+               적용
+             </button>
+             <button type="button"
+                     class="task-overdue-delete-action"
+                     data-action="overdue-delete"
+                     data-task-id="${TaskUI.escapeHtml(task.id)}"
+                     data-task-title="${title}">
+               삭제
+             </button>
+           </div>
          </div>`
       : '';
 
@@ -345,6 +370,7 @@
       barColor: 'rgba(245, 158, 11, 0.82)',
       showCheck: false,
       overdueActions: true,
+      overdueReferenceDate: referenceDate,
       rowClass: 'task-row-overdue'
     });
   };
