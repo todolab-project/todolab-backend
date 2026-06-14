@@ -391,6 +391,32 @@
     }
   });
 
+  $overdueList?.addEventListener('change', async (e) => {
+    const select = e.target.closest('[data-action="set-defer-reason"]');
+    if (!select) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const id = select.getAttribute('data-task-id');
+    if (!id) return;
+
+    try {
+      select.disabled = true;
+      const reason = (select.value || '').trim();
+      if (reason) {
+        await TaskApi.setDeferReason(id, reason);
+      } else {
+        await TaskApi.clearDeferReason(id);
+      }
+      await load();
+    } catch (err) {
+      showError(`미룬 이유 저장 실패: ${err.message}`);
+    } finally {
+      select.disabled = false;
+    }
+  });
+
   $doneList?.addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-action="reopen-today-task"]');
     if (!btn) return;

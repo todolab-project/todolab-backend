@@ -388,6 +388,50 @@ select:focus{
   background:rgba(255,251,235,0.76);
 }
 
+.task-overdue-review{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:8px;
+  padding:9px 10px;
+  border:1px solid #f2c784;
+  border-radius:var(--app-radius);
+  background:#fff7ed;
+}
+
+.task-overdue-review-copy{
+  display:flex;
+  min-width:0;
+  flex-direction:column;
+  gap:3px;
+  color:#92400e;
+  font-size:11px;
+  line-height:1.25;
+}
+
+.task-overdue-review-copy strong{
+  font-size:12px;
+  font-weight:900;
+}
+
+.task-overdue-review-copy span{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-weight:700;
+}
+
+.task-overdue-review-control{
+  flex:0 1 auto;
+  min-width:0;
+}
+
+.task-overdue-review .task-action-select{
+  min-width:138px;
+  background:#fff;
+}
+
 .task-overdue-primary-actions{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
@@ -664,6 +708,16 @@ select:focus{
 
   .task-overdue-primary-actions{
     grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .task-overdue-review{
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .task-overdue-review .task-action-select{
+    width:100%;
+    min-width:0;
   }
 
   .task-overdue-secondary-actions{
