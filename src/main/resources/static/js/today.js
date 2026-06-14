@@ -324,7 +324,8 @@
   $overdueList?.addEventListener('click', async (e) => {
     const btn = e.target.closest(
       '[data-action="overdue-today"], [data-action="overdue-tomorrow"], ' +
-      '[data-action="overdue-inbox"], [data-action="overdue-complete"]'
+      '[data-action="overdue-inbox"], [data-action="overdue-complete"], ' +
+      '[data-action="overdue-reschedule"], [data-action="overdue-delete"]'
     );
     if (!btn) return;
 
@@ -342,6 +343,22 @@
         ? confirm('캘린더 일정도 함께 제거할까요?\n취소를 누르면 일정은 유지됩니다.')
         : false;
     }
+    if (action === 'overdue-delete') {
+      const title = (btn.dataset.taskTitle || '이 할 일').trim();
+      if (!confirm(`'${title}'을(를) 삭제하시겠어요?`)) return;
+    }
+
+    const rescheduleDate = action === 'overdue-reschedule'
+      ? btn.closest('.task-card')?.querySelector('[data-role="overdue-date"]')?.value
+      : null;
+    if (action === 'overdue-reschedule' && !rescheduleDate) {
+      showError('다시 정할 날짜를 선택해주세요.');
+      return;
+    }
+    if (action === 'overdue-reschedule' && rescheduleDate < date) {
+      showError(`${date} 이후 날짜를 선택해주세요.`);
+      return;
+    }
 
     try {
       btn.disabled = true;
@@ -351,6 +368,10 @@
         await TaskApi.carryOver(id, shiftDate(date, 1));
       } else if (action === 'overdue-inbox') {
         await TaskApi.moveToInbox(id, removeSchedule);
+      } else if (action === 'overdue-reschedule') {
+        await TaskApi.carryOver(id, rescheduleDate);
+      } else if (action === 'overdue-delete') {
+        await TaskApi.deleteTask(id);
       } else {
         await TaskApi.completeTask(id);
       }
@@ -360,7 +381,9 @@
         'overdue-today': '오늘 이동',
         'overdue-tomorrow': '내일 이동',
         'overdue-inbox': '기록함 이동',
-        'overdue-complete': '완료 처리'
+        'overdue-complete': '완료 처리',
+        'overdue-reschedule': '날짜 재설정',
+        'overdue-delete': '삭제'
       };
       showError(`${labels[action] || '지난 미완료 정리'} 실패: ${err.message}`);
     } finally {
