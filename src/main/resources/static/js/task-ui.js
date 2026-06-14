@@ -121,6 +121,11 @@
     const metaText = TaskUI.escapeHtml((options.metaText || '').trim());
     const showDesc = (options.showDesc !== false);
     const staleCarryOver = Boolean(task?.staleCarryOver || Number(task?.carryOverCount || 0) >= 3);
+    const carryOverCount = Number(task?.carryOverCount || 0);
+    const deferReasonLabel = (task?.deferReasonLabel || '').trim();
+    const overdueReviewText = deferReasonLabel
+      ? `${carryOverCount}회 이월 · ${deferReasonLabel}`
+      : `${carryOverCount}회 이월 · 미룬 이유를 선택해주세요`;
 
     // ✅ 우측 시간/텍스트는 옵션으로만 노출
     let right = '';
@@ -224,6 +229,17 @@
 
     const overdueActionsHtml = options.overdueActions
       ? `<div class="task-overdue-actions" aria-label="지난 미완료 정리">
+           ${options.deferReasonAction
+             ? `<div class="task-overdue-review">
+                  <div class="task-overdue-review-copy">
+                    <strong>다시 정리 필요</strong>
+                    <span>${TaskUI.escapeHtml(overdueReviewText)}</span>
+                  </div>
+                  <div class="task-overdue-review-control">
+                    ${deferReasonHtml}
+                  </div>
+                </div>`
+             : ''}
            <div class="task-overdue-primary-actions">
              <button type="button"
                      class="task-overdue-action task-overdue-action-primary"
@@ -359,6 +375,7 @@
 
   TaskUI.renderOverdueCard = (t, referenceDate) => {
     const time = TaskUI.formatRightTime(t);
+    const staleCarryOver = Boolean(t?.staleCarryOver || Number(t?.carryOverCount || 0) >= 3);
     return TaskUI.renderTaskCard(t, {
       showRightTime: false,
       metaText: TaskUI.joinMeta(
@@ -371,6 +388,7 @@
       showCheck: false,
       overdueActions: true,
       overdueReferenceDate: referenceDate,
+      deferReasonAction: staleCarryOver,
       rowClass: 'task-row-overdue'
     });
   };
