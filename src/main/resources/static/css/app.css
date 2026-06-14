@@ -1081,55 +1081,90 @@ select:focus{
   color:#64748b;
 }
 
-.task-modal-execution{
+.task-modal-when-summary{
   display:flex;
   align-items:center;
   gap:12px;
   min-width:0;
-  border:1px solid #bfdbfe;
+  border:1px solid var(--app-border-soft);
   border-radius:var(--app-radius);
-  background:#eff6ff;
+  background:#f8fafc;
   padding:12px 14px;
 }
 
-.task-modal-execution.hidden{
+.task-modal-when-summary.hidden{
   display:none;
 }
 
-.task-modal-execution-icon{
+.task-modal-when-icon{
   display:flex;
   align-items:center;
   justify-content:center;
   width:38px;
   height:38px;
   flex:0 0 auto;
-  border:1px solid #bfdbfe;
+  border:1px solid var(--app-border);
   border-radius:var(--app-radius);
   background:#fff;
-  color:#2563eb;
+  color:#475569;
 }
 
-.task-modal-execution-icon svg{
+.task-modal-when-icon svg{
   width:20px;
   height:20px;
 }
 
-.task-modal-execution-label{
-  font-size:11px;
-  line-height:1.2;
-  font-weight:900;
-  color:#2563eb;
+.task-modal-when-heading{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:7px;
 }
 
-.task-modal-execution-value{
-  margin-top:3px;
+.task-modal-execution-status{
+  display:inline-flex;
+  align-items:center;
+  min-height:20px;
+  border-radius:999px;
+  background:#dbeafe;
+  padding:0 7px;
+  color:#1d4ed8;
+  font-size:10px;
+  line-height:1;
+  font-weight:900;
+}
+
+.task-modal-execution-status.is-past{
+  background:#fef3c7;
+  color:#92400e;
+}
+
+.task-modal-carry-status{
+  display:inline-flex;
+  align-items:center;
+  min-height:20px;
+  border-radius:999px;
+  background:#f1f5f9;
+  padding:0 7px;
+  color:#64748b;
+  font-size:10px;
+  line-height:1;
+  font-weight:900;
+}
+
+.task-modal-carry-status.is-stale{
+  background:#fef3c7;
+  color:#92400e;
+}
+
+.task-modal-when-value{
   font-size:15px;
   line-height:1.25;
   font-weight:900;
-  color:#1e3a8a;
+  color:var(--app-text);
 }
 
-.task-modal-execution-copy{
+.task-modal-when-meta{
   margin-top:3px;
   font-size:11px;
   line-height:1.35;
@@ -1151,6 +1186,13 @@ textarea.task-modal-input{
 
 .task-modal-block{
   min-width:0;
+}
+
+.task-modal-when{
+  border:1px solid var(--app-border-soft);
+  border-radius:var(--app-radius);
+  background:#fff;
+  padding:14px;
 }
 
 .task-modal-section-header{

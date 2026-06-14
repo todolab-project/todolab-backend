@@ -21,8 +21,11 @@ window.TaskModal = (() => {
   const $startLabel = document.getElementById('tmStartLabel');
   const $endLabel = document.getElementById('tmEndLabel');
   const $scheduleFields = document.getElementById('tmScheduleFields');
-  const $executionDate = document.getElementById('tmExecutionDate');
-  const $executionDateValue = document.getElementById('tmExecutionDateValue');
+  const $whenSummary = document.getElementById('tmWhenSummary');
+  const $whenValue = document.getElementById('tmWhenValue');
+  const $whenStatus = document.getElementById('tmWhenStatus');
+  const $whenMeta = document.getElementById('tmWhenMeta');
+  const $carryOverStatus = document.getElementById('tmCarryOverStatus');
 
   const $meta = document.getElementById('tmMeta');
   const $createdAt = document.getElementById('tmCreatedAt');
@@ -121,11 +124,85 @@ window.TaskModal = (() => {
     return date ? `${date}T00:00` : null;
   }
 
-  function syncExecutionDate(task = null) {
+  function executionDatePresentation(targetDate) {
+    const [year, month, day] = targetDate.split('-').map(Number);
+    const target = new Date(year, month - 1, day);
+    const todayText = todayDate();
+    const [todayYear, todayMonth, todayDay] = todayText.split('-').map(Number);
+    const today = new Date(todayYear, todayMonth - 1, todayDay);
+    const diffDays = Math.round((target - today) / 86400000);
+    const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+
+    let status = '';
+    if (diffDays === 0) status = '오늘';
+    else if (diffDays === -1) status = '어제';
+    else if (diffDays === 1) status = '내일';
+    else if (diffDays < 0) status = `${Math.abs(diffDays)}일 지남`;
+    else status = `${diffDays}일 후`;
+
+    return {
+      value: `${month}월 ${day}일 ${weekdays[target.getDay()]}요일`,
+      status,
+      isPast: diffDays < 0
+    };
+  }
+
+  function formatScheduleTime(task) {
+    if (!task?.startAt) return '';
+    if (task.allDay) return '종일';
+
+    const startTime = String(task.startAt).split('T')[1]?.slice(0, 5) || '';
+    const endTime = String(task.endAt || '').split('T')[1]?.slice(0, 5) || '';
+    return endTime ? `${startTime}–${endTime}` : startTime;
+  }
+
+  function syncWhenSummary(task = null) {
     const targetDate = task?.status === 'TODAY' ? String(task.targetDate || '').trim() : '';
-    $executionDate?.classList.toggle('hidden', !targetDate);
-    if ($executionDateValue) {
-      $executionDateValue.textContent = targetDate || '-';
+    const scheduleDate = datePart(task?.startAt);
+    const displayDate = targetDate || scheduleDate;
+    const isDetail = mode === 'detail';
+
+    $whenSummary?.classList.toggle('hidden', !isDetail);
+    $scheduleFields?.classList.toggle('hidden', isDetail);
+    $allDayLabel?.classList.toggle('hidden', isDetail);
+    if (!isDetail) return;
+
+    const carryOverCount = Number(task?.carryOverCount || 0);
+    if ($carryOverStatus) {
+      const showCarryOver = Number.isFinite(carryOverCount) && carryOverCount > 0;
+      $carryOverStatus.textContent = showCarryOver ? `${carryOverCount}회 미룸` : '';
+      $carryOverStatus.classList.toggle('hidden', !showCarryOver);
+      $carryOverStatus.classList.toggle('is-stale', carryOverCount >= 3);
+    }
+
+    if (!displayDate) {
+      if ($whenValue) $whenValue.textContent = '날짜 없음';
+      if ($whenStatus) $whenStatus.classList.add('hidden');
+      if ($whenMeta) $whenMeta.textContent = '기록함에서 관리하는 할 일이에요';
+      return;
+    }
+
+    const presentation = executionDatePresentation(displayDate);
+    if ($whenValue) $whenValue.textContent = presentation.value;
+    if ($whenStatus) {
+      $whenStatus.textContent = presentation.status;
+      $whenStatus.classList.remove('hidden');
+      $whenStatus.classList.toggle('is-past', presentation.isPast);
+    }
+
+    const timeText = formatScheduleTime(task);
+    const hasDifferentScheduleDate = targetDate && scheduleDate && targetDate !== scheduleDate;
+    if ($whenMeta) {
+      if (hasDifferentScheduleDate) {
+        const schedulePresentation = executionDatePresentation(scheduleDate);
+        $whenMeta.textContent = `캘린더에는 ${schedulePresentation.value} ${timeText || ''}`.trim();
+      } else if (task?.scheduleSource === 'AUTO_TODAY') {
+        $whenMeta.textContent = '종일 · 오늘 할 일로 이동하며 자동 설정';
+      } else if (timeText) {
+        $whenMeta.textContent = timeText;
+      } else {
+        $whenMeta.textContent = '할 일을 실행하기로 정한 날짜예요';
+      }
     }
   }
 
@@ -193,14 +270,18 @@ window.TaskModal = (() => {
     $unscheduled.checked = !hasSchedule;
     $allDay.disabled = mode === 'detail';
     $allDayBadge?.classList.toggle('hidden', !(mode === 'detail' && hasSchedule && $allDay.checked));
+    $dateHint?.classList.toggle('hidden', mode === 'detail');
     if (!hasSchedule && !$allDay.checked) {
       $allDay.checked = false;
     }
     $scheduleFields?.classList.toggle('task-modal-date-grid-empty', !hasSchedule);
 
     $dateHint.textContent = hasSchedule
-      ? ($allDay.checked ? '캘린더에 표시할 종일 일정' : '캘린더에 표시할 날짜와 시간')
-      : '일정 없음 · 기록함에서 관리';
+      ? (currentTask?.scheduleSource === 'AUTO_TODAY'
+        ? '오늘 할 일로 이동하며 자동 설정된 날짜'
+        : ($allDay.checked ? '선택한 날짜에 종일로 표시해요' : '시간은 선택 사항이에요'))
+      : '날짜를 정하지 않으면 기록함에서 관리해요';
+    syncWhenSummary(currentTask);
     $primary.textContent = basePrimaryText();
   }
 
@@ -223,7 +304,7 @@ window.TaskModal = (() => {
     $allDay.checked = false;
     $startAt.value = '';
     $endAt.value = '';
-    syncExecutionDate();
+    syncWhenSummary();
 
     $meta.classList.add('hidden');
     $createdAt.textContent = '-';
@@ -249,7 +330,7 @@ window.TaskModal = (() => {
 
     $startAt.value = toInputLocal(task.startAt);
     $endAt.value = toInputLocal(task.endAt);
-    syncExecutionDate(task);
+    syncWhenSummary(task);
 
     $createdAt.textContent = fmtIso(task.createdAt);
     $updatedAt.textContent = fmtIso(task.updatedAt || task.timestamp);
