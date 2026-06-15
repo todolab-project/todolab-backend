@@ -145,7 +145,8 @@
               <button type="button"
                       class="mt-2 text-[12px] font-extrabold text-gray-400 hover:text-red-600"
                       data-action="delete-dday"
-                      data-dday-id="${escapeHtml(goal.id)}">
+                      data-dday-id="${escapeHtml(goal.id)}"
+                      data-dday-title="${escapeHtml(goal.title)}">
                 삭제
               </button>
             </div>
@@ -238,6 +239,11 @@
 
       const id = deleteBtn.getAttribute('data-dday-id');
       if (!id) return;
+      const title = (deleteBtn.getAttribute('data-dday-title') || '이 D-Day').trim();
+      const confirmed = confirm(
+        `'${title}'을(를) 삭제할까요?\n연결된 오늘 할 일은 삭제되지 않고 D-Day 연결만 해제돼요.`
+      );
+      if (!confirmed) return;
 
       try {
         deleteBtn.disabled = true;
