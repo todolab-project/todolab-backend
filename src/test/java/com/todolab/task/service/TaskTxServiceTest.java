@@ -105,8 +105,8 @@ class TaskTxServiceTest {
     }
 
     @Test
-    @DisplayName("moveToTodayTx는 기존 수동 일정을 변경하지 않는다")
-    void moveToTodayTx_preservesUserSchedule() {
+    @DisplayName("moveToTodayTx는 기존 수동 일정의 시간을 유지하고 선택 날짜로 이동한다")
+    void moveToTodayTx_movesUserSchedulePreservingTime() {
         // given
         long id = 1L;
         LocalDate targetDate = LocalDate.of(2026, 5, 21);
@@ -127,8 +127,8 @@ class TaskTxServiceTest {
 
         // then
         assertThat(result.getTargetDate()).isEqualTo(targetDate);
-        assertThat(result.getStartAt()).isEqualTo(startAt);
-        assertThat(result.getEndAt()).isEqualTo(endAt);
+        assertThat(result.getStartAt()).isEqualTo(LocalDateTime.of(2026, 5, 21, 10, 0));
+        assertThat(result.getEndAt()).isEqualTo(LocalDateTime.of(2026, 5, 21, 11, 0));
         assertThat(result.getScheduleSource()).isEqualTo(ScheduleSource.USER);
 
         then(taskRepository).should(times(1)).findById(id);
@@ -299,8 +299,8 @@ class TaskTxServiceTest {
     }
 
     @Test
-    @DisplayName("carryOverTx는 사용자 지정 캘린더 일정을 변경하지 않는다")
-    void carryOverTx_preservesUserSchedule() {
+    @DisplayName("carryOverTx는 사용자 지정 일정의 시간을 유지하고 다음 날짜로 이동한다")
+    void carryOverTx_movesUserSchedulePreservingTime() {
         // given
         long id = 1L;
         LocalDate nextDate = LocalDate.of(2026, 5, 22);
@@ -324,8 +324,8 @@ class TaskTxServiceTest {
 
         // then
         assertThat(result.getTargetDate()).isEqualTo(nextDate);
-        assertThat(result.getStartAt()).isEqualTo(startAt);
-        assertThat(result.getEndAt()).isEqualTo(endAt);
+        assertThat(result.getStartAt()).isEqualTo(LocalDateTime.of(2026, 5, 22, 10, 0));
+        assertThat(result.getEndAt()).isEqualTo(LocalDateTime.of(2026, 5, 22, 11, 0));
         assertThat(result.getScheduleSource()).isEqualTo(ScheduleSource.USER);
 
         then(taskRepository).should(times(1)).findById(id);

@@ -210,8 +210,8 @@ class TaskTest {
     }
 
     @Test
-    @DisplayName("기존 수동 일정이 있는 Task를 Today로 이동해도 일정은 변경하지 않는다")
-    void moveToToday_preservesUserSchedule() {
+    @DisplayName("기존 수동 일정이 있는 Task를 Today로 이동하면 시간은 유지하고 날짜를 맞춘다")
+    void moveToToday_movesUserSchedulePreservingTime() {
         // given
         LocalDateTime startAt = LocalDateTime.of(2026, 5, 19, 14, 0);
         LocalDateTime endAt = LocalDateTime.of(2026, 5, 19, 15, 0);
@@ -228,8 +228,8 @@ class TaskTest {
         // then
         assertThat(task.getStatus()).isEqualTo(TaskStatus.TODAY);
         assertThat(task.getTargetDate()).isEqualTo(targetDate);
-        assertThat(task.getStartAt()).isEqualTo(startAt);
-        assertThat(task.getEndAt()).isEqualTo(endAt);
+        assertThat(task.getStartAt()).isEqualTo(LocalDateTime.of(2026, 5, 20, 14, 0));
+        assertThat(task.getEndAt()).isEqualTo(LocalDateTime.of(2026, 5, 20, 15, 0));
         assertThat(task.isAllDay()).isFalse();
         assertThat(task.getScheduleSource()).isEqualTo(ScheduleSource.USER);
     }
@@ -306,8 +306,8 @@ class TaskTest {
     }
 
     @Test
-    @DisplayName("사용자 지정 일정의 완료를 취소해도 캘린더 일정은 변경하지 않는다")
-    void reopenToday_preservesUserSchedule() {
+    @DisplayName("사용자 지정 일정의 완료를 취소하면 시간은 유지하고 선택 날짜로 이동한다")
+    void reopenToday_movesUserSchedulePreservingTime() {
         // given
         LocalDateTime startAt = LocalDateTime.of(2026, 5, 20, 14, 0);
         LocalDateTime endAt = LocalDateTime.of(2026, 5, 20, 15, 0);
@@ -328,8 +328,8 @@ class TaskTest {
         // then
         assertThat(task.getStatus()).isEqualTo(TaskStatus.TODAY);
         assertThat(task.getTargetDate()).isEqualTo(targetDate);
-        assertThat(task.getStartAt()).isEqualTo(startAt);
-        assertThat(task.getEndAt()).isEqualTo(endAt);
+        assertThat(task.getStartAt()).isEqualTo(LocalDateTime.of(2026, 5, 22, 14, 0));
+        assertThat(task.getEndAt()).isEqualTo(LocalDateTime.of(2026, 5, 22, 15, 0));
         assertThat(task.getScheduleSource()).isEqualTo(ScheduleSource.USER);
     }
 
@@ -366,8 +366,8 @@ class TaskTest {
     }
 
     @Test
-    @DisplayName("사용자 지정 일정을 이월해도 캘린더 일정은 변경하지 않는다")
-    void carryOverTo_preservesUserSchedule() {
+    @DisplayName("사용자 지정 일정을 이월하면 시간은 유지하고 다음 날짜로 이동한다")
+    void carryOverTo_movesUserSchedulePreservingTime() {
         // given
         LocalDateTime startAt = LocalDateTime.of(2026, 5, 20, 14, 0);
         LocalDateTime endAt = LocalDateTime.of(2026, 5, 20, 15, 0);
@@ -386,10 +386,31 @@ class TaskTest {
 
         // then
         assertThat(task.getTargetDate()).isEqualTo(nextDate);
-        assertThat(task.getStartAt()).isEqualTo(startAt);
-        assertThat(task.getEndAt()).isEqualTo(endAt);
+        assertThat(task.getStartAt()).isEqualTo(LocalDateTime.of(2026, 5, 21, 14, 0));
+        assertThat(task.getEndAt()).isEqualTo(LocalDateTime.of(2026, 5, 21, 15, 0));
         assertThat(task.getScheduleSource()).isEqualTo(ScheduleSource.USER);
         assertThat(task.getCarryOverCount()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("여러 날 일정을 이월하면 기간을 유지하고 날짜 전체를 이동한다")
+    void carryOverTo_movesPeriodSchedulePreservingDuration() {
+        // given
+        Task task = Task.builder()
+                .title("출장")
+                .startAt(LocalDateTime.of(2026, 5, 20, 9, 0))
+                .endAt(LocalDateTime.of(2026, 5, 22, 18, 0))
+                .status(TaskStatus.TODAY)
+                .targetDate(LocalDate.of(2026, 5, 20))
+                .build();
+
+        // when
+        task.carryOverTo(LocalDate.of(2026, 5, 23));
+
+        // then
+        assertThat(task.getTargetDate()).isEqualTo(LocalDate.of(2026, 5, 23));
+        assertThat(task.getStartAt()).isEqualTo(LocalDateTime.of(2026, 5, 23, 9, 0));
+        assertThat(task.getEndAt()).isEqualTo(LocalDateTime.of(2026, 5, 25, 18, 0));
     }
 
     @Test

@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 @Entity
@@ -142,9 +143,7 @@ public class Task {
 
     public void moveToToday(LocalDate targetDate) {
         validateTargetDate(targetDate);
-        if (isUnscheduled()) {
-            applyAutoTodaySchedule(targetDate);
-        }
+        moveScheduleTo(targetDate);
         this.status = TaskStatus.TODAY;
         this.targetDate = targetDate;
         this.completedAt = null;
@@ -158,17 +157,12 @@ public class Task {
 
     public void reopenToday(LocalDate targetDate) {
         validateTargetDate(targetDate);
-        if (this.scheduleSource == ScheduleSource.AUTO_TODAY) {
-            applyAutoTodaySchedule(targetDate);
-        }
         moveToToday(targetDate);
     }
 
     public void carryOverTo(LocalDate nextDate) {
         validateTargetDate(nextDate);
-        if (this.scheduleSource == ScheduleSource.AUTO_TODAY) {
-            applyAutoTodaySchedule(nextDate);
-        }
+        moveScheduleTo(nextDate);
         this.status = TaskStatus.TODAY;
         this.targetDate = nextDate;
         this.completedAt = null;
@@ -275,6 +269,19 @@ public class Task {
         this.endAt = targetDate.plusDays(1).atStartOfDay();
         this.allDay = true;
         this.scheduleSource = ScheduleSource.AUTO_TODAY;
+    }
+
+    private void moveScheduleTo(LocalDate targetDate) {
+        if (isUnscheduled()) {
+            applyAutoTodaySchedule(targetDate);
+            return;
+        }
+
+        long daysToMove = ChronoUnit.DAYS.between(this.startAt.toLocalDate(), targetDate);
+        this.startAt = this.startAt.plusDays(daysToMove);
+        if (this.endAt != null) {
+            this.endAt = this.endAt.plusDays(daysToMove);
+        }
     }
 
     private void validateTargetDate(LocalDate targetDate) {
