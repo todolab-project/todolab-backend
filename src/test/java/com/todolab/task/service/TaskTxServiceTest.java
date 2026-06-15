@@ -4,7 +4,6 @@ import com.todolab.dday.domain.DdayGoal;
 import com.todolab.dday.exception.DdayGoalNotFoundException;
 import com.todolab.dday.repository.DdayGoalRepository;
 import com.todolab.task.domain.DeferReason;
-import com.todolab.task.domain.ScheduleSource;
 import com.todolab.task.domain.Task;
 import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.domain.TaskType;
@@ -98,7 +97,6 @@ class TaskTxServiceTest {
         assertThat(result.getStartAt()).isEqualTo(targetDate.atStartOfDay());
         assertThat(result.getEndAt()).isEqualTo(targetDate.plusDays(1).atStartOfDay());
         assertThat(result.isAllDay()).isTrue();
-        assertThat(result.getScheduleSource()).isEqualTo(ScheduleSource.AUTO_TODAY);
 
         then(taskRepository).should(times(1)).findById(id);
         then(taskRepository).should(times(1)).save(task);
@@ -129,7 +127,6 @@ class TaskTxServiceTest {
         assertThat(result.getTargetDate()).isEqualTo(targetDate);
         assertThat(result.getStartAt()).isEqualTo(LocalDateTime.of(2026, 5, 21, 10, 0));
         assertThat(result.getEndAt()).isEqualTo(LocalDateTime.of(2026, 5, 21, 11, 0));
-        assertThat(result.getScheduleSource()).isEqualTo(ScheduleSource.USER);
 
         then(taskRepository).should(times(1)).findById(id);
         then(taskRepository).should(times(1)).save(task);
@@ -147,7 +144,6 @@ class TaskTxServiceTest {
                 .startAt(targetDate.atStartOfDay())
                 .endAt(targetDate.plusDays(1).atStartOfDay())
                 .allDay(true)
-                .scheduleSource(ScheduleSource.AUTO_TODAY)
                 .status(TaskStatus.TODAY)
                 .targetDate(targetDate)
                 .build();
@@ -163,7 +159,6 @@ class TaskTxServiceTest {
         assertThat(result.getStatus()).isEqualTo(TaskStatus.INBOX);
         assertThat(result.getTargetDate()).isNull();
         assertThat(result.getStartAt()).isNull();
-        assertThat(result.getScheduleSource()).isNull();
 
         then(taskRepository).should(times(1)).findById(id);
         then(taskRepository).should(times(1)).save(task);
@@ -254,7 +249,6 @@ class TaskTxServiceTest {
         assertThat(result.getStartAt()).isEqualTo(targetDate.atStartOfDay());
         assertThat(result.getEndAt()).isEqualTo(targetDate.plusDays(1).atStartOfDay());
         assertThat(result.isAllDay()).isTrue();
-        assertThat(result.getScheduleSource()).isEqualTo(ScheduleSource.AUTO_TODAY);
 
         then(taskRepository).should(times(1)).findById(id);
         then(taskRepository).should(times(1)).save(task);
@@ -272,7 +266,6 @@ class TaskTxServiceTest {
                 .startAt(currentDate.atStartOfDay())
                 .endAt(currentDate.plusDays(1).atStartOfDay())
                 .allDay(true)
-                .scheduleSource(ScheduleSource.AUTO_TODAY)
                 .status(TaskStatus.TODAY)
                 .targetDate(currentDate)
                 .carryOverCount(1)
@@ -292,7 +285,6 @@ class TaskTxServiceTest {
         assertThat(result.getCarryOverCount()).isEqualTo(2);
         assertThat(result.getStartAt()).isEqualTo(nextDate.atStartOfDay());
         assertThat(result.getEndAt()).isEqualTo(nextDate.plusDays(1).atStartOfDay());
-        assertThat(result.getScheduleSource()).isEqualTo(ScheduleSource.AUTO_TODAY);
 
         then(taskRepository).should(times(1)).findById(id);
         then(taskRepository).should(times(1)).save(task);
@@ -326,7 +318,6 @@ class TaskTxServiceTest {
         assertThat(result.getTargetDate()).isEqualTo(nextDate);
         assertThat(result.getStartAt()).isEqualTo(LocalDateTime.of(2026, 5, 22, 10, 0));
         assertThat(result.getEndAt()).isEqualTo(LocalDateTime.of(2026, 5, 22, 11, 0));
-        assertThat(result.getScheduleSource()).isEqualTo(ScheduleSource.USER);
 
         then(taskRepository).should(times(1)).findById(id);
         then(taskRepository).should(times(1)).save(task);

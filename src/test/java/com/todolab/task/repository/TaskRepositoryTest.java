@@ -3,7 +3,6 @@ package com.todolab.task.repository;
 import com.todolab.config.QuerydslConfig;
 import com.todolab.dday.domain.DdayGoal;
 import com.todolab.support.RepositoryTestSupport;
-import com.todolab.task.domain.ScheduleSource;
 import com.todolab.task.domain.Task;
 import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.domain.TaskType;
@@ -55,32 +54,10 @@ class TaskRepositoryTest extends RepositoryTestSupport {
         then(saved.getStartAt()).isEqualTo(startAt);
         then(saved.getEndAt()).isEqualTo(endAt);
         then(saved.isAllDay()).isFalse();
-        then(saved.getScheduleSource()).isEqualTo(ScheduleSource.USER);
         then(saved.getCategory()).isEqualTo("일");
         then(saved.getStatus()).isEqualTo(TaskStatus.TODAY);
         then(saved.getTargetDate()).isEqualTo(startAt.toLocalDate());
         then(saved.getCompletedAt()).isNull();
-    }
-
-    @Test
-    @DisplayName("자동 생성 일정의 출처를 저장하고 다시 조회한다")
-    void save_autoTodayScheduleSource() {
-        // given
-        Task task = Task.builder()
-                .title("오늘 할 일")
-                .startAt(LocalDateTime.of(2026, 6, 10, 0, 0))
-                .endAt(LocalDateTime.of(2026, 6, 11, 0, 0))
-                .allDay(true)
-                .scheduleSource(ScheduleSource.AUTO_TODAY)
-                .build();
-
-        // when
-        Long id = taskRepository.save(task).getId();
-        flushAndClear();
-        Task saved = taskRepository.findById(id).orElseThrow();
-
-        // then
-        then(saved.getScheduleSource()).isEqualTo(ScheduleSource.AUTO_TODAY);
     }
 
     @Test

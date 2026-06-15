@@ -12,7 +12,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Objects;
 
 @Entity
 @Table(name = "`TASK`")
@@ -54,10 +53,6 @@ public class Task {
      */
     @Column(name = "`ALL_DAY`")
     private boolean allDay;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "`SCHEDULE_SOURCE`")
-    private ScheduleSource scheduleSource;
 
     @Column(name = "`CATEGORY`")
     private String category;
@@ -106,8 +101,8 @@ public class Task {
     @Builder
     public Task(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category,
                 TaskStatus status, LocalDate targetDate, LocalDateTime completedAt, Integer carryOverCount,
-                DeferReason deferReason, DdayGoal ddayGoal, ScheduleSource scheduleSource) {
-        apply(title, description, type, startAt, endAt, allDay, category, scheduleSource);
+                DeferReason deferReason, DdayGoal ddayGoal) {
+        apply(title, description, type, startAt, endAt, allDay, category);
         applyStatus(status, targetDate, completedAt);
         this.carryOverCount = carryOverCount == null ? 0 : Math.max(0, carryOverCount);
         this.deferReason = deferReason;
@@ -115,8 +110,7 @@ public class Task {
     }
 
     public void update(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category) {
-        ScheduleSource updatedScheduleSource = resolveUpdatedScheduleSource(startAt, endAt, allDay);
-        apply(title, description, type, startAt, endAt, allDay, category, updatedScheduleSource);
+        apply(title, description, type, startAt, endAt, allDay, category);
         if (this.status != TaskStatus.DONE && !isUnscheduled()) {
             applyInitialStatus();
         }
@@ -205,11 +199,9 @@ public class Task {
             LocalDateTime startAt,
             LocalDateTime endAt,
             boolean allDay,
-            String category,
-            ScheduleSource scheduleSource
+            String category
     ) {
         validateSchedule(startAt, endAt, allDay);
-        ScheduleSource normalizedScheduleSource = normalizeScheduleSource(startAt, endAt, scheduleSource);
 
         String normalizedCategory = normalizeCategory(category);
         validateCategory(normalizedCategory);
@@ -220,7 +212,6 @@ public class Task {
         this.startAt = startAt;
         this.endAt = endAt;
         this.allDay = allDay;
-        this.scheduleSource = normalizedScheduleSource;
         this.category = normalizedCategory;
 
         if (this.status == null) {
@@ -232,40 +223,10 @@ public class Task {
         return type == null ? TaskType.defaultType() : type;
     }
 
-    private ScheduleSource normalizeScheduleSource(
-            LocalDateTime startAt,
-            LocalDateTime endAt,
-            ScheduleSource scheduleSource
-    ) {
-        if (startAt == null && endAt == null) {
-            return null;
-        }
-        return scheduleSource == null ? ScheduleSource.USER : scheduleSource;
-    }
-
-    private ScheduleSource resolveUpdatedScheduleSource(
-            LocalDateTime startAt,
-            LocalDateTime endAt,
-            boolean allDay
-    ) {
-        if (startAt == null && endAt == null) {
-            return null;
-        }
-
-        boolean scheduleUnchanged = Objects.equals(this.startAt, startAt)
-                && Objects.equals(this.endAt, endAt)
-                && this.allDay == allDay;
-        if (scheduleUnchanged && this.scheduleSource != null) {
-            return this.scheduleSource;
-        }
-        return ScheduleSource.USER;
-    }
-
     private void clearSchedule() {
         this.startAt = null;
         this.endAt = null;
         this.allDay = false;
-        this.scheduleSource = null;
         if (this.type == TaskType.SCHEDULE) {
             this.type = TaskType.TODO;
         }
@@ -275,7 +236,6 @@ public class Task {
         this.startAt = targetDate.atStartOfDay();
         this.endAt = targetDate.plusDays(1).atStartOfDay();
         this.allDay = true;
-        this.scheduleSource = ScheduleSource.AUTO_TODAY;
     }
 
     private void moveScheduleTo(LocalDate targetDate) {

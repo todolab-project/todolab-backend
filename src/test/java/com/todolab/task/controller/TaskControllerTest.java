@@ -4,7 +4,6 @@ import com.todolab.common.api.ApiExceptionHandler;
 import com.todolab.common.api.ErrorCode;
 import com.todolab.dday.exception.DdayGoalNotFoundException;
 import com.todolab.task.domain.DeferReason;
-import com.todolab.task.domain.ScheduleSource;
 import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.domain.TaskType;
 import com.todolab.task.dto.TaskCategoryGroupResponse;
@@ -775,7 +774,6 @@ class TaskControllerTest {
                 .startAt(targetDate.atStartOfDay())
                 .endAt(targetDate.plusDays(1).atStartOfDay())
                 .allDay(true)
-                .scheduleSource(ScheduleSource.AUTO_TODAY)
                 .status(TaskStatus.TODAY)
                 .targetDate(targetDate)
                 .build();
@@ -792,8 +790,7 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.data.targetDate").value("2026-05-21"))
                 .andExpect(jsonPath("$.data.startAt").value("2026-05-21T00:00:00"))
                 .andExpect(jsonPath("$.data.endAt").value("2026-05-22T00:00:00"))
-                .andExpect(jsonPath("$.data.allDay").value(true))
-                .andExpect(jsonPath("$.data.scheduleSource").value("AUTO_TODAY"));
+                .andExpect(jsonPath("$.data.allDay").value(true));
 
         then(taskService).should().moveToToday(id, targetDate);
         then(taskService).shouldHaveNoMoreInteractions();
@@ -819,8 +816,7 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.status").value("INBOX"))
-                .andExpect(jsonPath("$.data.startAt").doesNotExist())
-                .andExpect(jsonPath("$.data.scheduleSource").doesNotExist());
+                .andExpect(jsonPath("$.data.startAt").doesNotExist());
 
         then(taskService).should().moveToInbox(id);
         then(taskService).shouldHaveNoMoreInteractions();
@@ -866,7 +862,6 @@ class TaskControllerTest {
                 .startAt(targetDate.atStartOfDay())
                 .endAt(targetDate.plusDays(1).atStartOfDay())
                 .allDay(true)
-                .scheduleSource(ScheduleSource.AUTO_TODAY)
                 .status(TaskStatus.TODAY)
                 .targetDate(targetDate)
                 .completedAt(null)
@@ -885,7 +880,6 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.data.startAt").value("2026-05-21T00:00:00"))
                 .andExpect(jsonPath("$.data.endAt").value("2026-05-22T00:00:00"))
                 .andExpect(jsonPath("$.data.allDay").value(true))
-                .andExpect(jsonPath("$.data.scheduleSource").value("AUTO_TODAY"))
                 .andExpect(jsonPath("$.data.completedAt").doesNotExist());
 
         then(taskService).should().reopenToday(id, targetDate);
@@ -904,7 +898,6 @@ class TaskControllerTest {
                 .startAt(nextDate.atStartOfDay())
                 .endAt(nextDate.plusDays(1).atStartOfDay())
                 .allDay(true)
-                .scheduleSource(ScheduleSource.AUTO_TODAY)
                 .status(TaskStatus.TODAY)
                 .targetDate(nextDate)
                 .carryOverCount(3)
@@ -924,8 +917,7 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.data.carryOverCount").value(3))
                 .andExpect(jsonPath("$.data.staleCarryOver").value(true))
                 .andExpect(jsonPath("$.data.startAt").value("2026-05-22T00:00:00"))
-                .andExpect(jsonPath("$.data.endAt").value("2026-05-23T00:00:00"))
-                .andExpect(jsonPath("$.data.scheduleSource").value("AUTO_TODAY"));
+                .andExpect(jsonPath("$.data.endAt").value("2026-05-23T00:00:00"));
 
         then(taskService).should().carryOver(id, nextDate);
         then(taskService).shouldHaveNoMoreInteractions();

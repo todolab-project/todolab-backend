@@ -32,12 +32,15 @@
 3. 요청 DTO를 `plannedDate + 선택적 시간` 기준으로 변경한다.
    - 서버 내부에서 기존 `START_AT`, `END_AT` 표현으로 변환하는 호환 계층을 둔다.
 4. Calendar와 배치 조회를 새 계획 날짜 계약으로 전환한다.
-5. 데이터 마이그레이션 후 `TARGET_DATE` 또는 날짜가 포함된 `START_AT` 중 하나를 제거한다.
-6. 자동 생성 여부에 의존하는 코드가 없어지면 `SCHEDULE_SOURCE`를 제거한다.
+5. `TARGET_DATE`를 물리적 `plannedDate` 컬럼으로 유지하고 추후 컬럼명만 변경한다.
+6. `START_AT`, `END_AT`은 선택 시간과 여러 날 범위의 호환 투영으로 유지한다.
+7. 자동 생성 여부에 의존하는 코드가 없으므로 `SCHEDULE_SOURCE`를 제거한다.
 
 ## 결정
 
 - `plannedDate`가 사용자와 API가 사용하는 대표 날짜다.
 - `targetDate`는 마이그레이션 기간의 레거시 호환 필드다.
-- `scheduleSource`는 최종 모델의 필수 속성이 아니며 제거 후보로 유지한다.
-- 실제 DB 컬럼 제거는 요청 계약과 Calendar 조회 전환 후 별도 마이그레이션으로 진행한다.
+- `TARGET_DATE`는 최종적으로 `PLANNED_DATE`로 이름을 변경한다.
+- `START_AT`, `END_AT`은 시간 및 여러 날 범위를 위해 유지하되 날짜 불변식을 강제한다.
+- `scheduleSource`는 동작 분기에 필요하지 않아 제거한다.
+- `SCHEDULE_SOURCE` 컬럼은 `20260616_drop_schedule_source.sql`로 삭제한다.

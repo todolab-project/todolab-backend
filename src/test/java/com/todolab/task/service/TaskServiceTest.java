@@ -3,7 +3,6 @@ package com.todolab.task.service;
 import com.todolab.common.api.ErrorCode;
 import com.todolab.dday.domain.DdayGoal;
 import com.todolab.task.domain.DeferReason;
-import com.todolab.task.domain.ScheduleSource;
 import com.todolab.task.domain.Task;
 import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.domain.TaskType;
@@ -839,7 +838,6 @@ class TaskServiceTest {
                 .startAt(targetDate.atStartOfDay())
                 .endAt(targetDate.plusDays(1).atStartOfDay())
                 .allDay(true)
-                .scheduleSource(ScheduleSource.AUTO_TODAY)
                 .status(TaskStatus.TODAY)
                 .targetDate(targetDate)
                 .build();
@@ -857,7 +855,6 @@ class TaskServiceTest {
         assertThat(result.startAt()).isEqualTo(targetDate.atStartOfDay());
         assertThat(result.endAt()).isEqualTo(targetDate.plusDays(1).atStartOfDay());
         assertThat(result.allDay()).isTrue();
-        assertThat(result.scheduleSource()).isEqualTo(ScheduleSource.AUTO_TODAY);
 
         then(taskTxService).should(times(1)).moveToTodayTx(id, targetDate);
         then(taskRepository).shouldHaveNoInteractions();
@@ -882,7 +879,6 @@ class TaskServiceTest {
         // then
         assertThat(result.status()).isEqualTo(TaskStatus.INBOX);
         assertThat(result.startAt()).isNull();
-        assertThat(result.scheduleSource()).isNull();
 
         then(taskTxService).should(times(1)).moveToInboxTx(id);
         then(taskRepository).shouldHaveNoInteractions();
@@ -925,7 +921,6 @@ class TaskServiceTest {
                 .startAt(targetDate.atStartOfDay())
                 .endAt(targetDate.plusDays(1).atStartOfDay())
                 .allDay(true)
-                .scheduleSource(ScheduleSource.AUTO_TODAY)
                 .status(TaskStatus.TODAY)
                 .targetDate(targetDate)
                 .build();
@@ -943,7 +938,6 @@ class TaskServiceTest {
         assertThat(result.startAt()).isEqualTo(targetDate.atStartOfDay());
         assertThat(result.endAt()).isEqualTo(targetDate.plusDays(1).atStartOfDay());
         assertThat(result.allDay()).isTrue();
-        assertThat(result.scheduleSource()).isEqualTo(ScheduleSource.AUTO_TODAY);
 
         then(taskTxService).should(times(1)).reopenTodayTx(id, targetDate);
         then(taskRepository).shouldHaveNoInteractions();
@@ -960,7 +954,6 @@ class TaskServiceTest {
                 .startAt(nextDate.atStartOfDay())
                 .endAt(nextDate.plusDays(1).atStartOfDay())
                 .allDay(true)
-                .scheduleSource(ScheduleSource.AUTO_TODAY)
                 .status(TaskStatus.TODAY)
                 .targetDate(nextDate)
                 .carryOverCount(3)
@@ -980,7 +973,6 @@ class TaskServiceTest {
         assertThat(result.staleCarryOver()).isTrue();
         assertThat(result.startAt()).isEqualTo(nextDate.atStartOfDay());
         assertThat(result.endAt()).isEqualTo(nextDate.plusDays(1).atStartOfDay());
-        assertThat(result.scheduleSource()).isEqualTo(ScheduleSource.AUTO_TODAY);
 
         then(taskTxService).should(times(1)).carryOverTx(id, nextDate);
         then(taskRepository).shouldHaveNoInteractions();

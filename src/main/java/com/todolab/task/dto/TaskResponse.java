@@ -2,7 +2,6 @@ package com.todolab.task.dto;
 
 import com.todolab.task.domain.Task;
 import com.todolab.task.domain.DeferReason;
-import com.todolab.task.domain.ScheduleSource;
 import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.domain.TaskType;
 import lombok.Builder;
@@ -20,7 +19,6 @@ public record TaskResponse(
         LocalDateTime startAt,
         LocalDateTime endAt,
         boolean allDay,
-        ScheduleSource scheduleSource,
         boolean unscheduled,
         String category,
         TaskStatus status,
@@ -49,7 +47,7 @@ public record TaskResponse(
             String category,
             LocalDateTime createdAt
     ) {
-        this(id, TaskType.defaultType(), title, description, startAt, endAt, allDay, startAt == null && endAt == null ? null : ScheduleSource.USER, unscheduled, category, null, null, null, null, 0, false, null, null, null, null, null, null, createdAt, null);
+        this(id, TaskType.defaultType(), title, description, startAt, endAt, allDay, unscheduled, category, null, null, null, null, 0, false, null, null, null, null, null, null, createdAt, null);
     }
 
     public static TaskResponse from(Task t) {
@@ -62,7 +60,6 @@ public record TaskResponse(
                 .startAt(t.getStartAt())
                 .endAt(t.getEndAt())
                 .allDay(t.isAllDay())
-                .scheduleSource(t.getScheduleSource())
                 .unscheduled(t.isUnscheduled())
                 .category(t.getCategory())
                 .status(t.getStatus())

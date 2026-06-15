@@ -462,7 +462,7 @@ D-Day는 단순히 날짜만 세는 기능으로 끝내지 않는다.
 - `startTime/endTime`: 시간이 필요한 경우에만 사용하는 선택 값
 - 시간이 없으면 해당 날짜의 종일 할 일로 Calendar에 표시
 - `targetDate`와 `startAt/endAt`에 날짜를 중복 저장하지 않는 방향으로 마이그레이션
-- `scheduleSource`는 자동 동기화 분기에 사용하지 않고 제거 가능성을 검토
+- 자동 생성 출처 없이 날짜와 시간 값 자체로 일정 상태를 판단
 
 사용자 규칙:
 
@@ -486,7 +486,7 @@ D-Day는 단순히 날짜만 세는 기능으로 끝내지 않는다.
 4. [x] 조회 API와 Repository가 하나의 계획 날짜 규칙만 사용하도록 정리
 5. [x] 상세, Today, Calendar에서 `언제 할까요?` 하나만 노출
 6. [x] `plannedDate + 선택적 시간` 모델로 스키마 단순화 검토
-7. [ ] `scheduleSource`와 중복 날짜 필드 제거 여부 결정
+7. [x] `scheduleSource` 제거 및 중복 날짜 필드 유지 범위 결정
 
 검토 결과와 점진적 전환 순서는 `docs/TASK_DATE_MIGRATION.md`에 기록한다.
 

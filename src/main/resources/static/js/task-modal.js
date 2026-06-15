@@ -305,9 +305,7 @@ window.TaskModal = (() => {
     $scheduleFields?.classList.toggle('task-modal-date-grid-empty', !hasSchedule);
 
     $dateHint.textContent = hasSchedule
-      ? (currentTask?.scheduleSource === 'AUTO_TODAY'
-        ? '오늘 할 일로 이동하며 자동 설정된 날짜'
-        : ($allDay.checked ? '선택한 날짜에 종일로 표시해요' : '시간은 선택 사항이에요'))
+      ? ($allDay.checked ? '선택한 날짜에 종일로 표시해요' : '시간은 선택 사항이에요')
       : '날짜를 정하지 않으면 기록함에서 관리해요';
     syncWhenSummary(currentTask);
     $primary.textContent = basePrimaryText();
