@@ -54,7 +54,7 @@ class TaskViewServiceTest {
         );
         given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
                 .willReturn(tasks);
-        given(taskService.getTodayTasksBetween(LocalDate.of(2025, 11, 23), LocalDate.of(2025, 11, 29)))
+        given(taskService.getPlannedTasksBetween(LocalDate.of(2025, 11, 23), LocalDate.of(2025, 11, 29)))
                 .willReturn(List.of());
         given(taskService.getDoneTasksBetween(LocalDate.of(2025, 11, 23), LocalDate.of(2025, 11, 29)))
                 .willReturn(List.of());
@@ -89,7 +89,7 @@ class TaskViewServiceTest {
         then(taskService).should().getTasks(requestCaptor.capture());
         assertThat(requestCaptor.getValue().getType()).isEqualTo(TaskQueryType.WEEK);
         assertThat(requestCaptor.getValue().getDate()).isEqualTo("2025-11-25");
-        then(taskService).should().getTodayTasksBetween(LocalDate.of(2025, 11, 23), LocalDate.of(2025, 11, 29));
+        then(taskService).should().getPlannedTasksBetween(LocalDate.of(2025, 11, 23), LocalDate.of(2025, 11, 29));
         then(taskService).should().getDoneTasksBetween(LocalDate.of(2025, 11, 23), LocalDate.of(2025, 11, 29));
         then(ddayGoalService).should().findByDateRange(LocalDate.of(2025, 11, 23), LocalDate.of(2025, 11, 29));
         then(taskService).shouldHaveNoMoreInteractions();
@@ -102,7 +102,7 @@ class TaskViewServiceTest {
         // given
         given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
                 .willReturn(List.of());
-        given(taskService.getTodayTasksBetween(LocalDate.of(2025, 11, 30), LocalDate.of(2025, 12, 6)))
+        given(taskService.getPlannedTasksBetween(LocalDate.of(2025, 11, 30), LocalDate.of(2025, 12, 6)))
                 .willReturn(List.of());
         given(taskService.getDoneTasksBetween(LocalDate.of(2025, 11, 30), LocalDate.of(2025, 12, 6)))
                 .willReturn(List.of());
@@ -122,7 +122,7 @@ class TaskViewServiceTest {
         then(taskService).should().getTasks(requestCaptor.capture());
         assertThat(requestCaptor.getValue().getType()).isEqualTo(TaskQueryType.WEEK);
         assertThat(requestCaptor.getValue().getDate()).isEqualTo("2025-12-02");
-        then(taskService).should().getTodayTasksBetween(LocalDate.of(2025, 11, 30), LocalDate.of(2025, 12, 6));
+        then(taskService).should().getPlannedTasksBetween(LocalDate.of(2025, 11, 30), LocalDate.of(2025, 12, 6));
         then(taskService).should().getDoneTasksBetween(LocalDate.of(2025, 11, 30), LocalDate.of(2025, 12, 6));
         then(ddayGoalService).should().findByDateRange(LocalDate.of(2025, 11, 30), LocalDate.of(2025, 12, 6));
         then(taskService).shouldHaveNoMoreInteractions();
@@ -140,7 +140,7 @@ class TaskViewServiceTest {
         );
         given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
                 .willReturn(tasks);
-        given(taskService.getTodayTasksBetween(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 28)))
+        given(taskService.getPlannedTasksBetween(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 28)))
                 .willReturn(List.of());
         given(taskService.getDoneTasksBetween(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 28)))
                 .willReturn(List.of());
@@ -173,7 +173,7 @@ class TaskViewServiceTest {
         then(taskService).should().getTasks(requestCaptor.capture());
         assertThat(requestCaptor.getValue().getType()).isEqualTo(TaskQueryType.MONTH);
         assertThat(requestCaptor.getValue().getDate()).isEqualTo("2026-02");
-        then(taskService).should().getTodayTasksBetween(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 28));
+        then(taskService).should().getPlannedTasksBetween(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 28));
         then(taskService).should().getDoneTasksBetween(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 28));
         then(ddayGoalService).should().findByDateRange(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 28));
         then(taskService).shouldHaveNoMoreInteractions();
@@ -186,7 +186,7 @@ class TaskViewServiceTest {
         // given
         given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
                 .willReturn(List.of());
-        given(taskService.getTodayTasksBetween(LocalDate.of(2025, 12, 28), LocalDate.of(2026, 1, 31)))
+        given(taskService.getPlannedTasksBetween(LocalDate.of(2025, 12, 28), LocalDate.of(2026, 1, 31)))
                 .willReturn(List.of());
         given(taskService.getDoneTasksBetween(LocalDate.of(2025, 12, 28), LocalDate.of(2026, 1, 31)))
                 .willReturn(List.of());
@@ -208,7 +208,7 @@ class TaskViewServiceTest {
         then(taskService).should().getTasks(requestCaptor.capture());
         assertThat(requestCaptor.getValue().getType()).isEqualTo(TaskQueryType.MONTH);
         assertThat(requestCaptor.getValue().getDate()).isEqualTo("2026-01");
-        then(taskService).should().getTodayTasksBetween(LocalDate.of(2025, 12, 28), LocalDate.of(2026, 1, 31));
+        then(taskService).should().getPlannedTasksBetween(LocalDate.of(2025, 12, 28), LocalDate.of(2026, 1, 31));
         then(taskService).should().getDoneTasksBetween(LocalDate.of(2025, 12, 28), LocalDate.of(2026, 1, 31));
         then(ddayGoalService).should().findByDateRange(LocalDate.of(2025, 12, 28), LocalDate.of(2026, 1, 31));
         then(taskService).shouldHaveNoMoreInteractions();
@@ -221,7 +221,7 @@ class TaskViewServiceTest {
         // given
         given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
                 .willReturn(List.of());
-        given(taskService.getTodayTasksBetween(LocalDate.of(2026, 6, 7), LocalDate.of(2026, 6, 13)))
+        given(taskService.getPlannedTasksBetween(LocalDate.of(2026, 6, 7), LocalDate.of(2026, 6, 13)))
                 .willReturn(List.of());
         given(taskService.getDoneTasksBetween(LocalDate.of(2026, 6, 7), LocalDate.of(2026, 6, 13)))
                 .willReturn(List.of());
@@ -253,7 +253,7 @@ class TaskViewServiceTest {
         // given
         given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
                 .willReturn(List.of());
-        given(taskService.getTodayTasksBetween(LocalDate.of(2026, 5, 31), LocalDate.of(2026, 6, 6)))
+        given(taskService.getPlannedTasksBetween(LocalDate.of(2026, 5, 31), LocalDate.of(2026, 6, 6)))
                 .willReturn(List.of(todayTask(20L, "3회 이월 Today", LocalDate.of(2026, 6, 1))));
         given(taskService.getDoneTasksBetween(LocalDate.of(2026, 5, 31), LocalDate.of(2026, 6, 6)))
                 .willReturn(List.of());
@@ -278,7 +278,7 @@ class TaskViewServiceTest {
         // given
         given(taskService.getTasks(org.mockito.ArgumentMatchers.any(TaskQueryRequest.class)))
                 .willReturn(List.of());
-        given(taskService.getTodayTasksBetween(LocalDate.of(2026, 5, 31), LocalDate.of(2026, 7, 4)))
+        given(taskService.getPlannedTasksBetween(LocalDate.of(2026, 5, 31), LocalDate.of(2026, 7, 4)))
                 .willReturn(List.of(todayTask(21L, "3회 이월 Today", LocalDate.of(2026, 6, 1))));
         given(taskService.getDoneTasksBetween(LocalDate.of(2026, 5, 31), LocalDate.of(2026, 7, 4)))
                 .willReturn(List.of(completedTask(22L, "완료한 일", LocalDateTime.of(2026, 6, 1, 18, 30))));

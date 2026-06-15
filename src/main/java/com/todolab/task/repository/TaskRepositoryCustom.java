@@ -17,11 +17,7 @@ public interface TaskRepositoryCustom {
 
     List<Task> findByStatus(TaskStatus status);
 
-    List<Task> findTodayTasks(LocalDate targetDate);
-
-    List<Task> findTodayTasksBetween(LocalDate startDate, LocalDate endDate);
-
-    List<Task> findOverdueTasks(LocalDate beforeDate);
+    List<Task> findPlannedTasks(LocalDate fromInclusive, LocalDate toExclusive);
 
     List<Task> findDoneTasks(LocalDate completedDate);
 

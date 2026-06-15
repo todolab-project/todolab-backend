@@ -71,19 +71,19 @@ public class TaskService {
     }
 
     public List<TaskResponse> getTodayTasks(LocalDate targetDate) {
-        return taskRepository.findTodayTasks(targetDate).stream()
+        return taskRepository.findPlannedTasks(targetDate, targetDate.plusDays(1)).stream()
                 .map(TaskResponse::from)
                 .toList();
     }
 
-    public List<TaskResponse> getTodayTasksBetween(LocalDate startDate, LocalDate endDate) {
-        return taskRepository.findTodayTasksBetween(startDate, endDate).stream()
+    public List<TaskResponse> getPlannedTasksBetween(LocalDate startDate, LocalDate endDate) {
+        return taskRepository.findPlannedTasks(startDate, endDate.plusDays(1)).stream()
                 .map(TaskResponse::from)
                 .toList();
     }
 
     public List<TaskResponse> getOverdueTasks(LocalDate beforeDate) {
-        return taskRepository.findOverdueTasks(beforeDate).stream()
+        return taskRepository.findPlannedTasks(null, beforeDate).stream()
                 .map(TaskResponse::from)
                 .toList();
     }

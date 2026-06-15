@@ -77,7 +77,7 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
     }
 
     @Override
-    public List<Task> findTodayTasks(LocalDate targetDate) {
+    public List<Task> findPlannedTasks(LocalDate fromInclusive, LocalDate toExclusive) {
         QTask t = QTask.task;
 
         return queryFactory
@@ -85,40 +85,19 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
                 .leftJoin(t.ddayGoal).fetchJoin()
                 .where(
                         t.status.eq(TaskStatus.TODAY),
-                        t.targetDate.eq(targetDate)
-                )
-                .orderBy(t.createdAt.asc(), t.id.asc())
-                .fetch();
-    }
-
-    @Override
-    public List<Task> findTodayTasksBetween(LocalDate startDate, LocalDate endDate) {
-        QTask t = QTask.task;
-
-        return queryFactory
-                .selectFrom(t)
-                .leftJoin(t.ddayGoal).fetchJoin()
-                .where(
-                        t.status.eq(TaskStatus.TODAY),
-                        t.targetDate.between(startDate, endDate)
+                        plannedDateFrom(t, fromInclusive),
+                        plannedDateBefore(t, toExclusive)
                 )
                 .orderBy(t.targetDate.asc(), t.createdAt.asc(), t.id.asc())
                 .fetch();
     }
 
-    @Override
-    public List<Task> findOverdueTasks(LocalDate beforeDate) {
-        QTask t = QTask.task;
+    private BooleanExpression plannedDateFrom(QTask task, LocalDate fromInclusive) {
+        return fromInclusive == null ? null : task.targetDate.goe(fromInclusive);
+    }
 
-        return queryFactory
-                .selectFrom(t)
-                .leftJoin(t.ddayGoal).fetchJoin()
-                .where(
-                        t.status.eq(TaskStatus.TODAY),
-                        t.targetDate.lt(beforeDate)
-                )
-                .orderBy(t.targetDate.asc(), t.createdAt.asc(), t.id.asc())
-                .fetch();
+    private BooleanExpression plannedDateBefore(QTask task, LocalDate toExclusive) {
+        return toExclusive == null ? null : task.targetDate.lt(toExclusive);
     }
 
     @Override

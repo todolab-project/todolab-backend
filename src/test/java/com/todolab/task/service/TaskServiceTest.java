@@ -723,7 +723,7 @@ class TaskServiceTest {
                 .targetDate(targetDate)
                 .build();
 
-        given(taskRepository.findTodayTasks(targetDate))
+        given(taskRepository.findPlannedTasks(targetDate, targetDate.plusDays(1)))
                 .willReturn(List.of(today));
 
         // when
@@ -735,7 +735,36 @@ class TaskServiceTest {
         assertThat(result.getFirst().status()).isEqualTo(TaskStatus.TODAY);
         assertThat(result.getFirst().targetDate()).isEqualTo(targetDate);
 
-        then(taskRepository).should(times(1)).findTodayTasks(targetDate);
+        then(taskRepository).should(times(1))
+                .findPlannedTasks(targetDate, targetDate.plusDays(1));
+        then(taskRepository).shouldHaveNoMoreInteractions();
+        then(taskTxService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("계획 날짜 범위 조회는 종료일을 포함하는 Repository 반개방 범위로 변환한다")
+    void getPlannedTasksBetween_convertsInclusiveEndDate() {
+        // given
+        LocalDate startDate = LocalDate.of(2026, 5, 20);
+        LocalDate endDate = LocalDate.of(2026, 5, 26);
+        Task planned = Task.builder()
+                .title("planned")
+                .status(TaskStatus.TODAY)
+                .targetDate(endDate)
+                .build();
+
+        given(taskRepository.findPlannedTasks(startDate, endDate.plusDays(1)))
+                .willReturn(List.of(planned));
+
+        // when
+        List<TaskResponse> result = taskService.getPlannedTasksBetween(startDate, endDate);
+
+        // then
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().targetDate()).isEqualTo(endDate);
+
+        then(taskRepository).should(times(1))
+                .findPlannedTasks(startDate, endDate.plusDays(1));
         then(taskRepository).shouldHaveNoMoreInteractions();
         then(taskTxService).shouldHaveNoInteractions();
     }
@@ -752,7 +781,7 @@ class TaskServiceTest {
                 .targetDate(targetDate)
                 .build();
 
-        given(taskRepository.findOverdueTasks(referenceDate))
+        given(taskRepository.findPlannedTasks(null, referenceDate))
                 .willReturn(List.of(overdue));
 
         // when
@@ -764,7 +793,7 @@ class TaskServiceTest {
         assertThat(result.getFirst().status()).isEqualTo(TaskStatus.TODAY);
         assertThat(result.getFirst().targetDate()).isEqualTo(targetDate);
 
-        then(taskRepository).should(times(1)).findOverdueTasks(referenceDate);
+        then(taskRepository).should(times(1)).findPlannedTasks(null, referenceDate);
         then(taskRepository).shouldHaveNoMoreInteractions();
         then(taskTxService).shouldHaveNoInteractions();
     }

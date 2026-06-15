@@ -45,7 +45,7 @@ public class TaskViewService {
         List<TaskResponse> taskList = taskService.getTasks(
                 new TaskQueryRequest(TaskQueryType.WEEK, targetDate.toString())
         );
-        List<TaskResponse> todayTaskList = taskService.getTodayTasksBetween(weekStart, weekEnd);
+        List<TaskResponse> todayTaskList = taskService.getPlannedTasksBetween(weekStart, weekEnd);
         List<TaskResponse> doneTaskList = taskService.getDoneTasksBetween(weekStart, weekEnd);
         List<DdayGoalResponse> ddayGoals = ddayGoalService.findByDateRange(weekStart, weekEnd);
 
@@ -127,7 +127,7 @@ public class TaskViewService {
         List<TaskResponse> taskList = taskService.getTasks(
                 new TaskQueryRequest(TaskQueryType.MONTH, ymKey)
         );
-        List<TaskResponse> todayTaskList = taskService.getTodayTasksBetween(gridStart, gridEnd);
+        List<TaskResponse> todayTaskList = taskService.getPlannedTasksBetween(gridStart, gridEnd);
         List<TaskResponse> doneTaskList = taskService.getDoneTasksBetween(gridStart, gridEnd);
         List<DdayGoalResponse> ddayGoals = ddayGoalService.findByDateRange(gridStart, gridEnd);
 

@@ -483,7 +483,7 @@ D-Day는 단순히 날짜만 세는 기능으로 끝내지 않는다.
 1. [x] `targetDate`와 Calendar 시작일이 항상 같도록 상태 전이 불변식 적용
 2. [x] Today 이동, 이월, 완료 취소 시 시간과 기간을 유지하며 날짜 전체 이동
 3. [x] 기존 불일치 데이터 탐지 및 `targetDate` 기준 보정 마이그레이션
-4. [ ] 조회 API와 Repository가 하나의 계획 날짜 규칙만 사용하도록 정리
+4. [x] 조회 API와 Repository가 하나의 계획 날짜 규칙만 사용하도록 정리
 5. [ ] 상세, Today, Calendar에서 `언제 할까요?` 하나만 노출
 6. [ ] `plannedDate + 선택적 시간` 모델로 스키마 단순화 검토
 7. [ ] `scheduleSource`와 중복 날짜 필드 제거 여부 결정

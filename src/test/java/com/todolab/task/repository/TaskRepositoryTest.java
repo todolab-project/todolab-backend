@@ -341,8 +341,8 @@ class TaskRepositoryTest extends RepositoryTestSupport {
     }
 
     @Test
-    @DisplayName("findTodayTasks()는 지정한 targetDate의 Today Task만 조회한다")
-    void findTodayTasks_filters_targetDate() {
+    @DisplayName("findPlannedTasks()는 반개방 계획 날짜 범위의 Today Task만 조회한다")
+    void findPlannedTasks_filtersHalfOpenDateRange() {
         // given
         LocalDate targetDate = LocalDate.of(2026, 5, 20);
 
@@ -367,7 +367,7 @@ class TaskRepositoryTest extends RepositoryTestSupport {
         flushAndClear();
 
         // when
-        List<Task> result = taskRepository.findTodayTasks(targetDate);
+        List<Task> result = taskRepository.findPlannedTasks(targetDate, targetDate.plusDays(1));
 
         // then
         then(result).extracting("title")
@@ -375,8 +375,8 @@ class TaskRepositoryTest extends RepositoryTestSupport {
     }
 
     @Test
-    @DisplayName("findOverdueTasks()는 기준일 이전의 미완료 Today Task만 오래된 실행일순으로 조회한다")
-    void findOverdueTasks_filters_beforeDate() {
+    @DisplayName("findPlannedTasks()는 하한 없이 기준일 이전의 Today Task를 오래된 계획일순으로 조회한다")
+    void findPlannedTasks_filtersBeforeDateWithoutLowerBound() {
         // given
         LocalDate referenceDate = LocalDate.of(2026, 5, 20);
 
@@ -420,7 +420,7 @@ class TaskRepositoryTest extends RepositoryTestSupport {
         flushAndClear();
 
         // when
-        List<Task> result = taskRepository.findOverdueTasks(referenceDate);
+        List<Task> result = taskRepository.findPlannedTasks(null, referenceDate);
 
         // then
         then(result).extracting("title")
