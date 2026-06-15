@@ -14,10 +14,11 @@ window.TaskModal = (() => {
   const $unscheduled = document.getElementById('tmUnscheduled');
   const $allDay = document.getElementById('tmAllDay');
   const $allDayLabel = document.getElementById('tmAllDayLabel');
-  const $allDayBadge = document.getElementById('tmAllDayBadge');
   const $dateHint = document.getElementById('tmDateHint');
   const $startAt = document.getElementById('tmStartAt');
   const $endAt = document.getElementById('tmEndAt');
+  const $endField = document.getElementById('tmEndField');
+  const $multiDay = document.getElementById('tmMultiDayBtn');
   const $startLabel = document.getElementById('tmStartLabel');
   const $endLabel = document.getElementById('tmEndLabel');
   const $scheduleFields = document.getElementById('tmScheduleFields');
@@ -25,7 +26,6 @@ window.TaskModal = (() => {
   const $whenValue = document.getElementById('tmWhenValue');
   const $whenStatus = document.getElementById('tmWhenStatus');
   const $whenMeta = document.getElementById('tmWhenMeta');
-  const $carryOverStatus = document.getElementById('tmCarryOverStatus');
 
   const $meta = document.getElementById('tmMeta');
   const $createdAt = document.getElementById('tmCreatedAt');
@@ -38,6 +38,7 @@ window.TaskModal = (() => {
   let currentId = null;
   let currentType = null;
   let currentTask = null;
+  let multiDay = false;
 
   function basePrimaryText() {
     if (mode === 'detail') return '수정';
@@ -98,6 +99,15 @@ window.TaskModal = (() => {
     return `${year}-${month}-${day}`;
   }
 
+  function previousDate(date) {
+    const dt = new Date(`${date}T00:00:00`);
+    dt.setDate(dt.getDate() - 1);
+    const year = dt.getFullYear();
+    const month = String(dt.getMonth() + 1).padStart(2, '0');
+    const day = String(dt.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   function todayDate() {
     const dt = new Date();
     const year = dt.getFullYear();
@@ -122,6 +132,12 @@ window.TaskModal = (() => {
 
   function dateTimeAtStartOfDay(date) {
     return date ? `${date}T00:00` : null;
+  }
+
+  function setScheduleInputTypes(isAllDay) {
+    const type = isAllDay ? 'date' : 'datetime-local';
+    $startAt.type = type;
+    $endAt.type = type;
   }
 
   function executionDatePresentation(targetDate) {
@@ -157,6 +173,23 @@ window.TaskModal = (() => {
     return endTime ? `${startTime}–${endTime}` : startTime;
   }
 
+  function formatScheduleDate(task, fallbackDate) {
+    const startDate = datePart(task?.startAt) || fallbackDate;
+    if (!task?.allDay || !startDate) {
+      return executionDatePresentation(fallbackDate).value;
+    }
+
+    const exclusiveEndDate = datePart(task.endAt);
+    const lastDate = exclusiveEndDate ? previousDate(exclusiveEndDate) : startDate;
+    const startLabel = window.TaskUI?.formatDateKorean?.(startDate)
+      || executionDatePresentation(startDate).value;
+    if (!lastDate || lastDate <= startDate) return startLabel;
+
+    const lastLabel = window.TaskUI?.formatDateKorean?.(lastDate)
+      || executionDatePresentation(lastDate).value;
+    return `${startLabel} – ${lastLabel}`;
+  }
+
   function syncWhenSummary(task = null) {
     const targetDate = task?.status === 'TODAY' ? String(task.targetDate || '').trim() : '';
     const scheduleDate = datePart(task?.startAt);
@@ -168,23 +201,15 @@ window.TaskModal = (() => {
     $allDayLabel?.classList.toggle('hidden', isDetail);
     if (!isDetail) return;
 
-    const carryOverCount = Number(task?.carryOverCount || 0);
-    if ($carryOverStatus) {
-      const showCarryOver = Number.isFinite(carryOverCount) && carryOverCount > 0;
-      $carryOverStatus.textContent = showCarryOver ? `${carryOverCount}회 미룸` : '';
-      $carryOverStatus.classList.toggle('hidden', !showCarryOver);
-      $carryOverStatus.classList.toggle('is-stale', carryOverCount >= 3);
-    }
-
     if (!displayDate) {
       if ($whenValue) $whenValue.textContent = '날짜 없음';
       if ($whenStatus) $whenStatus.classList.add('hidden');
-      if ($whenMeta) $whenMeta.textContent = '기록함에서 관리하는 할 일이에요';
+      if ($whenMeta) $whenMeta.textContent = '날짜 정하기';
       return;
     }
 
     const presentation = executionDatePresentation(displayDate);
-    if ($whenValue) $whenValue.textContent = presentation.value;
+    if ($whenValue) $whenValue.textContent = formatScheduleDate(task, displayDate);
     if ($whenStatus) {
       $whenStatus.textContent = presentation.status;
       $whenStatus.classList.remove('hidden');
@@ -193,13 +218,7 @@ window.TaskModal = (() => {
 
     const timeText = formatScheduleTime(task);
     if ($whenMeta) {
-      if (task?.scheduleSource === 'AUTO_TODAY') {
-        $whenMeta.textContent = '종일 · 오늘 할 일로 이동하며 자동 설정';
-      } else if (timeText) {
-        $whenMeta.textContent = timeText;
-      } else {
-        $whenMeta.textContent = '할 일을 실행하기로 정한 날짜예요';
-      }
+      $whenMeta.textContent = timeText || '시간 없음';
     }
   }
 
@@ -210,17 +229,25 @@ window.TaskModal = (() => {
     const startDate = datePart(startValue);
     const endDate = datePart(endValue);
 
-    $startAt.type = isAllDay ? 'date' : 'datetime-local';
-    $endAt.type = isAllDay ? 'date' : 'datetime-local';
+    setScheduleInputTypes(isAllDay);
 
-    $startLabel.textContent = isAllDay ? '시작일' : '시작';
-    $endLabel.textContent = isAllDay ? '종료일' : '종료';
+    $startLabel.textContent = isAllDay ? '날짜' : '시작';
+    $endLabel.textContent = isAllDay ? (multiDay ? '마지막 날' : '기간') : '종료';
     $scheduleFields?.classList.toggle('is-all-day', isAllDay);
+    $scheduleFields?.classList.toggle('is-single-day', isAllDay && !multiDay);
     $allDayLabel?.classList.toggle('is-active', isAllDay);
+    $multiDay?.classList.toggle('hidden', !isAllDay);
+    if ($multiDay) {
+      $multiDay.textContent = multiDay ? '하루 일정으로 변경' : '여러 날로 변경';
+      $multiDay.setAttribute(
+        'aria-label',
+        multiDay ? '여러 날 일정을 하루 일정으로 변경' : '하루 일정을 여러 날 일정으로 변경'
+      );
+    }
 
     if (isAllDay) {
       $startAt.value = startDate;
-      $endAt.value = endDate;
+      $endAt.value = multiDay ? (endDate || startDate) : startDate;
       return;
     }
 
@@ -234,15 +261,16 @@ window.TaskModal = (() => {
     setScheduleInputMode();
 
     const startDate = datePart($startAt.value) || baseScheduleDate();
-    const endDate = datePart($endAt.value) || nextDate(startDate);
-    const normalizedEndDate = endDate <= startDate ? nextDate(startDate) : endDate;
+    const requestedLastDate = multiDay ? (datePart($endAt.value) || startDate) : startDate;
+    const lastDate = requestedLastDate < startDate ? startDate : requestedLastDate;
+    const exclusiveEndDate = nextDate(lastDate);
 
     $startAt.value = startDate;
-    $endAt.value = normalizedEndDate;
+    $endAt.value = lastDate;
 
     return {
       startAt: dateTimeAtStartOfDay(startDate),
-      endAt: dateTimeAtStartOfDay(normalizedEndDate),
+      endAt: dateTimeAtStartOfDay(exclusiveEndDate),
     };
   }
 
@@ -266,7 +294,6 @@ window.TaskModal = (() => {
     const hasSchedule = !!($startAt.value || $endAt.value);
     $unscheduled.checked = !hasSchedule;
     $allDay.disabled = mode === 'detail';
-    $allDayBadge?.classList.toggle('hidden', !(mode === 'detail' && hasSchedule && $allDay.checked));
     $dateHint?.classList.toggle('hidden', mode === 'detail');
     if (!hasSchedule && !$allDay.checked) {
       $allDay.checked = false;
@@ -286,13 +313,43 @@ window.TaskModal = (() => {
   $endAt.addEventListener('input', syncDateDisabled);
   $startAt.addEventListener('change', () => syncDateDisabled({ normalize: true }));
   $endAt.addEventListener('change', () => syncDateDisabled({ normalize: true }));
-  $allDay.addEventListener('change', () => syncDateDisabled({ normalize: true }));
+  $allDay.addEventListener('change', () => {
+    if ($allDay.checked) {
+      const startDate = datePart($startAt.value) || baseScheduleDate();
+      const endDate = datePart($endAt.value);
+      multiDay = Boolean(endDate && endDate > startDate);
+      setScheduleInputTypes(true);
+      $startAt.value = startDate;
+      $endAt.value = multiDay ? endDate : startDate;
+    } else {
+      const startDate = datePart($startAt.value) || baseScheduleDate();
+      setScheduleInputTypes(false);
+      $startAt.value = dateTimeAtStartOfDay(startDate) || '';
+      $endAt.value = '';
+      multiDay = false;
+    }
+    syncDateDisabled();
+  });
+  $multiDay?.addEventListener('click', () => {
+    multiDay = !multiDay;
+    if (multiDay) {
+      $endAt.value = datePart($endAt.value) || datePart($startAt.value) || baseScheduleDate();
+    }
+    syncDateDisabled();
+    (multiDay ? $endAt : $startAt).focus();
+  });
+  $whenSummary?.addEventListener('click', () => {
+    if (mode !== 'detail' || !currentId) return;
+    setModeEdit(currentId);
+    $startAt.focus();
+  });
 
   function reset() {
     mode = 'create';
     currentId = null;
     currentType = null;
     currentTask = null;
+    multiDay = false;
 
     $title.value = '';
     $desc.value = '';
@@ -323,11 +380,33 @@ window.TaskModal = (() => {
     $category.value = task.category ?? '';
 
     $unscheduled.checked = !(task.startAt || task.endAt);
-    $allDay.checked = !!task.allDay;
+    const targetDate = datePart(task.targetDate);
+    const inferredAllDay = Boolean(task.allDay || (!task.startAt && targetDate));
+    const inferredStartAt = task.startAt || (inferredAllDay ? dateTimeAtStartOfDay(targetDate) : null);
+    const inferredEndAt = task.endAt
+      || (inferredAllDay && targetDate ? dateTimeAtStartOfDay(nextDate(targetDate)) : null);
+    currentTask = {
+      ...task,
+      allDay: inferredAllDay,
+      startAt: inferredStartAt,
+      endAt: inferredEndAt
+    };
+    $allDay.checked = inferredAllDay;
+    setScheduleInputTypes(inferredAllDay);
 
-    $startAt.value = toInputLocal(task.startAt);
-    $endAt.value = toInputLocal(task.endAt);
-    syncWhenSummary(task);
+    $startAt.value = inferredAllDay ? datePart(inferredStartAt) : toInputLocal(inferredStartAt);
+    $endAt.value = inferredAllDay ? datePart(inferredEndAt) : toInputLocal(inferredEndAt);
+    if (inferredAllDay) {
+      const startDate = datePart(inferredStartAt) || targetDate;
+      const exclusiveEndDate = datePart(inferredEndAt);
+      const lastDate = exclusiveEndDate ? previousDate(exclusiveEndDate) : startDate;
+      multiDay = Boolean(startDate && lastDate && lastDate > startDate);
+      $startAt.value = startDate;
+      $endAt.value = lastDate || startDate;
+    } else {
+      multiDay = false;
+    }
+    syncWhenSummary(currentTask);
 
     $createdAt.textContent = fmtIso(task.createdAt);
     $updatedAt.textContent = fmtIso(task.updatedAt || task.timestamp);
@@ -375,8 +454,16 @@ window.TaskModal = (() => {
     if (preset.category != null) $category.value = preset.category;
     if (preset.unscheduled != null) $unscheduled.checked = !!preset.unscheduled;
     if (preset.allDay != null) $allDay.checked = !!preset.allDay;
-    if (preset.startAt != null) $startAt.value = preset.startAt;
-    if (preset.endAt != null) $endAt.value = preset.endAt;
+    setScheduleInputTypes($allDay.checked);
+    if (preset.startAt != null) {
+      $startAt.value = $allDay.checked ? datePart(preset.startAt) : toInputLocal(preset.startAt);
+    }
+    if (preset.endAt != null) {
+      const presetEndDate = datePart(preset.endAt);
+      $endAt.value = $allDay.checked && presetEndDate
+        ? previousDate(presetEndDate)
+        : toInputLocal(preset.endAt);
+    }
 
     syncDateDisabled();
   }

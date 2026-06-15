@@ -1036,7 +1036,7 @@ select:focus{
 .task-modal-body{
   display:flex;
   flex-direction:column;
-  gap:12px;
+  gap:16px;
   max-height:calc(100vh - 170px);
 }
 
@@ -1047,11 +1047,16 @@ select:focus{
 }
 
 .task-modal-label{
-  margin-bottom:8px;
+  margin-bottom:0;
   font-size:14px;
   line-height:1.25;
   font-weight:900;
   color:var(--app-text);
+}
+
+.task-modal-required{
+  margin-left:2px;
+  color:#ef4444;
 }
 
 .task-modal-sub-label{
@@ -1073,52 +1078,50 @@ select:focus{
 .task-modal-input{
   background:#fff;
   color:var(--app-text);
+  border-color:var(--app-border-soft);
+  transition:border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+
+.task-modal-input:focus{
+  border-color:#93c5fd;
+  box-shadow:0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .task-modal-input[readonly],
 .task-modal-input:disabled{
   background:#f8fafc;
-  color:#64748b;
+  color:#334155;
 }
 
 .task-modal-when-summary{
-  display:flex;
+  display:grid;
+  grid-template-columns:minmax(0, 1fr) auto auto;
   align-items:center;
-  gap:12px;
+  gap:10px;
+  width:100%;
   min-width:0;
+  min-height:58px;
   border:1px solid var(--app-border-soft);
   border-radius:var(--app-radius);
   background:#f8fafc;
-  padding:12px 14px;
+  padding:10px 13px;
+  text-align:left;
+  transition:border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
 }
 
 .task-modal-when-summary.hidden{
   display:none;
 }
 
-.task-modal-when-icon{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:38px;
-  height:38px;
-  flex:0 0 auto;
-  border:1px solid var(--app-border);
-  border-radius:var(--app-radius);
-  background:#fff;
-  color:#475569;
+.task-modal-when-summary:hover{
+  border-color:#bfdbfe;
+  background:#f7fbff;
+  box-shadow:0 3px 10px rgba(15, 23, 42, 0.04);
 }
 
-.task-modal-when-icon svg{
-  width:20px;
-  height:20px;
-}
-
-.task-modal-when-heading{
-  display:flex;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:7px;
+.task-modal-when-summary:focus-visible{
+  outline:2px solid #93c5fd;
+  outline-offset:2px;
 }
 
 .task-modal-execution-status{
@@ -1139,24 +1142,6 @@ select:focus{
   color:#92400e;
 }
 
-.task-modal-carry-status{
-  display:inline-flex;
-  align-items:center;
-  min-height:20px;
-  border-radius:999px;
-  background:#f1f5f9;
-  padding:0 7px;
-  color:#64748b;
-  font-size:10px;
-  line-height:1;
-  font-weight:900;
-}
-
-.task-modal-carry-status.is-stale{
-  background:#fef3c7;
-  color:#92400e;
-}
-
 .task-modal-when-value{
   font-size:15px;
   line-height:1.25;
@@ -1170,6 +1155,12 @@ select:focus{
   line-height:1.35;
   font-weight:700;
   color:#64748b;
+}
+
+.task-modal-when-chevron{
+  width:18px;
+  height:18px;
+  color:#94a3b8;
 }
 
 textarea.task-modal-input{
@@ -1189,10 +1180,10 @@ textarea.task-modal-input{
 }
 
 .task-modal-when{
-  border:1px solid var(--app-border-soft);
-  border-radius:var(--app-radius);
-  background:#fff;
-  padding:14px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  padding:0;
 }
 
 .task-modal-section-header{
@@ -1200,7 +1191,7 @@ textarea.task-modal-input{
   align-items:center;
   justify-content:space-between;
   gap:12px;
-  margin-bottom:10px;
+  margin-bottom:8px;
 }
 
 .task-modal-section-title-row{
@@ -1242,11 +1233,60 @@ textarea.task-modal-input{
 }
 
 .task-modal-date-field{
+  position:relative;
   min-width:0;
 }
 
 .task-modal-date-field .task-modal-sub-label{
   margin-bottom:6px;
+}
+
+.task-modal-multi-day{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  min-height:46px;
+  padding:0 13px;
+  border:1px solid var(--app-border-soft);
+  border-radius:var(--app-radius);
+  background:#f8fafc;
+  color:#64748b;
+  font-size:12px;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.task-modal-multi-day.hidden{
+  display:none;
+}
+
+.task-modal-multi-day:hover{
+  border-color:#bfdbfe;
+  background:#f8fbff;
+  color:#2563eb;
+}
+
+.task-modal-date-grid.is-single-day #tmEndAt{
+  display:none;
+}
+
+.task-modal-date-grid.is-all-day:not(.is-single-day) .task-modal-multi-day{
+  position:absolute;
+  top:-3px;
+  right:0;
+  width:auto;
+  min-height:24px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#64748b;
+  font-size:11px;
+}
+
+.task-modal-date-grid.is-all-day:not(.is-single-day) .task-modal-multi-day:hover{
+  background:transparent;
+  color:#2563eb;
 }
 
 .task-modal-schedule-state{

@@ -96,7 +96,7 @@
     if (!Number.isFinite(n) || n <= 0) return null;
     if (task?.staleCarryOver || n >= 3) {
       const reason = (task?.deferReasonLabel || '').trim();
-      return reason ? `${n}회 이월 · ${reason}` : `${n}회 이월 · 다시 정리 필요`;
+      return reason ? `${n}회 이월 · ${reason}` : `${n}회 이월`;
     }
     return `${n}회 이월`;
   };

@@ -30,8 +30,17 @@
                 <div id="taskModalBody" class="task-modal-body px-5 pb-5 pt-4 overflow-y-auto">
 
                     <div class="task-modal-field">
-                        <div class="task-modal-label">
-                            제목<span class="text-red-500">*</span>
+                        <div class="task-modal-icon-label">
+                            <svg class="task-modal-section-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <rect x="5" y="5" width="14" height="14" rx="3"
+                                      stroke="currentColor" stroke-width="1.8"/>
+                                <path d="m8.5 12 2.2 2.2 4.8-5"
+                                      stroke="currentColor" stroke-width="1.8"
+                                      stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <div class="task-modal-label mb-0">
+                                제목<span class="task-modal-required" aria-hidden="true">*</span>
+                            </div>
                         </div>
                         <input id="tmTitle" type="text"
                                class="task-modal-input w-full border rounded-lg px-3 py-3 text-[16px] font-semibold"
@@ -49,17 +58,7 @@
                                     <rect x="5" y="5.5" width="14" height="14" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
                                     <path d="M8 3.5v4M16 3.5v4M5 10h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                 </svg>
-                                <div id="tmDateTitle" class="task-modal-label mb-0">언제 할까요?</div>
-                                <span id="tmAllDayBadge"
-                                      class="task-all-day-badge hidden">
-                                    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                                        <rect x="2.5" y="3.5" width="11" height="10" rx="2"
-                                              stroke="currentColor" stroke-width="1.3"/>
-                                        <path d="M5 2.5v2M11 2.5v2M2.5 6.5h11"
-                                              stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-                                    </svg>
-                                    <span>종일</span>
-                                </span>
+                                <div id="tmDateTitle" class="task-modal-label mb-0">일정</div>
                                 <div id="tmDateHint" class="task-modal-hint">
                                     날짜를 정하지 않으면 기록함에서 관리해요
                                 </div>
@@ -71,28 +70,24 @@
                             </label>
                         </div>
 
-                        <div id="tmWhenSummary" class="task-modal-when-summary hidden">
-                            <div class="task-modal-when-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path d="M7 4v3M17 4v3M5 9h14"
-                                          stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                                    <rect x="5" y="6" width="14" height="14" rx="3"
-                                          stroke="currentColor" stroke-width="1.8"/>
-                                </svg>
-                            </div>
+                        <button id="tmWhenSummary" type="button"
+                                class="task-modal-when-summary hidden"
+                                aria-label="날짜와 시간 수정">
                             <div class="min-w-0 flex-1">
-                                <div class="task-modal-when-heading">
-                                    <div id="tmWhenValue" class="task-modal-when-value">날짜 없음</div>
-                                    <span id="tmWhenStatus"
-                                          class="task-modal-execution-status hidden"></span>
-                                    <span id="tmCarryOverStatus"
-                                          class="task-modal-carry-status hidden"></span>
-                                </div>
+                                <div id="tmWhenValue" class="task-modal-when-value">날짜 없음</div>
                                 <div id="tmWhenMeta" class="task-modal-when-meta">
-                                    기록함에서 관리하는 할 일이에요
+                                    날짜 정하기
                                 </div>
                             </div>
-                        </div>
+                            <span id="tmWhenStatus"
+                                  class="task-modal-execution-status hidden"></span>
+                            <svg class="task-modal-when-chevron" viewBox="0 0 20 20"
+                                 fill="none" aria-hidden="true">
+                                <path d="m7.5 5 5 5-5 5"
+                                      stroke="currentColor" stroke-width="1.7"
+                                      stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
 
                         <div id="tmScheduleFields" class="task-modal-date-grid">
                             <div class="task-modal-date-field">
@@ -101,11 +96,15 @@
                                        aria-describedby="tmDateHint"
                                        class="task-modal-input w-full border rounded-lg px-3 py-3 text-[15px]" />
                             </div>
-                            <div class="task-modal-date-field">
+                            <div id="tmEndField" class="task-modal-date-field">
                                 <div id="tmEndLabel" class="task-modal-sub-label">종료</div>
                                 <input id="tmEndAt" type="datetime-local"
                                        aria-describedby="tmDateHint"
                                        class="task-modal-input w-full border rounded-lg px-3 py-3 text-[15px]" />
+                                <button id="tmMultiDayBtn" type="button"
+                                        class="task-modal-multi-day hidden">
+                                    여러 날로 변경
+                                </button>
                             </div>
                         </div>
 
