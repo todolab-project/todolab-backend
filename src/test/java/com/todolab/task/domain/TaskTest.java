@@ -639,4 +639,40 @@ class TaskTest {
         // then
         assertThat(task.getDeferReason()).isNull();
     }
+
+    @Test
+    @DisplayName("계획 날짜는 targetDate를 우선 사용한다")
+    void getPlannedDate_prefersTargetDate() {
+        LocalDate targetDate = LocalDate.of(2026, 6, 15);
+        Task task = Task.builder()
+                .title("task")
+                .startAt(LocalDateTime.of(2026, 6, 14, 10, 0))
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .build();
+
+        assertThat(task.getPlannedDate()).isEqualTo(targetDate);
+    }
+
+    @Test
+    @DisplayName("targetDate가 없으면 일정 시작일을 계획 날짜로 사용한다")
+    void getPlannedDate_fallsBackToStartDate() {
+        LocalDate startDate = LocalDate.of(2026, 6, 15);
+        Task task = Task.builder()
+                .title("task")
+                .startAt(startDate.atTime(10, 0))
+                .build();
+
+        assertThat(task.getPlannedDate()).isEqualTo(startDate);
+    }
+
+    @Test
+    @DisplayName("기록함 Task는 계획 날짜가 없다")
+    void getPlannedDate_isNullForInboxTask() {
+        Task task = Task.builder()
+                .title("task")
+                .build();
+
+        assertThat(task.getPlannedDate()).isNull();
+    }
 }

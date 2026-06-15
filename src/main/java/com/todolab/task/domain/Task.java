@@ -134,6 +134,13 @@ public class Task {
         return carryOverCount >= STALE_CARRY_OVER_THRESHOLD;
     }
 
+    public LocalDate getPlannedDate() {
+        if (targetDate != null) {
+            return targetDate;
+        }
+        return startAt == null ? null : startAt.toLocalDate();
+    }
+
     public void moveToInbox() {
         clearSchedule();
         this.status = TaskStatus.INBOX;

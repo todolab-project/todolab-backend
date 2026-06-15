@@ -485,8 +485,10 @@ D-Day는 단순히 날짜만 세는 기능으로 끝내지 않는다.
 3. [x] 기존 불일치 데이터 탐지 및 `targetDate` 기준 보정 마이그레이션
 4. [x] 조회 API와 Repository가 하나의 계획 날짜 규칙만 사용하도록 정리
 5. [x] 상세, Today, Calendar에서 `언제 할까요?` 하나만 노출
-6. [ ] `plannedDate + 선택적 시간` 모델로 스키마 단순화 검토
+6. [x] `plannedDate + 선택적 시간` 모델로 스키마 단순화 검토
 7. [ ] `scheduleSource`와 중복 날짜 필드 제거 여부 결정
+
+검토 결과와 점진적 전환 순서는 `docs/TASK_DATE_MIGRATION.md`에 기록한다.
 
 필수 회귀 테스트:
 

@@ -191,7 +191,11 @@ window.TaskModal = (() => {
   }
 
   function syncWhenSummary(task = null) {
-    const targetDate = task?.status === 'TODAY' ? String(task.targetDate || '').trim() : '';
+    const plannedDate = window.TaskUI?.plannedDate?.(task)
+      || task?.plannedDate
+      || task?.targetDate
+      || '';
+    const targetDate = task?.status === 'TODAY' ? String(plannedDate).trim() : '';
     const scheduleDate = datePart(task?.startAt);
     const displayDate = targetDate || scheduleDate;
     const isDetail = mode === 'detail';
@@ -380,7 +384,9 @@ window.TaskModal = (() => {
     $category.value = task.category ?? '';
 
     $unscheduled.checked = !(task.startAt || task.endAt);
-    const targetDate = datePart(task.targetDate);
+    const targetDate = datePart(
+      window.TaskUI?.plannedDate?.(task) || task.plannedDate || task.targetDate
+    );
     const inferredAllDay = Boolean(task.allDay || (!task.startAt && targetDate));
     const inferredStartAt = task.startAt || (inferredAllDay ? dateTimeAtStartOfDay(targetDate) : null);
     const inferredEndAt = task.endAt

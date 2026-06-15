@@ -89,8 +89,9 @@
     return `
       <div class="mt-3 space-y-2">
         ${tasks.map(task => {
-          const plannedDateLabel = task.targetDate
-            ? (window.TaskUI?.formatDateKorean?.(task.targetDate) || task.targetDate)
+          const plannedDate = window.TaskUI?.plannedDate?.(task) || task.plannedDate || task.targetDate;
+          const plannedDateLabel = plannedDate
+            ? (window.TaskUI?.formatDateKorean?.(plannedDate) || plannedDate)
             : null;
           if (window.TaskUI?.renderTaskCard) {
             return TaskUI.renderTaskCard(task, {

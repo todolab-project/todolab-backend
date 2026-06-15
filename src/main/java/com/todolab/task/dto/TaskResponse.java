@@ -24,6 +24,7 @@ public record TaskResponse(
         boolean unscheduled,
         String category,
         TaskStatus status,
+        LocalDate plannedDate,
         LocalDate targetDate,
         LocalDateTime completedAt,
         int carryOverCount,
@@ -48,7 +49,7 @@ public record TaskResponse(
             String category,
             LocalDateTime createdAt
     ) {
-        this(id, TaskType.defaultType(), title, description, startAt, endAt, allDay, startAt == null && endAt == null ? null : ScheduleSource.USER, unscheduled, category, null, null, null, 0, false, null, null, null, null, null, null, createdAt, null);
+        this(id, TaskType.defaultType(), title, description, startAt, endAt, allDay, startAt == null && endAt == null ? null : ScheduleSource.USER, unscheduled, category, null, null, null, null, 0, false, null, null, null, null, null, null, createdAt, null);
     }
 
     public static TaskResponse from(Task t) {
@@ -65,6 +66,7 @@ public record TaskResponse(
                 .unscheduled(t.isUnscheduled())
                 .category(t.getCategory())
                 .status(t.getStatus())
+                .plannedDate(t.getPlannedDate())
                 .targetDate(t.getTargetDate())
                 .completedAt(t.getCompletedAt())
                 .carryOverCount(t.getCarryOverCount())

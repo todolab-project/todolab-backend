@@ -17,6 +17,8 @@
 
   TaskUI.toDate = (iso) => (iso ? String(iso).split('T')[0] : null);
 
+  TaskUI.plannedDate = (task) => task?.plannedDate || task?.targetDate || TaskUI.toDate(task?.startAt);
+
   TaskUI.formatDateKorean = (value, { includeYear = false } = {}) => {
     const date = TaskUI.toDate(value);
     const match = String(date || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -115,7 +117,7 @@
   };
 
   TaskUI.formatOverdueLabel = (task, referenceDate) => {
-    const elapsedDays = TaskUI.daysBetween(task?.targetDate, referenceDate);
+    const elapsedDays = TaskUI.daysBetween(TaskUI.plannedDate(task), referenceDate);
     if (!Number.isFinite(elapsedDays) || elapsedDays <= 0) return null;
     return elapsedDays === 1 ? '어제 못 끝냄' : `${elapsedDays}일 지남`;
   };

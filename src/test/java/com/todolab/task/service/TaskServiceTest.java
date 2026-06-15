@@ -97,6 +97,7 @@ class TaskServiceTest {
         assertThat(res.unscheduled()).isFalse();
         assertThat(res.type()).isEqualTo(TaskType.SCHEDULE);
         assertThat(res.status()).isEqualTo(TaskStatus.TODAY);
+        assertThat(res.plannedDate()).isEqualTo(startAt.toLocalDate());
         assertThat(res.targetDate()).isEqualTo(startAt.toLocalDate());
         assertThat(res.completedAt()).isNull();
 
