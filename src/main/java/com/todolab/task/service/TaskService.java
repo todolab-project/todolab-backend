@@ -74,8 +74,14 @@ public class TaskService {
     }
 
     public List<TaskRecommendationResponse> getTodayRecommendations(LocalDate referenceDate) {
-        return taskRepository.findByStatus(TaskStatus.INBOX).stream()
+        List<TaskResponse> overdueTasks = taskRepository.findPlannedTasks(null, referenceDate).stream()
                 .map(TaskResponse::from)
+                .toList();
+        List<TaskResponse> inboxTasks = taskRepository.findByStatus(TaskStatus.INBOX).stream()
+                .map(TaskResponse::from)
+                .toList();
+
+        return java.util.stream.Stream.concat(overdueTasks.stream(), inboxTasks.stream())
                 .map(task -> RecommendationCandidate.from(task, referenceDate))
                 .sorted(Comparator
                         .comparingInt(RecommendationCandidate::priority)
@@ -193,26 +199,36 @@ public class TaskService {
 
     private record RecommendationCandidate(TaskResponse task, String reason, int priority, long sortKey) {
         static RecommendationCandidate from(TaskResponse task, LocalDate referenceDate) {
+            if (task.carryOverCount() >= 3) {
+                return new RecommendationCandidate(task, "다시 정리 필요", 0, -task.carryOverCount());
+            }
+
+            LocalDate plannedDate = task.plannedDate();
+            if (task.status() == TaskStatus.TODAY && plannedDate != null && plannedDate.isBefore(referenceDate)) {
+                long overdueDays = ChronoUnit.DAYS.between(plannedDate, referenceDate);
+                return new RecommendationCandidate(task, "지난 미완료", 1, -overdueDays);
+            }
+
             LocalDate ddayDate = task.ddayGoalTargetDate();
             if (ddayDate != null && !ddayDate.isBefore(referenceDate)) {
                 long daysLeft = ChronoUnit.DAYS.between(referenceDate, ddayDate);
                 if (!ddayDate.isAfter(referenceDate.plusDays(3))) {
-                    return new RecommendationCandidate(task, "D-Day 3일 이내", 0, daysLeft);
+                    return new RecommendationCandidate(task, "D-Day 3일 이내", 2, daysLeft);
                 }
                 if (!ddayDate.isAfter(referenceDate.plusDays(14))) {
-                    return new RecommendationCandidate(task, "D-Day 임박", 1, daysLeft);
+                    return new RecommendationCandidate(task, "D-Day 임박", 3, daysLeft);
                 }
             }
 
             LocalDateTime createdAt = task.createdAt();
             if (createdAt != null && !createdAt.toLocalDate().isAfter(referenceDate.minusDays(7))) {
-                return new RecommendationCandidate(task, "오래 기록", 2, createdAtSortKey(createdAt));
+                return new RecommendationCandidate(task, "오래 기록", 4, createdAtSortKey(createdAt));
             }
 
             return new RecommendationCandidate(
                     task,
                     "최근 기록",
-                    3,
+                    5,
                     createdAt == null ? Long.MAX_VALUE : -createdAtSortKey(createdAt)
             );
         }

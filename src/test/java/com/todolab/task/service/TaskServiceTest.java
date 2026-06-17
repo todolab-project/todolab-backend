@@ -714,7 +714,7 @@ class TaskServiceTest {
     }
 
     @Test
-    @DisplayName("Today 추천은 D-Day 긴급도, 오래 기록, 최근 기록 순으로 최대 5개를 반환한다")
+    @DisplayName("Today 추천은 이월, 지난 미완료, D-Day, 기록 기준 순으로 최대 5개를 반환한다")
     void getTodayRecommendations_success() {
         // given
         LocalDate referenceDate = LocalDate.of(2026, 6, 16);
@@ -739,6 +739,17 @@ class TaskServiceTest {
                 .status(TaskStatus.INBOX)
                 .ddayGoal(closeGoal)
                 .build();
+        Task overdue = Task.builder()
+                .title("지난 미완료")
+                .status(TaskStatus.TODAY)
+                .targetDate(referenceDate.minusDays(2))
+                .build();
+        Task stale = Task.builder()
+                .title("다시 정리")
+                .status(TaskStatus.TODAY)
+                .targetDate(referenceDate.minusDays(4))
+                .carryOverCount(3)
+                .build();
         Task extra1 = Task.builder().title("extra1").status(TaskStatus.INBOX).build();
         Task extra2 = Task.builder().title("extra2").status(TaskStatus.INBOX).build();
         Task extra3 = Task.builder().title("extra3").status(TaskStatus.INBOX).build();
@@ -748,6 +759,8 @@ class TaskServiceTest {
         ReflectionTestUtils.setField(urgentDday, "createdAt", referenceDate.minusDays(1).atTime(8, 0));
         ReflectionTestUtils.setField(closeDday, "createdAt", referenceDate.minusDays(1).atTime(7, 0));
 
+        given(taskRepository.findPlannedTasks(null, referenceDate))
+                .willReturn(List.of(overdue, stale));
         given(taskRepository.findByStatus(TaskStatus.INBOX))
                 .willReturn(List.of(recent, old, extra1, closeDday, urgentDday, extra2, extra3));
 
@@ -757,10 +770,11 @@ class TaskServiceTest {
         // then
         assertThat(result).hasSize(5);
         assertThat(result).extracting(r -> r.task().title())
-                .containsExactly("D-Day 3일", "D-Day 10일", "오래 기록", "최근 기록", "extra1");
+                .containsExactly("다시 정리", "지난 미완료", "D-Day 3일", "D-Day 10일", "오래 기록");
         assertThat(result).extracting(TaskRecommendationResponse::reason)
-                .containsExactly("D-Day 3일 이내", "D-Day 임박", "오래 기록", "최근 기록", "최근 기록");
+                .containsExactly("다시 정리 필요", "지난 미완료", "D-Day 3일 이내", "D-Day 임박", "오래 기록");
 
+        then(taskRepository).should(times(1)).findPlannedTasks(null, referenceDate);
         then(taskRepository).should(times(1)).findByStatus(TaskStatus.INBOX);
         then(taskRepository).shouldHaveNoMoreInteractions();
         then(taskTxService).shouldHaveNoInteractions();
