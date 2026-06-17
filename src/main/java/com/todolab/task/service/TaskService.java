@@ -8,6 +8,7 @@ import com.todolab.task.domain.query.TaskQueryType;
 import com.todolab.task.dto.TaskCategoryGroupResponse;
 import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.dto.TaskQueryRequest;
+import com.todolab.task.dto.TaskRecommendationResponse;
 import com.todolab.task.dto.TaskResponse;
 import com.todolab.task.exception.TaskNotFoundException;
 import com.todolab.task.repository.TaskRepository;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -67,6 +69,19 @@ public class TaskService {
     public List<TaskResponse> getInboxTasks() {
         return taskRepository.findByStatus(TaskStatus.INBOX).stream()
                 .map(TaskResponse::from)
+                .toList();
+    }
+
+    public List<TaskRecommendationResponse> getTodayRecommendations(LocalDate referenceDate) {
+        return taskRepository.findByStatus(TaskStatus.INBOX).stream()
+                .map(TaskResponse::from)
+                .map(task -> new RecommendationCandidate(task, recommendationReason(task, referenceDate)))
+                .sorted(Comparator
+                        .comparingInt(RecommendationCandidate::priority)
+                        .thenComparing(RecommendationCandidate::createdAtForSort, Comparator.nullsLast(Comparator.reverseOrder()))
+                        .thenComparing(candidate -> candidate.task().id(), Comparator.nullsLast(Comparator.naturalOrder())))
+                .limit(5)
+                .map(candidate -> new TaskRecommendationResponse(candidate.task(), candidate.reason()))
                 .toList();
     }
 
@@ -173,6 +188,35 @@ public class TaskService {
         return taskRepository.findUnscheduledTask().stream()
                 .map(TaskResponse::from)
                 .toList();
+    }
+
+    private String recommendationReason(TaskResponse task, LocalDate referenceDate) {
+        if (task.ddayGoalTargetDate() != null
+                && !task.ddayGoalTargetDate().isBefore(referenceDate)
+                && !task.ddayGoalTargetDate().isAfter(referenceDate.plusDays(14))) {
+            return "D-Day 임박";
+        }
+
+        if (task.createdAt() != null
+                && !task.createdAt().toLocalDate().isAfter(referenceDate.minusDays(7))) {
+            return "오래 기록";
+        }
+
+        return "최근 기록";
+    }
+
+    private record RecommendationCandidate(TaskResponse task, String reason) {
+        int priority() {
+            return switch (reason) {
+                case "D-Day 임박" -> 0;
+                case "오래 기록" -> 1;
+                default -> 2;
+            };
+        }
+
+        LocalDateTime createdAtForSort() {
+            return task.createdAt();
+        }
     }
 
 }

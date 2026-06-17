@@ -8,6 +8,7 @@ import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.domain.TaskType;
 import com.todolab.task.dto.TaskCategoryGroupResponse;
 import com.todolab.task.dto.TaskRequest;
+import com.todolab.task.dto.TaskRecommendationResponse;
 import com.todolab.task.dto.TaskResponse;
 import com.todolab.task.exception.TaskNotFoundException;
 import com.todolab.task.service.TaskService;
@@ -422,6 +423,35 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.data[0].status").value("INBOX"));
 
         then(taskService).should().getInboxTasks();
+        then(taskService).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("Today 추천 조회 성공")
+    void getTodayRecommendations_success() throws Exception {
+        // given
+        LocalDate date = LocalDate.of(2026, 6, 16);
+        TaskResponse task = TaskResponse.builder()
+                .id(1L)
+                .title("추천 할 일")
+                .status(TaskStatus.INBOX)
+                .build();
+        TaskRecommendationResponse recommendation = new TaskRecommendationResponse(task, "최근 기록");
+
+        given(taskService.getTodayRecommendations(date)).willReturn(List.of(recommendation));
+
+        // when & then
+        mockMvc.perform(get("/api/tasks/recommendations/today")
+                        .param("date", "2026-06-16"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].reason").value("최근 기록"))
+                .andExpect(jsonPath("$.data[0].task.id").value(1))
+                .andExpect(jsonPath("$.data[0].task.title").value("추천 할 일"))
+                .andExpect(jsonPath("$.data[0].task.status").value("INBOX"));
+
+        then(taskService).should().getTodayRecommendations(date);
         then(taskService).shouldHaveNoMoreInteractions();
     }
 

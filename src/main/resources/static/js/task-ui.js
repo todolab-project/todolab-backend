@@ -404,6 +404,20 @@
     });
   };
 
+  TaskUI.renderRecommendationCard = (recommendation) => {
+    const task = recommendation?.task;
+    if (!task) return '';
+    const reason = (recommendation.reason || '추천').trim();
+    return TaskUI.renderTaskCard(task, {
+      showRightTime: false,
+      metaText: `추천 · ${reason}`,
+      barColor: 'rgba(37, 99, 235, 0.68)',
+      showCheck: false,
+      moveToTodayAction: true,
+      rowClass: 'task-row-inbox'
+    });
+  };
+
   // ✅ Today: 우측 시간 O, meta X
   TaskUI.renderTodayCard = (t) => {
     const staleCarryOver = Boolean(t?.staleCarryOver || Number(t?.carryOverCount || 0) >= 3);

@@ -60,6 +60,10 @@
     return request('/api/tasks/inbox');
   };
 
+  TaskApi.getTodayRecommendations = (date) => {
+    return request(`/api/tasks/recommendations/today${buildQuery({ date })}`);
+  };
+
   TaskApi.getTodayTasks = (date) => {
     return request(`/api/tasks/today${buildQuery({ date })}`);
   };

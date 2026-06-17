@@ -10,6 +10,7 @@ import com.todolab.task.domain.query.DateRange;
 import com.todolab.task.domain.query.TaskQueryType;
 import com.todolab.task.dto.TaskCategoryGroupResponse;
 import com.todolab.task.dto.TaskQueryRequest;
+import com.todolab.task.dto.TaskRecommendationResponse;
 import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.dto.TaskResponse;
 import com.todolab.task.exception.TaskNotFoundException;
@@ -706,6 +707,52 @@ class TaskServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().title()).isEqualTo("inbox");
         assertThat(result.getFirst().status()).isEqualTo(TaskStatus.INBOX);
+
+        then(taskRepository).should(times(1)).findByStatus(TaskStatus.INBOX);
+        then(taskRepository).shouldHaveNoMoreInteractions();
+        then(taskTxService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("Today 추천은 D-Day 임박, 오래 기록, 최근 기록 순으로 최대 5개를 반환한다")
+    void getTodayRecommendations_success() {
+        // given
+        LocalDate referenceDate = LocalDate.of(2026, 6, 16);
+        DdayGoal closeGoal = new DdayGoal("시험", referenceDate.plusDays(3));
+
+        Task recent = Task.builder()
+                .title("최근 기록")
+                .status(TaskStatus.INBOX)
+                .build();
+        Task old = Task.builder()
+                .title("오래 기록")
+                .status(TaskStatus.INBOX)
+                .build();
+        Task dday = Task.builder()
+                .title("D-Day 할 일")
+                .status(TaskStatus.INBOX)
+                .ddayGoal(closeGoal)
+                .build();
+        Task extra1 = Task.builder().title("extra1").status(TaskStatus.INBOX).build();
+        Task extra2 = Task.builder().title("extra2").status(TaskStatus.INBOX).build();
+        Task extra3 = Task.builder().title("extra3").status(TaskStatus.INBOX).build();
+
+        ReflectionTestUtils.setField(old, "createdAt", referenceDate.minusDays(8).atTime(9, 0));
+        ReflectionTestUtils.setField(recent, "createdAt", referenceDate.minusDays(1).atTime(9, 0));
+        ReflectionTestUtils.setField(dday, "createdAt", referenceDate.minusDays(1).atTime(8, 0));
+
+        given(taskRepository.findByStatus(TaskStatus.INBOX))
+                .willReturn(List.of(recent, old, extra1, dday, extra2, extra3));
+
+        // when
+        List<TaskRecommendationResponse> result = taskService.getTodayRecommendations(referenceDate);
+
+        // then
+        assertThat(result).hasSize(5);
+        assertThat(result).extracting(r -> r.task().title())
+                .containsExactly("D-Day 할 일", "오래 기록", "최근 기록", "extra1", "extra2");
+        assertThat(result).extracting(TaskRecommendationResponse::reason)
+                .containsExactly("D-Day 임박", "오래 기록", "최근 기록", "최근 기록", "최근 기록");
 
         then(taskRepository).should(times(1)).findByStatus(TaskStatus.INBOX);
         then(taskRepository).shouldHaveNoMoreInteractions();

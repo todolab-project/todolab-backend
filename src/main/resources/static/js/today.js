@@ -24,6 +24,9 @@
   const $overdueSection = document.getElementById('today-overdue-section');
   const $overdueList = document.getElementById('today-overdue-list');
   const $overdueCount = document.getElementById('today-overdue-count');
+  const $recommendationSection = document.getElementById('today-recommendation-section');
+  const $recommendationList = document.getElementById('today-recommendation-list');
+  const $recommendationCount = document.getElementById('today-recommendation-count');
   const $inboxEmpty = document.getElementById('today-inbox-empty');
   const $inboxCard = document.getElementById('today-inbox-card');
   const $inboxList = document.getElementById('today-inbox-list');
@@ -55,6 +58,7 @@
   function showError(msg) {
     hideAll();
     $overdueSection?.classList.add('hidden');
+    $recommendationSection?.classList.add('hidden');
     if ($error) {
       $error.textContent = msg;
       $error.classList.remove('hidden');
@@ -161,6 +165,26 @@
     $overdueSection?.classList.remove('hidden');
   }
 
+  function renderRecommendations(recommendations) {
+    const items = Array.isArray(recommendations) ? recommendations : [];
+    if (items.length === 0) {
+      $recommendationSection?.classList.add('hidden');
+      if ($recommendationList) $recommendationList.innerHTML = '';
+      if ($recommendationCount) $recommendationCount.textContent = '0개';
+      return;
+    }
+
+    if (!window.TaskUI || typeof window.TaskUI.renderRecommendationCard !== 'function') {
+      return;
+    }
+
+    if ($recommendationCount) $recommendationCount.textContent = `${items.length}개`;
+    if ($recommendationList) {
+      $recommendationList.innerHTML = items.map(TaskUI.renderRecommendationCard).join('');
+    }
+    $recommendationSection?.classList.remove('hidden');
+  }
+
   function renderDone(tasks) {
     const doneTasks = Array.isArray(tasks) ? tasks : [];
     setDoneCount(doneTasks.length);
@@ -211,14 +235,16 @@
         $dateText.textContent = dow ? `${date} (${dow})` : date;
       }
 
-      const [todayTasks, overdueTasks, inboxTasks, doneTasks] = await Promise.all([
+      const [todayTasks, overdueTasks, recommendations, inboxTasks, doneTasks] = await Promise.all([
         TaskApi.getTodayTasks(date),
         TaskApi.getOverdueTasks(date),
+        TaskApi.getTodayRecommendations(date),
         TaskApi.getInboxTasks(),
         TaskApi.getDoneTasks(date)
       ]);
 
       renderOverdue(overdueTasks ?? []);
+      renderRecommendations(recommendations ?? []);
       renderToday(todayTasks ?? []);
       renderInbox(inboxTasks ?? []);
       renderDone(doneTasks ?? []);
@@ -508,6 +534,28 @@
       showActionSuccess('오늘 할 일로 옮겼어요.');
     } catch (err) {
       showActionError(`오늘 할 일 이동 실패: ${err.message}`);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $recommendationList?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-action="move-to-today"]');
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const id = btn.getAttribute('data-task-id');
+    if (!id) return;
+
+    try {
+      btn.disabled = true;
+      await TaskApi.moveToToday(id, date);
+      await load();
+      showActionSuccess('추천한 일을 오늘 할 일로 옮겼어요.');
+    } catch (err) {
+      showActionError(`추천 이동 실패: ${err.message}`);
     } finally {
       btn.disabled = false;
     }

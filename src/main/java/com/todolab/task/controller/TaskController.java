@@ -4,6 +4,7 @@ import com.todolab.common.api.ApiResponse;
 import com.todolab.task.domain.DeferReason;
 import com.todolab.task.dto.TaskCategoryGroupResponse;
 import com.todolab.task.dto.TaskQueryRequest;
+import com.todolab.task.dto.TaskRecommendationResponse;
 import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.dto.TaskResponse;
 import com.todolab.task.service.TaskService;
@@ -96,6 +97,19 @@ public class TaskController {
         List<TaskResponse> res = taskService.getInboxTasks();
 
         log.info("[API] getInboxTasks success :: taskCount={}", res.size());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(res));
+    }
+
+    @GetMapping("/recommendations/today")
+    public ResponseEntity<ApiResponse<List<TaskRecommendationResponse>>> getTodayRecommendations(
+            @RequestParam LocalDate date
+    ) {
+        log.info("[API] getTodayRecommendations request :: date={}", date);
+
+        List<TaskRecommendationResponse> res = taskService.getTodayRecommendations(date);
+
+        log.info("[API] getTodayRecommendations success :: date={}, recommendationCount={}", date, res.size());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(res));
     }
