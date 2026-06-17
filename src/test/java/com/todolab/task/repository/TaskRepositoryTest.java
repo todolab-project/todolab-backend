@@ -352,6 +352,84 @@ class TaskRepositoryTest extends RepositoryTestSupport {
     }
 
     @Test
+    @DisplayName("findPlannedTasks()는 같은 날짜에서 시간 일정 우선, 종일 할 일은 실행 순서순으로 조회한다")
+    void findPlannedTasks_ordersTodayTasksByTimeAndTodayOrder() {
+        // given
+        LocalDate targetDate = LocalDate.of(2026, 5, 20);
+
+        Task allDaySecond = Task.builder()
+                .title("allDaySecond")
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .startAt(targetDate.atStartOfDay())
+                .endAt(targetDate.plusDays(1).atStartOfDay())
+                .allDay(true)
+                .todayOrder(2)
+                .build();
+        Task timed = Task.builder()
+                .title("timed")
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .startAt(targetDate.atTime(14, 0))
+                .endAt(targetDate.atTime(15, 0))
+                .todayOrder(3)
+                .build();
+        Task allDayFirst = Task.builder()
+                .title("allDayFirst")
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .startAt(targetDate.atStartOfDay())
+                .endAt(targetDate.plusDays(1).atStartOfDay())
+                .allDay(true)
+                .todayOrder(1)
+                .build();
+
+        taskRepository.saveAll(List.of(allDaySecond, timed, allDayFirst));
+        flushAndClear();
+
+        // when
+        List<Task> result = taskRepository.findPlannedTasks(targetDate, targetDate.plusDays(1));
+
+        // then
+        then(result).extracting("title")
+                .containsExactly("timed", "allDayFirst", "allDaySecond");
+    }
+
+    @Test
+    @DisplayName("findMaxTodayOrder()는 지정 날짜의 가장 큰 실행 순서를 반환한다")
+    void findMaxTodayOrder_success() {
+        // given
+        LocalDate targetDate = LocalDate.of(2026, 5, 20);
+        Task first = Task.builder()
+                .title("first")
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .todayOrder(1)
+                .build();
+        Task last = Task.builder()
+                .title("last")
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .todayOrder(4)
+                .build();
+        Task otherDate = Task.builder()
+                .title("otherDate")
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate.plusDays(1))
+                .todayOrder(9)
+                .build();
+
+        taskRepository.saveAll(List.of(first, last, otherDate));
+        flushAndClear();
+
+        // when
+        Integer result = taskRepository.findMaxTodayOrder(targetDate);
+
+        // then
+        then(result).isEqualTo(4);
+    }
+
+    @Test
     @DisplayName("findPlannedTasks()는 하한 없이 기준일 이전의 Today Task를 오래된 계획일순으로 조회한다")
     void findPlannedTasks_filtersBeforeDateWithoutLowerBound() {
         // given

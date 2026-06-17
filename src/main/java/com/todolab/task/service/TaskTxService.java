@@ -35,6 +35,7 @@ public class TaskTxService {
     public Task moveToTodayTx(Long id, LocalDate targetDate) {
         Task task = findTask(id);
         task.moveToToday(targetDate);
+        assignLastTodayOrder(task, targetDate);
         return taskRepository.save(task);
     }
 
@@ -56,6 +57,7 @@ public class TaskTxService {
     public Task reopenTodayTx(Long id, LocalDate targetDate) {
         Task task = findTask(id);
         task.reopenToday(targetDate);
+        assignLastTodayOrder(task, targetDate);
         return taskRepository.save(task);
     }
 
@@ -63,6 +65,7 @@ public class TaskTxService {
     public Task carryOverTx(Long id, LocalDate nextDate) {
         Task task = findTask(id);
         task.carryOverTo(nextDate);
+        assignLastTodayOrder(task, nextDate);
         return taskRepository.save(task);
     }
 
@@ -100,5 +103,10 @@ public class TaskTxService {
     private Task findTask(Long id) {
         return taskRepository.findById(id)
                 .orElseThrow(() -> new TaskNotFoundException(id));
+    }
+
+    private void assignLastTodayOrder(Task task, LocalDate targetDate) {
+        Integer maxOrder = taskRepository.findMaxTodayOrder(targetDate);
+        task.assignTodayOrder(maxOrder == null ? 0 : maxOrder + 1);
     }
 }

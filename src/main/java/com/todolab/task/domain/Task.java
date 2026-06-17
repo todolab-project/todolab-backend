@@ -64,6 +64,9 @@ public class Task {
     @Column(name = "`TARGET_DATE`")
     private LocalDate targetDate;
 
+    @Column(name = "`TODAY_ORDER`")
+    private Integer todayOrder;
+
     @Column(name = "`COMPLETED_AT`")
     private LocalDateTime completedAt;
 
@@ -100,10 +103,11 @@ public class Task {
 
     @Builder
     public Task(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category,
-                TaskStatus status, LocalDate targetDate, LocalDateTime completedAt, Integer carryOverCount,
+                TaskStatus status, LocalDate targetDate, Integer todayOrder, LocalDateTime completedAt, Integer carryOverCount,
                 DeferReason deferReason, DdayGoal ddayGoal) {
         apply(title, description, type, startAt, endAt, allDay, category);
         applyStatus(status, targetDate, completedAt);
+        this.todayOrder = todayOrder;
         this.carryOverCount = carryOverCount == null ? 0 : Math.max(0, carryOverCount);
         this.deferReason = deferReason;
         this.ddayGoal = ddayGoal;
@@ -139,6 +143,7 @@ public class Task {
         clearSchedule();
         this.status = TaskStatus.INBOX;
         this.targetDate = null;
+        this.todayOrder = null;
         this.completedAt = null;
     }
 
@@ -168,6 +173,13 @@ public class Task {
         this.targetDate = nextDate;
         this.completedAt = null;
         this.carryOverCount++;
+    }
+
+    public void assignTodayOrder(int todayOrder) {
+        if (todayOrder < 0) {
+            throw new IllegalArgumentException("todayOrder는 0 이상이어야 합니다.");
+        }
+        this.todayOrder = todayOrder;
     }
 
     public void connectDdayGoal(DdayGoal ddayGoal) {
@@ -278,12 +290,14 @@ public class Task {
         if (isUnscheduled()) {
             this.status = TaskStatus.INBOX;
             this.targetDate = null;
+            this.todayOrder = null;
             this.completedAt = null;
             return;
         }
 
         this.status = TaskStatus.TODAY;
         this.targetDate = startAt.toLocalDate();
+        this.todayOrder = null;
         this.completedAt = null;
     }
 

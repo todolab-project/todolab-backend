@@ -24,6 +24,7 @@ public record TaskResponse(
         TaskStatus status,
         LocalDate plannedDate,
         LocalDate targetDate,
+        Integer todayOrder,
         LocalDateTime completedAt,
         int carryOverCount,
         boolean staleCarryOver,
@@ -47,7 +48,7 @@ public record TaskResponse(
             String category,
             LocalDateTime createdAt
     ) {
-        this(id, TaskType.defaultType(), title, description, startAt, endAt, allDay, unscheduled, category, null, null, null, null, 0, false, null, null, null, null, null, null, createdAt, null);
+        this(id, TaskType.defaultType(), title, description, startAt, endAt, allDay, unscheduled, category, null, null, null, null, null, 0, false, null, null, null, null, null, null, createdAt, null);
     }
 
     public static TaskResponse from(Task t) {
@@ -65,6 +66,7 @@ public record TaskResponse(
                 .status(t.getStatus())
                 .plannedDate(t.getPlannedDate())
                 .targetDate(t.getTargetDate())
+                .todayOrder(t.getTodayOrder())
                 .completedAt(t.getCompletedAt())
                 .carryOverCount(t.getCarryOverCount())
                 .staleCarryOver(t.isStaleCarryOver())

@@ -1,6 +1,7 @@
 package com.todolab.task.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.todolab.task.domain.QTask;
 import com.todolab.task.domain.Task;
@@ -88,8 +89,36 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
                         plannedDateFrom(t, fromInclusive),
                         plannedDateBefore(t, toExclusive)
                 )
-                .orderBy(t.targetDate.asc(), t.createdAt.asc(), t.id.asc())
+                .orderBy(
+                        t.targetDate.asc(),
+                        timedScheduleFirst(t).asc(),
+                        t.startAt.asc(),
+                        t.todayOrder.asc().nullsLast(),
+                        t.createdAt.asc(),
+                        t.id.asc()
+                )
                 .fetch();
+    }
+
+    @Override
+    public Integer findMaxTodayOrder(LocalDate targetDate) {
+        QTask t = QTask.task;
+
+        return queryFactory
+                .select(t.todayOrder.max())
+                .from(t)
+                .where(
+                        t.status.eq(TaskStatus.TODAY),
+                        t.targetDate.eq(targetDate)
+                )
+                .fetchOne();
+    }
+
+    private NumberExpression<Integer> timedScheduleFirst(QTask task) {
+        return new com.querydsl.core.types.dsl.CaseBuilder()
+                .when(task.allDay.isFalse().and(task.startAt.isNotNull()))
+                .then(0)
+                .otherwise(1);
     }
 
     private BooleanExpression plannedDateFrom(QTask task, LocalDate fromInclusive) {

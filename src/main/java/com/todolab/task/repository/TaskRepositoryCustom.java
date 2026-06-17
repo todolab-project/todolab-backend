@@ -19,6 +19,8 @@ public interface TaskRepositoryCustom {
 
     List<Task> findPlannedTasks(LocalDate fromInclusive, LocalDate toExclusive);
 
+    Integer findMaxTodayOrder(LocalDate targetDate);
+
     List<Task> findDoneTasks(LocalDate completedDate);
 
     List<Task> findDoneTasksBetween(LocalDate startDate, LocalDate endDate);

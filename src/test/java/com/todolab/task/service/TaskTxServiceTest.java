@@ -85,6 +85,7 @@ class TaskTxServiceTest {
         TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
 
         given(taskRepository.findById(id)).willReturn(Optional.of(task));
+        given(taskRepository.findMaxTodayOrder(targetDate)).willReturn(4);
         given(taskRepository.save(task)).willReturn(task);
 
         // when
@@ -97,8 +98,10 @@ class TaskTxServiceTest {
         assertThat(result.getStartAt()).isEqualTo(targetDate.atStartOfDay());
         assertThat(result.getEndAt()).isEqualTo(targetDate.plusDays(1).atStartOfDay());
         assertThat(result.isAllDay()).isTrue();
+        assertThat(result.getTodayOrder()).isEqualTo(5);
 
         then(taskRepository).should(times(1)).findById(id);
+        then(taskRepository).should(times(1)).findMaxTodayOrder(targetDate);
         then(taskRepository).should(times(1)).save(task);
     }
 
@@ -118,6 +121,7 @@ class TaskTxServiceTest {
         TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
 
         given(taskRepository.findById(id)).willReturn(Optional.of(task));
+        given(taskRepository.findMaxTodayOrder(targetDate)).willReturn(null);
         given(taskRepository.save(task)).willReturn(task);
 
         // when
@@ -127,8 +131,10 @@ class TaskTxServiceTest {
         assertThat(result.getTargetDate()).isEqualTo(targetDate);
         assertThat(result.getStartAt()).isEqualTo(LocalDateTime.of(2026, 5, 21, 10, 0));
         assertThat(result.getEndAt()).isEqualTo(LocalDateTime.of(2026, 5, 21, 11, 0));
+        assertThat(result.getTodayOrder()).isZero();
 
         then(taskRepository).should(times(1)).findById(id);
+        then(taskRepository).should(times(1)).findMaxTodayOrder(targetDate);
         then(taskRepository).should(times(1)).save(task);
     }
 
@@ -237,6 +243,7 @@ class TaskTxServiceTest {
         TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
 
         given(taskRepository.findById(id)).willReturn(Optional.of(task));
+        given(taskRepository.findMaxTodayOrder(targetDate)).willReturn(2);
         given(taskRepository.save(task)).willReturn(task);
 
         // when
@@ -249,8 +256,10 @@ class TaskTxServiceTest {
         assertThat(result.getStartAt()).isEqualTo(targetDate.atStartOfDay());
         assertThat(result.getEndAt()).isEqualTo(targetDate.plusDays(1).atStartOfDay());
         assertThat(result.isAllDay()).isTrue();
+        assertThat(result.getTodayOrder()).isEqualTo(3);
 
         then(taskRepository).should(times(1)).findById(id);
+        then(taskRepository).should(times(1)).findMaxTodayOrder(targetDate);
         then(taskRepository).should(times(1)).save(task);
     }
 
@@ -273,6 +282,7 @@ class TaskTxServiceTest {
         TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
 
         given(taskRepository.findById(id)).willReturn(Optional.of(task));
+        given(taskRepository.findMaxTodayOrder(nextDate)).willReturn(7);
         given(taskRepository.save(task)).willReturn(task);
 
         // when
@@ -285,8 +295,10 @@ class TaskTxServiceTest {
         assertThat(result.getCarryOverCount()).isEqualTo(2);
         assertThat(result.getStartAt()).isEqualTo(nextDate.atStartOfDay());
         assertThat(result.getEndAt()).isEqualTo(nextDate.plusDays(1).atStartOfDay());
+        assertThat(result.getTodayOrder()).isEqualTo(8);
 
         then(taskRepository).should(times(1)).findById(id);
+        then(taskRepository).should(times(1)).findMaxTodayOrder(nextDate);
         then(taskRepository).should(times(1)).save(task);
     }
 
@@ -309,6 +321,7 @@ class TaskTxServiceTest {
         TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
 
         given(taskRepository.findById(id)).willReturn(Optional.of(task));
+        given(taskRepository.findMaxTodayOrder(nextDate)).willReturn(null);
         given(taskRepository.save(task)).willReturn(task);
 
         // when
@@ -318,8 +331,10 @@ class TaskTxServiceTest {
         assertThat(result.getTargetDate()).isEqualTo(nextDate);
         assertThat(result.getStartAt()).isEqualTo(LocalDateTime.of(2026, 5, 22, 10, 0));
         assertThat(result.getEndAt()).isEqualTo(LocalDateTime.of(2026, 5, 22, 11, 0));
+        assertThat(result.getTodayOrder()).isZero();
 
         then(taskRepository).should(times(1)).findById(id);
+        then(taskRepository).should(times(1)).findMaxTodayOrder(nextDate);
         then(taskRepository).should(times(1)).save(task);
     }
 
