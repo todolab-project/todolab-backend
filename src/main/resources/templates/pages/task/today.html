@@ -16,9 +16,6 @@
                      th:text="${date}">2026-01-31</div>
             </div>
 
-            <div id="today-count"
-                 class="app-pill hidden">
-            </div>
         </div>
 
         <div class="app-scroll">
@@ -42,6 +39,10 @@
                 <div class="today-summary-item">
                     <div class="today-summary-label">오늘 할 일</div>
                     <div id="today-summary-today" class="today-summary-value">0</div>
+                </div>
+                <div class="today-summary-item today-summary-item-alert">
+                    <div class="today-summary-label">지난 미완료</div>
+                    <div id="today-summary-overdue" class="today-summary-value">0</div>
                 </div>
                 <div class="today-summary-item">
                     <div class="today-summary-label">기록함</div>

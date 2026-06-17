@@ -13,12 +13,12 @@
   const $empty    = document.getElementById('today-empty');
   const $card     = document.getElementById('today-card');
   const $list     = document.getElementById('today-list');
-  const $count    = document.getElementById('today-count');
   const $dateText = document.getElementById('todayDateText');
   const $quickForm = document.getElementById('todayQuickForm');
   const $quickTitle = document.getElementById('todayQuickTitle');
   const $quickSubmit = document.getElementById('todayQuickSubmit');
   const $summaryToday = document.getElementById('today-summary-today');
+  const $summaryOverdue = document.getElementById('today-summary-overdue');
   const $summaryInbox = document.getElementById('today-summary-inbox');
   const $summaryDone = document.getElementById('today-summary-done');
   const $overdueSection = document.getElementById('today-overdue-section');
@@ -45,14 +45,6 @@
 
   function setCount(n) {
     if ($summaryToday) $summaryToday.textContent = String(Math.max(0, n || 0));
-    if (!$count) return;
-    if (n <= 0) {
-      $count.classList.add('hidden');
-      $count.textContent = '';
-      return;
-    }
-    $count.textContent = `${n}개`;
-    $count.classList.remove('hidden');
   }
 
   function showError(msg) {
@@ -160,6 +152,7 @@
       $overdueSection?.classList.add('hidden');
       if ($overdueList) $overdueList.innerHTML = '';
       if ($overdueCount) $overdueCount.textContent = '0개';
+      if ($summaryOverdue) $summaryOverdue.textContent = '0';
       return;
     }
 
@@ -169,6 +162,7 @@
     }
 
     if ($overdueCount) $overdueCount.textContent = `${overdueTasks.length}개`;
+    if ($summaryOverdue) $summaryOverdue.textContent = String(overdueTasks.length);
     if ($overdueList) {
       $overdueList.innerHTML = overdueTasks
         .map(task => TaskUI.renderOverdueCard(task, date))
