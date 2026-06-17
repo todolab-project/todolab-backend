@@ -253,22 +253,29 @@
                    data-action="today-order-up"
                    data-task-id="${TaskUI.escapeHtml(task.id)}"
                    aria-label="위로 이동">
-             위
+             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+               <path d="M5.5 12.5 10 8l4.5 4.5"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round"/>
+             </svg>
            </button>
            <button type="button"
                    class="task-order-action"
                    data-action="today-order-down"
                    data-task-id="${TaskUI.escapeHtml(task.id)}"
                    aria-label="아래로 이동">
-             아래
+             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+               <path d="M5.5 7.5 10 12l4.5-4.5"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round"/>
+             </svg>
            </button>
          </div>`
       : '';
 
-    const trailingHtml = (right || todayOrderHtml || moveToInboxHtml || carryOverHtml || moveToTodayHtml)
+    const trailingHtml = (right || moveToInboxHtml || carryOverHtml || moveToTodayHtml)
       ? `<div class="task-row-trailing">
            ${right ? `<div class="task-right">${right}</div>` : ``}
-           ${todayOrderHtml}
            ${moveToInboxHtml}
            ${carryOverHtml}
            ${moveToTodayHtml}
@@ -377,6 +384,7 @@
   <div class="task-row ${options.rowClass || ''}">
     <div class="task-left-bar" style="background:${barColor};"></div>
     ${checkHtml}
+    ${todayOrderHtml}
 
     <div class="min-w-0 flex-1">
       <div class="flex items-center gap-2 min-w-0">

@@ -774,26 +774,33 @@ select:focus{
 
 .task-order-actions{
   display:inline-flex;
+  flex-direction:column;
   align-items:center;
-  gap:4px;
+  justify-content:center;
+  gap:2px;
   border:1px solid #e2e8f0;
-  border-radius:9999px;
-  background:#f8fafc;
-  padding:3px;
+  border-radius:14px;
+  background:linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow:0 8px 18px rgba(15,23,42,.05);
+  padding:2px;
+  flex:0 0 auto;
 }
 
 .task-order-action{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  width:28px;
-  height:28px;
-  border-radius:9999px;
+  width:26px;
+  height:20px;
+  border-radius:10px;
   color:#64748b;
-  font-size:13px;
-  font-weight:900;
-  line-height:1;
   transition:background .12s ease, color .12s ease, transform .12s ease;
+}
+
+.task-order-action svg{
+  width:15px;
+  height:15px;
+  flex:0 0 auto;
 }
 
 .task-order-action:hover{
@@ -806,8 +813,10 @@ select:focus{
 }
 
 .task-order-action:disabled{
-  cursor:wait;
-  opacity:.45;
+  cursor:default;
+  opacity:.28;
+  background:transparent;
+  transform:none;
 }
 
 .task-inline-action{

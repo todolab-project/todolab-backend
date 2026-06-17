@@ -139,6 +139,18 @@
 
     showList(tasks.length);
     $list.innerHTML = tasks.map(TaskUI.renderTodayCard).join('');
+    updateTodayOrderControls();
+  }
+
+  function updateTodayOrderControls() {
+    if (!$list) return;
+    const cards = Array.from($list.querySelectorAll('.task-card'));
+    cards.forEach((card, index) => {
+      const up = card.querySelector('[data-action="today-order-up"]');
+      const down = card.querySelector('[data-action="today-order-down"]');
+      if (up) up.disabled = index === 0;
+      if (down) down.disabled = index === cards.length - 1;
+    });
   }
 
   function renderOverdue(tasks) {
