@@ -6,6 +6,7 @@ import com.todolab.dday.exception.DdayGoalNotFoundException;
 import com.todolab.task.domain.DeferReason;
 import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.domain.TaskType;
+import com.todolab.task.domain.TodayOrderDirection;
 import com.todolab.task.dto.TaskCategoryGroupResponse;
 import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.dto.TaskRecommendationResponse;
@@ -950,6 +951,35 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.data.endAt").value("2026-05-23T00:00:00"));
 
         then(taskService).should().carryOver(id, nextDate);
+        then(taskService).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("Today 실행 순서 변경 성공")
+    void reorderToday_success() throws Exception {
+        // given
+        long id = 1L;
+        LocalDate targetDate = LocalDate.of(2026, 5, 22);
+        TaskResponse reordered = TaskResponse.builder()
+                .id(id)
+                .title("reordered")
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .todayOrder(2)
+                .build();
+
+        given(taskService.reorderToday(id, targetDate, TodayOrderDirection.DOWN)).willReturn(reordered);
+
+        // when & then
+        mockMvc.perform(patch("/api/tasks/{id}/today-order", id)
+                        .param("date", "2026-05-22")
+                        .param("direction", "DOWN"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.todayOrder").value(2));
+
+        then(taskService).should().reorderToday(id, targetDate, TodayOrderDirection.DOWN);
         then(taskService).shouldHaveNoMoreInteractions();
     }
 

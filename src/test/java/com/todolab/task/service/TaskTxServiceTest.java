@@ -7,17 +7,21 @@ import com.todolab.task.domain.DeferReason;
 import com.todolab.task.domain.Task;
 import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.domain.TaskType;
+import com.todolab.task.domain.TodayOrderDirection;
 import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.exception.TaskNotFoundException;
+import com.todolab.task.exception.TaskValidationException;
 import com.todolab.task.repository.TaskRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -339,6 +343,53 @@ class TaskTxServiceTest {
     }
 
     @Test
+    @DisplayName("reorderTodayTx는 같은 날짜 Today 목록에서 인접 항목과 실행 순서를 교환한다")
+    void reorderTodayTx_swapsTodayOrderWithNeighbor() {
+        // given
+        long id = 2L;
+        LocalDate targetDate = LocalDate.of(2026, 5, 22);
+        Task first = orderedTodayTask(1L, "first", targetDate, 0);
+        Task second = orderedTodayTask(2L, "second", targetDate, 1);
+        Task third = orderedTodayTask(3L, "third", targetDate, 2);
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
+
+        given(taskRepository.findById(id)).willReturn(Optional.of(second));
+        given(taskRepository.findPlannedTasks(targetDate, targetDate.plusDays(1)))
+                .willReturn(List.of(first, second, third));
+
+        // when
+        Task result = service.reorderTodayTx(id, targetDate, TodayOrderDirection.DOWN);
+
+        // then
+        assertThat(result).isSameAs(second);
+        assertThat(first.getTodayOrder()).isZero();
+        assertThat(second.getTodayOrder()).isEqualTo(2);
+        assertThat(third.getTodayOrder()).isEqualTo(1);
+
+        then(taskRepository).should(times(1)).findById(id);
+        then(taskRepository).should(times(1)).findPlannedTasks(targetDate, targetDate.plusDays(1));
+        then(taskRepository).should(times(1)).saveAll(List.of(first, second, third));
+    }
+
+    @Test
+    @DisplayName("reorderTodayTx는 해당 날짜 Today Task가 아니면 예외가 발생한다")
+    void reorderTodayTx_rejectsOtherDate() {
+        // given
+        long id = 1L;
+        LocalDate targetDate = LocalDate.of(2026, 5, 22);
+        Task task = orderedTodayTask(id, "task", targetDate.minusDays(1), 0);
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
+
+        given(taskRepository.findById(id)).willReturn(Optional.of(task));
+
+        // when & then
+        assertThatThrownBy(() -> service.reorderTodayTx(id, targetDate, TodayOrderDirection.UP))
+                .isInstanceOf(TaskValidationException.class);
+
+        then(taskRepository).should(times(1)).findById(id);
+    }
+
+    @Test
     @DisplayName("상태 변경 대상 Task가 없으면 TaskNotFoundException이 발생한다")
     void changeStatus_notFound() {
         // given
@@ -473,5 +524,16 @@ class TaskTxServiceTest {
 
         then(taskRepository).should(times(1)).findById(id);
         then(taskRepository).should(times(1)).save(task);
+    }
+
+    private Task orderedTodayTask(Long id, String title, LocalDate targetDate, int todayOrder) {
+        Task task = Task.builder()
+                .title(title)
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .todayOrder(todayOrder)
+                .build();
+        ReflectionTestUtils.setField(task, "id", id);
+        return task;
     }
 }

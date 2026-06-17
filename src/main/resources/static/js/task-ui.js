@@ -246,9 +246,29 @@
          </button>`
       : '';
 
-    const trailingHtml = (right || moveToInboxHtml || carryOverHtml || moveToTodayHtml)
+    const todayOrderHtml = options.todayOrderAction
+      ? `<div class="task-order-actions" aria-label="실행 순서 변경">
+           <button type="button"
+                   class="task-order-action"
+                   data-action="today-order-up"
+                   data-task-id="${TaskUI.escapeHtml(task.id)}"
+                   aria-label="위로 이동">
+             위
+           </button>
+           <button type="button"
+                   class="task-order-action"
+                   data-action="today-order-down"
+                   data-task-id="${TaskUI.escapeHtml(task.id)}"
+                   aria-label="아래로 이동">
+             아래
+           </button>
+         </div>`
+      : '';
+
+    const trailingHtml = (right || todayOrderHtml || moveToInboxHtml || carryOverHtml || moveToTodayHtml)
       ? `<div class="task-row-trailing">
            ${right ? `<div class="task-right">${right}</div>` : ``}
+           ${todayOrderHtml}
            ${moveToInboxHtml}
            ${carryOverHtml}
            ${moveToTodayHtml}
@@ -429,6 +449,7 @@
       completeAction: true,
       moveToInboxAction: true,
       carryOverAction: true,
+      todayOrderAction: true,
       deferReasonAction: staleCarryOver,
       rowClass: 'task-row-today'
     });

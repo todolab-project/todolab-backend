@@ -3,6 +3,7 @@ package com.todolab.task.service;
 import com.todolab.task.domain.DeferReason;
 import com.todolab.task.domain.Task;
 import com.todolab.task.domain.TaskStatus;
+import com.todolab.task.domain.TodayOrderDirection;
 import com.todolab.task.domain.query.DateRange;
 import com.todolab.task.domain.query.TaskQueryType;
 import com.todolab.task.dto.TaskCategoryGroupResponse;
@@ -150,6 +151,11 @@ public class TaskService {
     public TaskResponse carryOver(Long id, LocalDate nextDate) {
         Task carriedOver = taskTxService.carryOverTx(id, nextDate);
         return TaskResponse.from(carriedOver);
+    }
+
+    public TaskResponse reorderToday(Long id, LocalDate targetDate, TodayOrderDirection direction) {
+        Task reordered = taskTxService.reorderTodayTx(id, targetDate, direction);
+        return TaskResponse.from(reordered);
     }
 
     public TaskResponse setDeferReason(Long id, DeferReason reason) {

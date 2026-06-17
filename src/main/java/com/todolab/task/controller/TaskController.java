@@ -2,6 +2,7 @@ package com.todolab.task.controller;
 
 import com.todolab.common.api.ApiResponse;
 import com.todolab.task.domain.DeferReason;
+import com.todolab.task.domain.TodayOrderDirection;
 import com.todolab.task.dto.TaskCategoryGroupResponse;
 import com.todolab.task.dto.TaskQueryRequest;
 import com.todolab.task.dto.TaskRecommendationResponse;
@@ -235,6 +236,21 @@ public class TaskController {
         TaskResponse res = taskService.carryOver(id, date);
 
         log.info("[API] carryOver success :: id={}, date={}", id, date);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(res));
+    }
+
+    @PatchMapping("/{id}/today-order")
+    public ResponseEntity<ApiResponse<TaskResponse>> reorderToday(
+            @PathVariable Long id,
+            @RequestParam LocalDate date,
+            @RequestParam TodayOrderDirection direction
+    ) {
+        log.info("[API] reorderToday request :: id={}, date={}, direction={}", id, date, direction);
+
+        TaskResponse res = taskService.reorderToday(id, date, direction);
+
+        log.info("[API] reorderToday success :: id={}, date={}, direction={}", id, date, direction);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(res));
     }

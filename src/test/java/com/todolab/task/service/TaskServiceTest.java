@@ -6,6 +6,7 @@ import com.todolab.task.domain.DeferReason;
 import com.todolab.task.domain.Task;
 import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.domain.TaskType;
+import com.todolab.task.domain.TodayOrderDirection;
 import com.todolab.task.domain.query.DateRange;
 import com.todolab.task.domain.query.TaskQueryType;
 import com.todolab.task.dto.TaskCategoryGroupResponse;
@@ -1043,6 +1044,34 @@ class TaskServiceTest {
         assertThat(result.endAt()).isEqualTo(nextDate.plusDays(1).atStartOfDay());
 
         then(taskTxService).should(times(1)).carryOverTx(id, nextDate);
+        then(taskRepository).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("Today 실행 순서 변경은 트랜잭션 서비스에 위임하고 응답을 반환한다")
+    void reorderToday_success() {
+        // given
+        long id = 1L;
+        LocalDate targetDate = LocalDate.of(2026, 5, 22);
+        Task reordered = Task.builder()
+                .title("reordered")
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .todayOrder(2)
+                .build();
+
+        given(taskTxService.reorderTodayTx(id, targetDate, TodayOrderDirection.DOWN)).willReturn(reordered);
+
+        // when
+        TaskResponse result = taskService.reorderToday(id, targetDate, TodayOrderDirection.DOWN);
+
+        // then
+        assertThat(result.title()).isEqualTo("reordered");
+        assertThat(result.status()).isEqualTo(TaskStatus.TODAY);
+        assertThat(result.targetDate()).isEqualTo(targetDate);
+        assertThat(result.todayOrder()).isEqualTo(2);
+
+        then(taskTxService).should(times(1)).reorderTodayTx(id, targetDate, TodayOrderDirection.DOWN);
         then(taskRepository).shouldHaveNoInteractions();
     }
 

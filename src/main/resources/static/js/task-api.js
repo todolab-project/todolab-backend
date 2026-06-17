@@ -111,6 +111,13 @@
     });
   };
 
+  TaskApi.reorderToday = (id, date, direction) => {
+    return request(`/api/tasks/${encodeURIComponent(id)}/today-order${buildQuery({ date, direction })}`, {
+      method: 'PATCH',
+      headers: { 'X-Requested-With': 'fetch' }
+    });
+  };
+
   TaskApi.setDeferReason = (id, reason) => {
     return request(`/api/tasks/${encodeURIComponent(id)}/defer-reason${buildQuery({ reason })}`, {
       method: 'PATCH',

@@ -292,7 +292,8 @@
 
   $list?.addEventListener('click', async (e) => {
     const btn = e.target.closest(
-      '[data-action="complete-task"], [data-action="carry-over-task"], [data-action="move-to-inbox"]'
+      '[data-action="complete-task"], [data-action="carry-over-task"], [data-action="move-to-inbox"], ' +
+      '[data-action="today-order-up"], [data-action="today-order-down"]'
     );
     if (!btn) return;
 
@@ -312,6 +313,20 @@
         showActionSuccess('일정을 제거하고 기록함으로 이동했어요.');
       } catch (err) {
         showActionError(`기록함 이동 실패: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+      }
+      return;
+    }
+
+    if (btn.dataset.action === 'today-order-up' || btn.dataset.action === 'today-order-down') {
+      try {
+        btn.disabled = true;
+        const direction = btn.dataset.action === 'today-order-up' ? 'UP' : 'DOWN';
+        await TaskApi.reorderToday(id, date, direction);
+        await load();
+      } catch (err) {
+        showActionError(`순서 변경 실패: ${err.message}`);
       } finally {
         btn.disabled = false;
       }
