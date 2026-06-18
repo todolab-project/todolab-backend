@@ -39,6 +39,7 @@ window.TaskModal = (() => {
   let currentType = null;
   let currentTask = null;
   let multiDay = false;
+  let lastFocusedElement = null;
 
   function basePrimaryText() {
     if (mode === 'detail') return '수정';
@@ -50,14 +51,42 @@ window.TaskModal = (() => {
    * open / close
    * ----------------------------- */
   function open() {
+    if ($modal.classList.contains('hidden')) {
+      lastFocusedElement = document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    }
     $modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+    window.requestAnimationFrame(() => {
+      if (!$modal.classList.contains('hidden')) {
+        $panel?.focus({ preventScroll: true });
+      }
+    });
   }
 
   function close() {
     $modal.classList.add('hidden');
     document.body.style.overflow = '';
     reset();
+    restoreFocus();
+  }
+
+  function restoreFocus() {
+    const target = lastFocusedElement;
+    lastFocusedElement = null;
+    if (target && document.contains(target) && typeof target.focus === 'function') {
+      target.focus({ preventScroll: true });
+    }
+  }
+
+  function focusInitial() {
+    const target = mode === 'detail' ? $primary : $title;
+    window.requestAnimationFrame(() => {
+      if (!$modal.classList.contains('hidden')) {
+        target?.focus({ preventScroll: true });
+      }
+    });
   }
 
   // 닫기: X/닫기 버튼(data-action="close"), dim 클릭, ESC
@@ -470,6 +499,7 @@ window.TaskModal = (() => {
     }
 
     syncDateDisabled();
+    focusInitial();
   }
 
   function setModeDetail(id, task) {
@@ -483,6 +513,7 @@ window.TaskModal = (() => {
 
     fill(task);
     setReadOnly(true);
+    focusInitial();
   }
 
   function setModeEdit(id) {
@@ -496,6 +527,7 @@ window.TaskModal = (() => {
 
     setReadOnly(false);
     syncDateDisabled();
+    focusInitial();
   }
 
   /* -----------------------------

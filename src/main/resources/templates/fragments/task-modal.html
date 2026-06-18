@@ -4,7 +4,11 @@
     <div id="taskModal" class="fixed inset-0 hidden bg-slate-950/45 z-50">
         <div id="taskModalBackdrop" class="w-full h-full flex items-center justify-center p-4">
             <div id="taskModalPanel"
-                 class="task-modal-panel bg-white rounded-lg shadow-2xl w-full max-w-lg flex flex-col overflow-hidden">
+                 class="task-modal-panel bg-white rounded-lg shadow-2xl w-full max-w-lg flex flex-col overflow-hidden"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="taskModalTitle"
+                 tabindex="-1">
 
                 <!-- header -->
                 <div class="task-modal-header flex items-center justify-between px-5 py-4 border-b shrink-0">

@@ -24,7 +24,7 @@
 
 - [x] 완료 체크, 모달 닫기, 삭제 등 주요 터치 영역을 최소 44px로 확대
 - [x] Task 카드의 클릭 가능 상태를 키보드와 포커스 표시로 지원
-- [ ] 모달에 `role="dialog"`, `aria-modal`, 초기 포커스와 포커스 복귀 적용
+- [x] 모달에 `role="dialog"`, `aria-modal`, 초기 포커스와 포커스 복귀 적용
 - [ ] `alert`, `confirm`을 앱 스타일 피드백과 확인 UI로 통일
 - [ ] 이중 스크롤 가능성이 있는 `app-main`, `app-scroll` 구조 단순화
 
