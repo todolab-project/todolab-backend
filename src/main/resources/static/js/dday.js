@@ -241,9 +241,12 @@
       const id = deleteBtn.getAttribute('data-dday-id');
       if (!id) return;
       const title = (deleteBtn.getAttribute('data-dday-title') || '이 D-Day').trim();
-      const confirmed = confirm(
-        `'${title}'을(를) 삭제할까요?\n연결된 오늘 할 일은 삭제되지 않고 D-Day 연결만 해제돼요.`
-      );
+      const confirmed = await window.AppFeedback?.confirm?.({
+        title: 'D-Day를 삭제할까요?',
+        message: `'${title}'을(를) 삭제합니다.\n연결된 오늘 할 일은 삭제되지 않고 D-Day 연결만 해제돼요.`,
+        confirmText: '삭제',
+        danger: true
+      });
       if (!confirmed) return;
 
       try {

@@ -89,6 +89,14 @@ window.TaskModal = (() => {
     });
   }
 
+  function showError(message) {
+    if (window.AppFeedback?.error) {
+      window.AppFeedback.error(message);
+      return;
+    }
+    console.error(message);
+  }
+
   // 닫기: X/닫기 버튼(data-action="close"), dim 클릭, ESC
   $modal.addEventListener('click', (e) => {
     if (e.target.closest('[data-action="close"]')) close();
@@ -537,7 +545,11 @@ window.TaskModal = (() => {
     try {
       if (mode === 'create') {
         const payload = payloadFromForm();
-        if (!payload.title) return alert('제목을 입력해주세요.');
+        if (!payload.title) {
+          showError('제목을 입력해주세요.');
+          $title.focus();
+          return;
+        }
         await TaskApi.createTask(payload);
         close();
         location.reload();
@@ -553,7 +565,11 @@ window.TaskModal = (() => {
 
       if (mode === 'edit') {
         const payload = payloadFromForm();
-        if (!payload.title) return alert('제목을 입력해주세요.');
+        if (!payload.title) {
+          showError('제목을 입력해주세요.');
+          $title.focus();
+          return;
+        }
         if (!currentId) return;
 
         await TaskApi.updateTask(currentId, payload);
@@ -561,21 +577,27 @@ window.TaskModal = (() => {
         location.reload();
       }
     } catch (e) {
-      alert(`${e.message || e}`);
+      showError(`${e.message || e}`);
     }
   });
 
   $delete.addEventListener('click', async () => {
     if (!currentId) return;
     const title = (currentTask?.title || $title.value || '이 항목').trim();
-    if (!confirm(`'${title}'을(를) 삭제하시겠어요?`)) return;
+    const confirmed = await window.AppFeedback?.confirm?.({
+      title: '항목을 삭제할까요?',
+      message: `'${title}'을(를) 삭제합니다. 이 작업은 되돌릴 수 없습니다.`,
+      confirmText: '삭제',
+      danger: true
+    });
+    if (!confirmed) return;
 
     try {
       await TaskApi.deleteTask(currentId);
       close();
       location.reload();
     } catch (e) {
-      alert(`${e.message || e}`);
+      showError(`${e.message || e}`);
     }
   });
 
@@ -596,7 +618,7 @@ window.TaskModal = (() => {
       const task = await TaskApi.getTask(id);
       setModeDetail(id, task);
     } catch (e) {
-      alert(`상세 로딩 실패: ${e.message || e}`);
+      showError(`상세 로딩 실패: ${e.message || e}`);
       close();
     }
   }

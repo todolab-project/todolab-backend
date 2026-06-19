@@ -20,4 +20,29 @@
          aria-live="polite"
          aria-atomic="true"></div>
 
+    <div id="appConfirm"
+         class="app-confirm hidden"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="appConfirmTitle"
+         aria-describedby="appConfirmMessage">
+        <div class="app-confirm-backdrop" data-confirm-action="cancel"></div>
+        <div class="app-confirm-panel" tabindex="-1">
+            <div id="appConfirmTitle" class="app-confirm-title">확인</div>
+            <div id="appConfirmMessage" class="app-confirm-message"></div>
+            <div class="app-confirm-actions">
+                <button id="appConfirmCancel" type="button"
+                        class="app-confirm-btn app-confirm-cancel"
+                        data-confirm-action="cancel">
+                    취소
+                </button>
+                <button id="appConfirmOk" type="button"
+                        class="app-confirm-btn app-confirm-ok"
+                        data-confirm-action="confirm">
+                    확인
+                </button>
+            </div>
+        </div>
+    </div>
+
 </th:block>

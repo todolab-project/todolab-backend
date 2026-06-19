@@ -35,12 +35,74 @@ function showToast(message, type = "success") {
   }, normalizedType === "error" ? 3600 : 2200);
 }
 
+function showConfirm({
+  title = "확인",
+  message = "",
+  confirmText = "확인",
+  cancelText = "취소",
+  danger = false
+} = {}) {
+  const modal = document.getElementById("appConfirm");
+  const panel = modal?.querySelector(".app-confirm-panel");
+  const titleEl = document.getElementById("appConfirmTitle");
+  const messageEl = document.getElementById("appConfirmMessage");
+  const ok = document.getElementById("appConfirmOk");
+  const cancel = document.getElementById("appConfirmCancel");
+  if (!modal || !panel || !titleEl || !messageEl || !ok || !cancel) {
+    showToast(message || title, "error");
+    return Promise.resolve(false);
+  }
+
+  const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  titleEl.textContent = title;
+  messageEl.textContent = message;
+  ok.textContent = confirmText;
+  cancel.textContent = cancelText;
+  ok.classList.toggle("is-danger", Boolean(danger));
+  modal.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+
+  return new Promise((resolve) => {
+    let settled = false;
+
+    const cleanup = (result) => {
+      if (settled) return;
+      settled = true;
+      modal.classList.add("hidden");
+      document.body.style.overflow = "";
+      modal.removeEventListener("click", onClick);
+      window.removeEventListener("keydown", onKeydown);
+      if (previousFocus && document.contains(previousFocus)) {
+        previousFocus.focus({ preventScroll: true });
+      }
+      resolve(result);
+    };
+
+    const onClick = (e) => {
+      const action = e.target?.closest?.("[data-confirm-action]")?.dataset.confirmAction;
+      if (action === "confirm") cleanup(true);
+      if (action === "cancel") cleanup(false);
+    };
+
+    const onKeydown = (e) => {
+      if (e.key === "Escape") cleanup(false);
+    };
+
+    modal.addEventListener("click", onClick);
+    window.addEventListener("keydown", onKeydown);
+    requestAnimationFrame(() => panel.focus({ preventScroll: true }));
+  });
+}
+
 window.AppFeedback = {
   success(message) {
     showToast(message, "success");
   },
   error(message) {
     showToast(message, "error");
+  },
+  confirm(options) {
+    return showConfirm(options);
   }
 };
 

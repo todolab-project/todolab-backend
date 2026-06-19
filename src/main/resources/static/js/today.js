@@ -310,7 +310,12 @@
     if (!id) return;
 
     if (btn.dataset.action === 'move-to-inbox') {
-      if (!confirm('날짜와 시간을 제거하고 기록함으로 이동할까요?')) return;
+      const confirmed = await window.AppFeedback?.confirm?.({
+        title: '기록함으로 이동할까요?',
+        message: '날짜와 시간을 제거하고 기록함으로 이동합니다.',
+        confirmText: '이동'
+      });
+      if (!confirmed) return;
 
       try {
         btn.disabled = true;
@@ -430,11 +435,22 @@
 
     const action = btn.dataset.action;
     if (action === 'overdue-inbox') {
-      if (!confirm('날짜와 시간을 제거하고 기록함으로 이동할까요?')) return;
+      const confirmed = await window.AppFeedback?.confirm?.({
+        title: '기록함으로 이동할까요?',
+        message: '날짜와 시간을 제거하고 기록함으로 이동합니다.',
+        confirmText: '이동'
+      });
+      if (!confirmed) return;
     }
     if (action === 'overdue-delete') {
       const title = (btn.dataset.taskTitle || '이 할 일').trim();
-      if (!confirm(`'${title}'을(를) 삭제하시겠어요?`)) return;
+      const confirmed = await window.AppFeedback?.confirm?.({
+        title: '할 일을 삭제할까요?',
+        message: `'${title}'을(를) 삭제합니다. 이 작업은 되돌릴 수 없습니다.`,
+        confirmText: '삭제',
+        danger: true
+      });
+      if (!confirmed) return;
     }
 
     const rescheduleDate = action === 'overdue-reschedule'
