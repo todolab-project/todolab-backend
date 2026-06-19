@@ -204,9 +204,13 @@ body.app-body{
 }
 
 .app-main{
-  min-height:0;
-  overflow:hidden;
-  scrollbar-gutter:stable;
+  min-height:auto;
+  overflow:visible;
+}
+
+.app-main > div{
+  min-height:100%;
+  height:auto;
 }
 
 .app-page{
@@ -215,7 +219,8 @@ body.app-body{
   padding:24px 16px 96px;
   max-width:768px;
   margin:0 auto;
-  height:100%;
+  min-height:100%;
+  height:auto;
   display:flex;
   flex-direction:column;
 }
@@ -247,12 +252,10 @@ body.app-body{
 }
 
 .app-scroll{
-  flex:1 1 auto;
-  min-height:0;
+  flex:0 0 auto;
+  min-height:auto;
   min-width:0;
-  overflow-y:auto;
-  overflow-x:hidden;
-  overscroll-behavior:contain;
+  overflow:visible;
   padding-top:18px;
 }
 
@@ -1128,6 +1131,30 @@ select:focus{
 
 .calendar-day-dot-dday{
   background:#d946ef;
+}
+
+.calendar-dot-legend{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:center;
+  gap:8px 12px;
+  margin:10px 12px 0;
+  color:var(--app-muted);
+  font-size:11px;
+  font-weight:800;
+}
+
+.calendar-dot-legend-item{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  min-height:24px;
+  white-space:nowrap;
+}
+
+.calendar-dot-legend .calendar-day-dot{
+  margin-top:0;
 }
 
 .task-modal-panel{
