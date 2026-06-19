@@ -1178,6 +1178,115 @@ select:focus{
   display:none;
 }
 
+.dday-goal-card{
+  border:1px solid #e2e8f0;
+  border-radius:var(--app-radius);
+  background:#fff;
+  padding:16px 20px;
+  box-shadow:var(--app-shadow-soft);
+  cursor:pointer;
+  transition:background .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.dday-goal-card:hover{
+  border-color:#cbd5e1;
+  box-shadow:var(--app-shadow);
+}
+
+.dday-goal-card:active{
+  transform:scale(.995);
+}
+
+.dday-goal-card:focus-visible{
+  outline:2px solid rgba(37,99,235,.34);
+  outline-offset:3px;
+}
+
+.dday-goal-card-selected{
+  border-color:#bfdbfe;
+  background:#eff6ff;
+}
+
+.dday-goal-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:9px;
+}
+
+.dday-goal-task-count,
+.dday-goal-task-total{
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
+  border-radius:999px;
+  padding:0 9px;
+  font-size:11px;
+  line-height:1;
+  font-weight:900;
+}
+
+.dday-goal-task-count{
+  background:#dbeafe;
+  color:#1d4ed8;
+}
+
+.dday-goal-task-total{
+  background:#f1f5f9;
+  color:#64748b;
+}
+
+.dday-goal-side{
+  display:flex;
+  flex:0 0 auto;
+  flex-direction:column;
+  align-items:center;
+  gap:7px;
+  text-align:right;
+}
+
+.dday-goal-side-top{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.dday-goal-expand{
+  display:inline-flex;
+  width:28px;
+  height:28px;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  background:#f8fafc;
+  color:#64748b;
+  transition:background .16s ease, color .16s ease, transform .16s ease;
+}
+
+.dday-goal-expand svg{
+  width:17px;
+  height:17px;
+}
+
+.dday-goal-card-selected .dday-goal-expand{
+  background:#dbeafe;
+  color:#1d4ed8;
+  transform:rotate(180deg);
+}
+
+.dday-goal-delete{
+  min-height:32px;
+  padding:0 8px;
+  color:#94a3b8;
+  font-size:12px;
+  font-weight:900;
+  transition:color .12s ease, background .12s ease;
+}
+
+.dday-goal-delete:hover{
+  color:#dc2626;
+}
+
 .task-modal-panel{
   max-height:calc(100vh - 32px);
 }

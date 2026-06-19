@@ -19,6 +19,7 @@
 
   let selectedGoalId = null;
   let selectedGoalTasks = [];
+  let goalTaskCounts = new Map();
 
   async function request(path, options = {}) {
     const res = await fetch(path, {
@@ -130,21 +131,42 @@
     $card?.classList.remove('hidden');
     $list.innerHTML = items.map(goal => {
       const selected = String(goal.id) === String(selectedGoalId);
+      const counts = goalTaskCounts.get(String(goal.id)) || { today: 0, total: 0 };
       const targetDateLabel = window.TaskUI?.formatDateKorean?.(goal.targetDate, { includeYear: true })
         || goal.targetDate;
       return `
-        <div class="rounded-lg border ${selected ? 'border-blue-200 bg-blue-50/70' : 'border-slate-200 bg-white'} px-5 py-4 shadow-sm"
+        <div class="dday-goal-card ${selected ? 'dday-goal-card-selected' : ''}"
              data-action="select-dday"
-             data-dday-id="${escapeHtml(goal.id)}">
+             data-dday-id="${escapeHtml(goal.id)}"
+             role="button"
+             tabindex="0"
+             aria-expanded="${selected ? 'true' : 'false'}">
           <div class="flex items-center justify-between gap-3">
             <div class="min-w-0">
               <div class="truncate text-[16px] font-black text-gray-900">${escapeHtml(goal.title)}</div>
               <div class="mt-1 text-[12px] font-semibold text-gray-500">${escapeHtml(targetDateLabel)}</div>
+              <div class="dday-goal-meta">
+                <span class="dday-goal-task-count">오늘 할 일 ${counts.today}개</span>
+                ${counts.total > counts.today
+                  ? `<span class="dday-goal-task-total">전체 연결 ${counts.total}개</span>`
+                  : ''}
+              </div>
             </div>
-            <div class="shrink-0 text-right">
-              <div class="text-[18px] font-black text-blue-700">${escapeHtml(ddayLabel(goal.daysLeft))}</div>
+            <div class="dday-goal-side">
+              <div class="dday-goal-side-top">
+                <div class="text-[18px] font-black text-blue-700">${escapeHtml(ddayLabel(goal.daysLeft))}</div>
+                <div class="dday-goal-expand" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" fill="none">
+                    <path d="M5.5 8 10 12.5 14.5 8"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
               <button type="button"
-                      class="mt-2 min-h-11 px-3 text-[12px] font-extrabold text-gray-400 hover:text-red-600"
+                      class="dday-goal-delete"
                       data-action="delete-dday"
                       data-dday-id="${escapeHtml(goal.id)}"
                       data-dday-title="${escapeHtml(goal.title)}">
@@ -174,12 +196,22 @@
     }).join('');
   }
 
-  async function loadSelectedTasks() {
+  async function loadGoalTaskCounts(goals) {
+    const items = Array.isArray(goals) ? goals : [];
+    const entries = await Promise.all(items.map(async goal => {
+      const id = String(goal.id);
+      const tasks = await request(`/api/ddays/${encodeURIComponent(id)}/tasks`);
+      if (String(selectedGoalId) === id) {
+        selectedGoalTasks = tasks;
+      }
+      const today = tasks.filter(task => String(task?.status || '') === 'TODAY').length;
+      return [id, { today, total: tasks.length }];
+    }));
+
+    goalTaskCounts = new Map(entries);
     if (!selectedGoalId) {
       selectedGoalTasks = [];
-      return;
     }
-    selectedGoalTasks = await request(`/api/ddays/${encodeURIComponent(selectedGoalId)}/tasks`);
   }
 
   async function load() {
@@ -191,7 +223,7 @@
         selectedGoalId = null;
         selectedGoalTasks = [];
       }
-      await loadSelectedTasks();
+      await loadGoalTaskCounts(goals);
       render(goals);
     } catch (err) {
       showError(`D-Day 로딩 실패: ${err.message}`);
@@ -270,6 +302,23 @@
 
     const card = e.target.closest('[data-action="select-dday"]');
     if (!card || e.target.closest('button,input,textarea,select,label')) return;
+
+    e.preventDefault();
+    const id = card.getAttribute('data-dday-id');
+    selectedGoalId = String(selectedGoalId) === String(id) ? null : id;
+
+    try {
+      await load();
+    } catch (err) {
+      showError(`D-Day 할 일 로딩 실패: ${err.message}`);
+    }
+  });
+
+  $list?.addEventListener('keydown', async (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+
+    const card = e.target.closest('[data-action="select-dday"]');
+    if (!card || e.target !== card) return;
 
     e.preventDefault();
     const id = card.getAttribute('data-dday-id');
