@@ -10,7 +10,7 @@
     <h1 class="text-3xl font-bold" th:text="${headerTitle}">ToDoLab</h1>
 </header>
 
-<main class="app-main flex-1 w-full max-w-7xl mx-auto overflow-y-auto pb-28">
+<main class="app-main flex-1 w-full max-w-7xl mx-auto pb-28">
     <div th:if="${contentView != null}"
          th:replace="~{${contentView} :: content}"></div>
 

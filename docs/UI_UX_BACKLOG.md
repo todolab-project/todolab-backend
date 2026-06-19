@@ -26,7 +26,7 @@
 - [x] Task 카드의 클릭 가능 상태를 키보드와 포커스 표시로 지원
 - [x] 모달에 `role="dialog"`, `aria-modal`, 초기 포커스와 포커스 복귀 적용
 - [x] `alert`, `confirm`을 앱 스타일 피드백과 확인 UI로 통일
-- [ ] 이중 스크롤 가능성이 있는 `app-main`, `app-scroll` 구조 단순화
+- [x] 이중 스크롤 가능성이 있는 `app-main`, `app-scroll` 구조 단순화
 
 ## P2. 정보 구조
 
