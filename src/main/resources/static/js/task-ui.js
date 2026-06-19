@@ -246,32 +246,7 @@
          </button>`
       : '';
 
-    const todayOrderHtml = options.todayOrderAction
-      ? `<div class="task-order-actions" aria-label="실행 순서 변경">
-           <button type="button"
-                   class="task-order-action"
-                   data-action="today-order-up"
-                   data-task-id="${TaskUI.escapeHtml(task.id)}"
-                   aria-label="위로 이동">
-             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-               <path d="M5.5 12.5 10 8l4.5 4.5"
-                     stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round"/>
-             </svg>
-           </button>
-           <button type="button"
-                   class="task-order-action"
-                   data-action="today-order-down"
-                   data-task-id="${TaskUI.escapeHtml(task.id)}"
-                   aria-label="아래로 이동">
-             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-               <path d="M5.5 7.5 10 12l4.5-4.5"
-                     stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round"/>
-             </svg>
-           </button>
-         </div>`
-      : '';
+    const todayOrderClass = options.todayOrderAction ? ' task-card-sortable' : '';
 
     const trailingHtml = (right || moveToInboxHtml || carryOverHtml || moveToTodayHtml)
       ? `<div class="task-row-trailing">
@@ -379,7 +354,7 @@
     const actionsHtml = overdueActionsHtml || deferReasonActionsHtml;
 
     return `
-<div class="task-card task-card-clickable ${staleCarryOver ? 'task-card-stale' : ''}"
+<div class="task-card task-card-clickable${todayOrderClass} ${staleCarryOver ? 'task-card-stale' : ''}"
      data-task-id="${TaskUI.escapeHtml(task.id)}"
      tabindex="0"
      role="button"
@@ -387,7 +362,6 @@
   <div class="task-row ${options.rowClass || ''}">
     <div class="task-left-bar" style="background:${barColor};"></div>
     ${checkHtml}
-    ${todayOrderHtml}
 
     <div class="min-w-0 flex-1">
       <div class="flex items-center gap-2 min-w-0">

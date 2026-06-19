@@ -876,51 +876,34 @@ select:focus{
   transform:scale(.98);
 }
 
-.task-order-actions{
-  display:inline-flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:2px;
-  border:1px solid #e2e8f0;
-  border-radius:14px;
-  background:linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  box-shadow:0 8px 18px rgba(15,23,42,.05);
-  padding:2px;
-  flex:0 0 auto;
+.task-card-sortable{
+  touch-action:pan-y;
+  -webkit-user-select:none;
+  user-select:none;
 }
 
-.task-order-action{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width:26px;
-  height:20px;
-  border-radius:10px;
-  color:#64748b;
-  transition:background .12s ease, color .12s ease, transform .12s ease;
+.task-card-dragging{
+  opacity:.72;
+  transform:scale(.985);
+  box-shadow:0 14px 30px rgba(15,23,42,.12);
 }
 
-.task-order-action svg{
-  width:15px;
-  height:15px;
-  flex:0 0 auto;
+.task-list-dragging .task-card{
+  transition:transform .18s ease, opacity .18s ease, box-shadow .18s ease;
 }
 
-.task-order-action:hover{
-  background:#e2e8f0;
-  color:#334155;
+.task-list-dragging,
+.task-list-dragging *{
+  -webkit-user-select:none;
+  user-select:none;
 }
 
-.task-order-action:active{
-  transform:scale(.94);
+.task-list-dragging .task-card-sortable{
+  cursor:grabbing;
 }
 
-.task-order-action:disabled{
-  cursor:default;
-  opacity:.28;
+.task-list-dragging .task-card-clickable:hover .task-row{
   background:transparent;
-  transform:none;
 }
 
 .task-inline-action{
@@ -1150,11 +1133,49 @@ select:focus{
   align-items:center;
   gap:5px;
   min-height:24px;
+  border:1px solid transparent;
+  border-radius:999px;
+  padding:3px 8px;
+  background:transparent;
   white-space:nowrap;
+  transition:background .16s ease, border-color .16s ease, color .16s ease, opacity .16s ease;
 }
 
 .calendar-dot-legend .calendar-day-dot{
   margin-top:0;
+}
+
+.calendar-dot-filter-toggle{
+  cursor:pointer;
+}
+
+.calendar-dot-filter-toggle:hover{
+  border-color:var(--app-border-soft);
+  background:#fff;
+  color:var(--app-text);
+}
+
+.calendar-dot-filter-toggle:focus-visible{
+  outline:2px solid rgba(37,99,235,.35);
+  outline-offset:2px;
+}
+
+.calendar-dot-filter-toggle.is-off{
+  border-color:var(--app-border-soft);
+  background:rgba(255,255,255,.55);
+  color:#94a3b8;
+  opacity:.72;
+}
+
+.calendar-dot-filter-toggle.is-off .calendar-day-dot{
+  background:#cbd5e1;
+}
+
+.calendar-filter-hide-task .calendar-day-dots .calendar-day-dot-task,
+.calendar-filter-hide-done .calendar-day-dots .calendar-day-dot-done,
+.calendar-filter-hide-stale .calendar-day-dots .calendar-day-dot-stale,
+.calendar-filter-hide-dday .calendar-day-dots .calendar-day-dot-dday{
+  display:none;
 }
 
 .task-modal-panel{

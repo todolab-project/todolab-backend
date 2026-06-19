@@ -28,6 +28,8 @@
 
   let navLocked = false;
   const NAV_LOCK_MS = 650;
+  const FILTER_STORAGE_KEY = 'todolab.calendar.filters';
+  const FILTER_KINDS = ['task', 'done', 'stale', 'dday'];
 
   function lockNav() {
     navLocked = true;
@@ -113,6 +115,56 @@
   prevBtn?.addEventListener('click', (e) => { e.preventDefault(); gotoPrevWeek(); });
   nextBtn?.addEventListener('click', (e) => { e.preventDefault(); gotoNextWeek(); });
 
+  function readCalendarFilters() {
+    const filters = Object.fromEntries(FILTER_KINDS.map(kind => [kind, true]));
+    try {
+      const saved = JSON.parse(localStorage.getItem(FILTER_STORAGE_KEY) || '{}');
+      FILTER_KINDS.forEach(kind => {
+        if (typeof saved[kind] === 'boolean') filters[kind] = saved[kind];
+      });
+    } catch (_) {
+      // Ignore broken localStorage values and fall back to all visible.
+    }
+    return filters;
+  }
+
+  function writeCalendarFilters(filters) {
+    try {
+      localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
+    } catch (_) {
+      // The current page can still apply the filter even if persistence fails.
+    }
+  }
+
+  function applyCalendarFilters(filters) {
+    FILTER_KINDS.forEach(kind => {
+      root.classList.toggle(`calendar-filter-hide-${kind}`, !filters[kind]);
+    });
+
+    root.querySelectorAll('[data-calendar-filter]').forEach(button => {
+      const kind = button.dataset.calendarFilter;
+      const isOn = filters[kind] !== false;
+      button.classList.toggle('is-off', !isOn);
+      button.setAttribute('aria-pressed', String(isOn));
+    });
+  }
+
+  function initCalendarFilters() {
+    let filters = readCalendarFilters();
+    applyCalendarFilters(filters);
+
+    root.querySelectorAll('[data-calendar-filter]').forEach(button => {
+      button.addEventListener('click', () => {
+        const kind = button.dataset.calendarFilter;
+        if (!FILTER_KINDS.includes(kind)) return;
+
+        filters = { ...filters, [kind]: filters[kind] === false };
+        writeCalendarFilters(filters);
+        applyCalendarFilters(filters);
+      });
+    });
+  }
+
   function todayYmd() {
     const d = new Date();
     const y = d.getFullYear();
@@ -180,6 +232,7 @@
   }
 
   $retry?.addEventListener('click', load);
+  initCalendarFilters();
 
   if (strip) {
     strip.addEventListener('wheel', (e) => {

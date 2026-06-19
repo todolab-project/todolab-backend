@@ -131,17 +131,112 @@
 
     showList(tasks.length);
     $list.innerHTML = tasks.map(TaskUI.renderTodayCard).join('');
-    updateTodayOrderControls();
   }
 
-  function updateTodayOrderControls() {
-    if (!$list) return;
-    const cards = Array.from($list.querySelectorAll('.task-card'));
-    cards.forEach((card, index) => {
-      const up = card.querySelector('[data-action="today-order-up"]');
-      const down = card.querySelector('[data-action="today-order-down"]');
-      if (up) up.disabled = index === 0;
-      if (down) down.disabled = index === cards.length - 1;
+  function getTodayCards() {
+    return Array.from($list?.querySelectorAll('.task-card[data-task-id]') || []);
+  }
+
+  function getDragAfterCard(y, draggedCard) {
+    return getTodayCards()
+      .filter(card => card !== draggedCard)
+      .reduce((closest, card) => {
+        const box = card.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset, element: card };
+        }
+        return closest;
+      }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+  }
+
+  async function persistTodayOrder(id, fromIndex, toIndex) {
+    if (fromIndex === toIndex) return;
+
+    const direction = toIndex < fromIndex ? 'UP' : 'DOWN';
+    const moves = Math.abs(toIndex - fromIndex);
+    for (let i = 0; i < moves; i += 1) {
+      await TaskApi.reorderToday(id, date, direction);
+    }
+  }
+
+  function initTodayDragSort() {
+    if (!$list || $list.dataset.dragSortBound === '1') return;
+    $list.dataset.dragSortBound = '1';
+
+    let drag = null;
+    const interactiveSelector = 'button,a,input,textarea,select,label,[data-action],.check-box';
+
+    function cleanup() {
+      if (!drag) return;
+      drag.card.classList.remove('task-card-dragging');
+      $list.classList.remove('task-list-dragging');
+      drag = null;
+    }
+
+    $list.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+      const card = e.target.closest('.task-card-sortable[data-task-id]');
+      const cards = getTodayCards();
+      if (!card || cards.length < 2) return;
+      if (e.target.closest(interactiveSelector)) return;
+
+      e.preventDefault();
+
+      drag = {
+        id: card.getAttribute('data-task-id'),
+        card,
+        fromIndex: cards.indexOf(card),
+        startY: e.clientY,
+        moved: false
+      };
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      e.preventDefault();
+
+      if (Math.abs(e.clientY - drag.startY) > 8) {
+        drag.moved = true;
+        drag.card.classList.add('task-card-dragging');
+        $list.classList.add('task-list-dragging');
+      }
+
+      if (!drag.moved) return;
+
+      const afterCard = getDragAfterCard(e.clientY, drag.card);
+      if (afterCard == null) {
+        $list.appendChild(drag.card);
+      } else {
+        $list.insertBefore(drag.card, afterCard);
+      }
+    }, { passive: false });
+
+    window.addEventListener('pointerup', async () => {
+      if (!drag) return;
+
+      const { id, fromIndex, card, moved } = drag;
+      const toIndex = getTodayCards().indexOf(card);
+      cleanup();
+
+      if (!id || !moved || fromIndex === toIndex) {
+        return;
+      }
+
+      try {
+        await persistTodayOrder(id, fromIndex, toIndex);
+        await load();
+      } catch (err) {
+        showActionError(`순서 변경 실패: ${err.message}`);
+        await load();
+      }
+    });
+
+    window.addEventListener('pointercancel', async () => {
+      if (!drag) return;
+      cleanup();
+      await load();
     });
   }
 
@@ -298,8 +393,7 @@
 
   $list?.addEventListener('click', async (e) => {
     const btn = e.target.closest(
-      '[data-action="complete-task"], [data-action="carry-over-task"], [data-action="move-to-inbox"], ' +
-      '[data-action="today-order-up"], [data-action="today-order-down"]'
+      '[data-action="complete-task"], [data-action="carry-over-task"], [data-action="move-to-inbox"]'
     );
     if (!btn) return;
 
@@ -324,20 +418,6 @@
         showActionSuccess('일정을 제거하고 기록함으로 이동했어요.');
       } catch (err) {
         showActionError(`기록함 이동 실패: ${err.message}`);
-      } finally {
-        btn.disabled = false;
-      }
-      return;
-    }
-
-    if (btn.dataset.action === 'today-order-up' || btn.dataset.action === 'today-order-down') {
-      try {
-        btn.disabled = true;
-        const direction = btn.dataset.action === 'today-order-up' ? 'UP' : 'DOWN';
-        await TaskApi.reorderToday(id, date, direction);
-        await load();
-      } catch (err) {
-        showActionError(`순서 변경 실패: ${err.message}`);
       } finally {
         btn.disabled = false;
       }
@@ -597,6 +677,8 @@
       btn.disabled = false;
     }
   });
+
+  initTodayDragSort();
 
   load();
 })();
