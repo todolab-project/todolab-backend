@@ -13,6 +13,10 @@
   const $empty    = document.getElementById('today-empty');
   const $card     = document.getElementById('today-card');
   const $list     = document.getElementById('today-list');
+  const $taskCount = document.getElementById('today-task-count');
+  const $scheduleSection = document.getElementById('today-schedule-section');
+  const $scheduleList = document.getElementById('today-schedule-list');
+  const $scheduleCount = document.getElementById('today-schedule-count');
   const $dateText = document.getElementById('todayDateText');
   const $quickForm = document.getElementById('todayQuickForm');
   const $quickTitle = document.getElementById('todayQuickTitle');
@@ -41,6 +45,7 @@
     $error?.classList.add('hidden');
     $empty?.classList.add('hidden');
     $card?.classList.add('hidden');
+    $scheduleSection?.classList.add('hidden');
   }
 
   function setCount(n) {
@@ -79,10 +84,11 @@
     setCount(0);
   }
 
-  function showList(n) {
+  function showTodayContent(taskCount, scheduleCount) {
     hideAll();
-    $card?.classList.remove('hidden');
-    setCount(n);
+    if (taskCount > 0) $card?.classList.remove('hidden');
+    if (scheduleCount > 0) $scheduleSection?.classList.remove('hidden');
+    setCount(taskCount);
   }
 
   function fmtDowKorean(yyyyMmDd) {
@@ -118,8 +124,19 @@
     $inboxCount.textContent = `${n}개`;
   }
 
-  function renderToday(tasks) {
-    if (!Array.isArray(tasks) || tasks.length === 0) {
+  function isCalendarSchedule(task) {
+    return String(task?.type || '').toUpperCase() === 'SCHEDULE';
+  }
+
+  function renderToday(tasks, schedules) {
+    const todayTasks = Array.isArray(tasks) ? tasks : [];
+    const todaySchedules = Array.isArray(schedules) ? schedules : [];
+
+    if (!todayTasks.length && !todaySchedules.length) {
+      if ($list) $list.innerHTML = '';
+      if ($scheduleList) $scheduleList.innerHTML = '';
+      if ($taskCount) $taskCount.textContent = '0개';
+      if ($scheduleCount) $scheduleCount.textContent = '0개';
       showEmpty();
       return;
     }
@@ -129,8 +146,15 @@
       return;
     }
 
-    showList(tasks.length);
-    $list.innerHTML = tasks.map(TaskUI.renderTodayCard).join('');
+    showTodayContent(todayTasks.length, todaySchedules.length);
+    if ($taskCount) $taskCount.textContent = `${todayTasks.length}개`;
+    if ($scheduleCount) $scheduleCount.textContent = `${todaySchedules.length}개`;
+    if ($list) $list.innerHTML = todayTasks.map(TaskUI.renderTodayCard).join('');
+    if ($scheduleList) {
+      $scheduleList.innerHTML = todaySchedules
+        .map(task => TaskUI.renderWeekCard ? TaskUI.renderWeekCard(task) : TaskUI.renderTaskCard(task))
+        .join('');
+    }
   }
 
   function getTodayCards() {
@@ -344,9 +368,13 @@
         TaskApi.getDoneTasks(date)
       ]);
 
+      const plannedItems = Array.isArray(todayTasks) ? todayTasks : [];
+      const calendarSchedules = plannedItems.filter(isCalendarSchedule);
+      const executableTasks = plannedItems.filter(task => !isCalendarSchedule(task));
+
       renderOverdue(overdueTasks ?? []);
       renderRecommendations(recommendations ?? []);
-      renderToday(todayTasks ?? []);
+      renderToday(executableTasks, calendarSchedules);
       renderInbox(inboxTasks ?? []);
       renderDone(doneTasks ?? []);
     } catch (e) {

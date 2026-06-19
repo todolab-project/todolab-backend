@@ -126,8 +126,30 @@
                              class="app-section-title">오늘 할 일</div>
                         <div class="app-section-subtitle">실행할 순서대로 정리해요</div>
                     </div>
+                    <div id="today-task-count"
+                         class="app-pill app-pill-blue">
+                        0개
+                    </div>
                 </div>
                 <div id="today-list" class="space-y-3"></div>
+            </section>
+
+            <section id="today-schedule-section"
+                     class="app-section today-section hidden"
+                     aria-labelledby="today-schedule-title">
+                <div class="app-section-header">
+                    <div>
+                        <div id="today-schedule-title"
+                             class="app-section-title">캘린더 일정</div>
+                        <div class="app-section-subtitle">시간표처럼 확인할 일정이에요</div>
+                    </div>
+                    <div id="today-schedule-count"
+                         class="app-pill">
+                        0개
+                    </div>
+                </div>
+
+                <div id="today-schedule-list" class="mt-4 space-y-3"></div>
             </section>
 
             <section class="app-section today-section">
