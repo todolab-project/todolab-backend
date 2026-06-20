@@ -363,6 +363,29 @@ select:focus{
   transform:scale(.98);
 }
 
+.app-primary-btn:disabled,
+.task-secondary-action:disabled,
+.task-inline-action:disabled,
+.task-overdue-action:disabled,
+.task-overdue-menu-action:disabled,
+.task-overdue-more-toggle:disabled,
+.calendar-error-retry:disabled{
+  cursor:wait;
+  opacity:.56;
+  box-shadow:none;
+  transform:none;
+}
+
+.app-primary-btn:disabled:hover,
+.task-secondary-action:disabled:hover,
+.task-inline-action:disabled:hover,
+.task-overdue-action:disabled:hover,
+.task-overdue-menu-action:disabled:hover,
+.task-overdue-more-toggle:disabled:hover,
+.calendar-error-retry:disabled:hover{
+  filter:none;
+}
+
 /* 카드 */
 .task-card{
   background:var(--app-surface);
@@ -736,11 +759,6 @@ select:focus{
   transform:scale(.98);
 }
 
-.task-overdue-action:disabled{
-  cursor:wait;
-  opacity:.55;
-}
-
 .task-overdue-action-primary{
   border-color:var(--app-primary);
   background:var(--app-primary);
@@ -835,11 +853,6 @@ select:focus{
 .task-overdue-menu-action-danger:hover{
   background:#fee2e2;
   color:#991b1b;
-}
-
-.task-overdue-menu-action:disabled{
-  cursor:wait;
-  opacity:.55;
 }
 
 .task-secondary-action{
@@ -2022,11 +2035,6 @@ textarea.task-modal-input{
 
 .calendar-error-retry:hover{
   background:#fef2f2;
-}
-
-.calendar-error-retry:disabled{
-  cursor:wait;
-  opacity:0.55;
 }
 
 @media (max-width:420px){

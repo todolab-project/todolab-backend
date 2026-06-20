@@ -185,7 +185,7 @@
                      class="min-w-0 rounded-lg border border-slate-200 bg-white px-4 py-3 text-[14px] font-semibold text-gray-900 outline-none"
                      placeholder="오늘 할 일" />
               <button type="submit"
-                      class="app-primary-btn rounded-lg px-4 py-3 text-[13px] disabled:opacity-50">
+                      class="app-primary-btn rounded-lg px-4 py-3 text-[13px]">
                 추가
               </button>
             </form>
