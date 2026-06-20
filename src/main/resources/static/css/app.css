@@ -1128,6 +1128,22 @@ select:focus{
 }
 
 @media (max-width:340px){
+  .task-row{
+    gap:9px;
+  }
+
+  .task-row-trailing{
+    width:100%;
+    min-width:0;
+    justify-content:flex-start;
+    flex-wrap:wrap;
+  }
+
+  .task-row-today .task-row-trailing,
+  .task-row-inbox .task-row-trailing{
+    justify-content:flex-end;
+  }
+
   .task-actions-controls{
     width:100%;
     flex:1 1 100%;
@@ -1932,6 +1948,12 @@ textarea.task-modal-input{
 
 #ddaySubmit{
   grid-column:1 / -1;
+}
+
+@media (max-width:360px){
+  #ddayForm{
+    grid-template-columns:1fr;
+  }
 }
 
 .today-summary-grid{
