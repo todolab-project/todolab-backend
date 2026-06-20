@@ -4,7 +4,7 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-src/main/resources/application-local.yml
+backend/src/main/resources/application-local.yml
 .env
 
 ### IntelliJ IDEA ###
