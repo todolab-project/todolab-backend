@@ -74,8 +74,4 @@ docker compose up --build
 - 복잡한 리액티브 흐름 대신 Spring MVC와 Virtual Threads를 사용해 코드 가독성과 동시 처리 성능의 균형을 맞춥니다.
 - JPA와 QueryDSL을 사용해 도메인 중심 모델과 명시적인 조회 조건을 구성합니다.
 - 핵심 도메인, 서비스, 배치 동작은 자동화된 테스트로 검증합니다.
-- 모바일 클라이언트와의 API 계약 변경은 호환성과 마이그레이션 계획을 함께 관리합니다.
-
-## 관련 저장소
-
-- [todolab-mobile](https://github.com/todolab-project/todolab-mobile) — ToDoLab 모바일 클라이언트
+- API 계약 변경은 호환성과 마이그레이션 계획을 함께 관리합니다.
