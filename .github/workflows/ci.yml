@@ -14,10 +14,6 @@ jobs:
     name: Test and Build
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: backend
-
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -45,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: test-report
-          path: backend/build/reports/tests/test
+          path: build/reports/tests/test
 
       - name: Upload coverage report
         if: always()
@@ -53,5 +49,5 @@ jobs:
         with:
           name: coverage-report
           path: |
-            backend/build/reports/jacoco/test/html
-            backend/build/reports/jacoco/test/jacocoTestReport.xml
+            build/reports/jacoco/test/html
+            build/reports/jacoco/test/jacocoTestReport.xml

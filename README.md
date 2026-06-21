@@ -1,94 +1,81 @@
-# 🗓️ ToDoLab — 일정 관리 프로젝트
+# ToDoLab Backend
 
-ToDoLab은 **일정 관리 기능을 베이스로**,  
-제가 **공부하고 싶었던 기술들을 하나씩 붙여가며 확장해 나가는 실험형 프로젝트**입니다.
+ToDoLab의 일정·할 일 도메인, 서버 렌더링 화면, 배치 작업을 담당하는 백엔드 애플리케이션입니다.
 
----
+명확한 도메인 모델과 검증 가능한 구조를 우선하며, Spring MVC와 Virtual Threads를 기반으로 읽기 쉬운 명령형 코드와 동시 처리 성능을 함께 확보하는 것을 목표로 합니다.
 
-## 🧱 기술 스택
+## 주요 기능
 
-### Backend
-- ~~Java 21~~ → **Java 25**
-- ~~Spring Boot 3.4~~ → **Spring Boot 4.0.1**
-- ~~Spring WebFlux~~ → **Spring MVC (Virtual Thread 기반)**
-- Spring Validation
-- ~~Project Reactor~~ → *(Virtual Thread 도입으로 의존성 제거)*
-- Spring Data JPA
+- 일정과 할 일 생성·조회·수정·삭제
+- 오늘·주간·월간 일정 조회와 정렬
+- D-Day 목표 관리
+- 일일 일정 메일 발송 배치
+- Thymeleaf 기반 서버 렌더링 화면
+- 일관된 API 응답과 예외 처리
 
-### Frontend
-- Thymeleaf
+## 기술 스택
 
-### Database
-- MySQL 8.x 
+| 영역 | 기술 |
+| --- | --- |
+| Language | Java 25 |
+| Framework | Spring Boot 4.0.6, Spring MVC, Virtual Threads |
+| Data | Spring Data JPA, QueryDSL, MySQL 8 |
+| Batch & Mail | Spring Batch, Spring Mail |
+| View | Thymeleaf |
+| Build & Test | Gradle Wrapper, JUnit, JaCoCo |
+| Runtime | Docker, Docker Compose |
 
----
+## 프로젝트 구조
 
-## 💡 기술 선택 이유
+```text
+src/main/java/com/todolab/
+├── common/   # 공통 API 응답과 예외 처리
+├── config/   # 애플리케이션 설정
+├── task/     # 일정·할 일 도메인
+├── dday/     # D-Day 도메인
+├── batch/    # 일일 일정 배치
+├── mail/     # 메일 발송
+└── view/     # 서버 렌더링 화면
+```
 
-### Spring WebFlux vs Spring MVC
+## 로컬 개발
 
-**비교군:** Spring MVC
+### 요구 사항
 
-- ~~MVC는 쓰레드 기반 동기 모델로 구조는 단순하지만 고부하 환경에서 비효율적~~  
-  → **Virtual Thread 도입으로 Thread-per-request 모델의 확장성 한계가 크게 완화됨**
+- JDK 25
+- Docker 및 Docker Compose
 
-- ~~WebFlux는 논블로킹 기반으로 높은 동시성 처리에 유리함~~  
-  → **논블로킹의 이점은 여전히 존재하지만, 단순 CRUD 도메인에서는 구조 복잡도가 더 큼**
+### 테스트
 
-**선택 이력:**
-- ~~리액티브 기반 고성능 구조를 직접 실험해보고 싶었고, Reactor 기반 데이터 흐름을 다뤄보기 위해 WebFlux 선택~~
-- **Java 21+ 이후 Virtual Thread 등장으로, 기존 MVC 모델을 유지하면서도 고동시성 처리가 가능해짐**
-- **코드 가독성, 디버깅, 트랜잭션 처리 측면에서 MVC + Virtual Thread가 더 합리적이라고 판단**
+```bash
+./gradlew test
+```
 
----
+### 빌드
 
-### Virtual Thread 도입으로 바뀐 전제
+```bash
+./gradlew clean build
+```
 
-- ~~논블로킹이 아니면 고동시성 처리가 어렵다~~  
-  → **블로킹 코드도 대량 동시성 처리 가능**
+### Docker Compose
 
-- ~~WebFlux가 고성능 서버의 기본 선택~~  
-  → **MVC + Virtual Thread가 새로운 범용 선택지로 부상**
+`.env.example`을 `.env`로 복사한 뒤 실제 로컬 값을 입력합니다.
 
-- ~~Reactor 기반 흐름 제어가 필수~~  
-  → **명령형 코드 기반 구조로 단순화 가능**
+```bash
+cp .env.example .env
+docker volume create todolab-mysql-data
+docker compose up --build
+```
 
----
+> `.env`와 `application-local.yml`은 저장소에 커밋하지 않습니다.
 
-### WebFlux vs Virtual Thread 기반 MVC
+## 기술적 결정
 
-| 항목 | ~~WebFlux~~ | Virtual Thread + MVC |
-|----|------------|---------------------|
-| 동시성 모델 | 논블로킹 | 경량 블로킹 |
-| 코드 복잡도 | 높음 | 낮음 |
-| 디버깅 | 어려움 | 쉬움 |
-| JPA 궁합 | 제한적 | 매우 좋음 |
+- 복잡한 리액티브 흐름 대신 Spring MVC와 Virtual Threads를 사용해 코드 가독성과 동시 처리 성능의 균형을 맞춥니다.
+- JPA와 QueryDSL을 사용해 도메인 중심 모델과 명시적인 조회 조건을 구성합니다.
+- 핵심 도메인, 서비스, 배치 동작은 자동화된 테스트로 검증합니다.
+- 모바일 클라이언트와의 API 계약 변경은 호환성과 마이그레이션 계획을 함께 관리합니다.
 
----
+## 관련 저장소
 
-### 🔄 R2DBC → JDBC 전환
-
-초기에는 **리액티브 전체 흐름을 구성해보는 목적**으로 R2DBC를 선택했습니다.  
-하지만 프로젝트가 확장되면서 현실적인 문제들이 나타났습니다.
-
-### ❌ R2DBC 유지가 어려웠던 이유
-1. **생태계 부족**
-   - JPA 연관관계, 영속성 컨텍스트, Auditing 미지원
-2. **테스트 환경 불편**
-   - H2 Memory 테스트 사실상 불가
-   - Testcontainers 의존으로 테스트 속도 저하
-3. **실무 구조와의 괴리**
-   - 리액티브 DB 계층 실험이 프로젝트 본질을 흐림
-
----
-
-### Thymeleaf vs React / Vue
-
-**비교군:** React / Vue
-
-- SPA는 확장성과 자유도가 높지만 초기 세팅이 무겁고 번거로움 *(기존 판단 유지)*
-- 이번 프로젝트의 목적은 복잡한 UI가 아니라 **백엔드 구조 실험**
-
-**선택 이유:**
-- 서버 사이드 렌더링 기반으로 빠른 프로토타이핑 가능
-- 프론트엔드 복잡도를 최소화하고 서버 구조에 집중하기 위함
+- [todolab-mobile](https://github.com/todolab-project/todolab-mobile) — ToDoLab 모바일 클라이언트
