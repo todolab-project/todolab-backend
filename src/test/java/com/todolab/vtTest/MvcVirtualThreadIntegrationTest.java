@@ -6,6 +6,10 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration;
 import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 import org.springframework.boot.jdbc.autoconfigure.DataSourceInitializationAutoConfiguration;
+import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
+import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
+import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterAutoConfiguration;
+import org.springframework.boot.security.autoconfigure.web.servlet.ServletWebSecurityAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
@@ -38,7 +42,11 @@ class MvcVirtualThreadIntegrationTest {
     @EnableAutoConfiguration(exclude = {
             DataSourceAutoConfiguration.class,
             DataSourceInitializationAutoConfiguration.class,
-            HibernateJpaAutoConfiguration.class
+            HibernateJpaAutoConfiguration.class,
+            SecurityAutoConfiguration.class,
+            SecurityFilterAutoConfiguration.class,
+            ServletWebSecurityAutoConfiguration.class,
+            UserDetailsServiceAutoConfiguration.class
     })
     @Import(VtTestEndPointConfig.class)
     static class TestApp {
