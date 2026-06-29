@@ -1,0 +1,59 @@
+package com.todolab.auth.controller;
+
+import com.todolab.auth.service.JwtTokenService;
+import com.todolab.common.api.ErrorCode;
+import com.todolab.mail.MailService;
+import com.todolab.user.domain.User;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest(properties = "spring.batch.job.enabled=false")
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+class AuthSecurityIntegrationTest {
+
+    @Autowired
+    MockMvc mockMvc;
+
+    @Autowired
+    JwtTokenService jwtTokenService;
+
+    @MockitoBean
+    MailService mailService;
+
+    @Test
+    @DisplayName("내 인증 정보 조회 성공 - 유효한 Bearer 토큰이면 사용자 클레임을 반환한다")
+    void me_success() throws Exception {
+        User user = new User("test@example.com", "encoded-password", "테스터");
+        ReflectionTestUtils.setField(user, "id", 7L);
+        String accessToken = jwtTokenService.createAccessToken(user).tokenValue();
+
+        mockMvc.perform(get("/api/v1/auth/me")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.id").value(7))
+                .andExpect(jsonPath("$.data.email").value("test@example.com"))
+                .andExpect(jsonPath("$.data.role").value("USER"));
+    }
+
+    @Test
+    @DisplayName("내 인증 정보 조회 실패 - 토큰이 없으면 401을 반환한다")
+    void me_unauthorized() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.error.code").value(ErrorCode.UNAUTHORIZED.getCode()));
+    }
+}
