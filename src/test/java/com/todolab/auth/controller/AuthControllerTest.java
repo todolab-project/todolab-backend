@@ -1,6 +1,10 @@
 package com.todolab.auth.controller;
 
+import com.todolab.auth.dto.LoginRequest;
 import com.todolab.auth.dto.RegisterRequest;
+import com.todolab.auth.dto.TokenResponse;
+import com.todolab.auth.exception.InvalidCredentialsException;
+import com.todolab.auth.service.AuthService;
 import com.todolab.common.api.ApiExceptionHandler;
 import com.todolab.common.api.ErrorCode;
 import com.todolab.user.domain.UserRole;
@@ -37,6 +41,9 @@ class AuthControllerTest {
 
     @MockitoBean
     UserService userService;
+
+    @MockitoBean
+    AuthService authService;
 
     @Test
     @DisplayName("회원가입 성공")
@@ -98,5 +105,55 @@ class AuthControllerTest {
 
         then(userService).should().register(any(RegisterRequest.class));
         then(userService).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("로그인 성공 - Bearer access token을 반환한다")
+    void login_success() throws Exception {
+        LoginRequest request = new LoginRequest("test@example.com", "password123");
+        UserResponse user = new UserResponse(
+                1L,
+                "test@example.com",
+                "테스터",
+                UserRole.USER,
+                LocalDateTime.of(2026, 6, 30, 0, 30)
+        );
+        TokenResponse response = new TokenResponse(
+                "Bearer",
+                "access-token",
+                LocalDateTime.of(2026, 6, 30, 1, 30),
+                user
+        );
+
+        given(authService.login(any(LoginRequest.class))).willReturn(response);
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.data.accessToken").value("access-token"))
+                .andExpect(jsonPath("$.data.user.email").value("test@example.com"));
+
+        then(authService).should().login(any(LoginRequest.class));
+        then(authService).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("로그인 실패 - 인증 정보가 올바르지 않으면 401을 반환한다")
+    void login_invalidCredentials() throws Exception {
+        LoginRequest request = new LoginRequest("test@example.com", "wrong-password");
+        given(authService.login(any(LoginRequest.class))).willThrow(new InvalidCredentialsException());
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.error.code").value(ErrorCode.INVALID_CREDENTIALS.getCode()));
+
+        then(authService).should().login(any(LoginRequest.class));
+        then(authService).shouldHaveNoMoreInteractions();
     }
 }

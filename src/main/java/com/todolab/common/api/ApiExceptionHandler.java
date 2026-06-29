@@ -1,5 +1,6 @@
 package com.todolab.common.api;
 
+import com.todolab.auth.exception.InvalidCredentialsException;
 import com.todolab.dday.exception.DdayGoalNotFoundException;
 import com.todolab.task.exception.TaskValidationException;
 import com.todolab.task.exception.TaskNotFoundException;
@@ -103,6 +104,13 @@ public class ApiExceptionHandler {
         log.warn("User Email Already Exists : {}", e.getDetail());
         return ResponseEntity.status(ErrorCode.USER_EMAIL_ALREADY_EXISTS.getStatus())
                 .body(ApiResponse.failure(ErrorCode.USER_EMAIL_ALREADY_EXISTS));
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ApiResponse<?>> handleInvalidCredentialsException(InvalidCredentialsException e) {
+        log.warn("Invalid Credentials");
+        return ResponseEntity.status(ErrorCode.INVALID_CREDENTIALS.getStatus())
+                .body(ApiResponse.failure(ErrorCode.INVALID_CREDENTIALS));
     }
 
     @ExceptionHandler(Exception.class)

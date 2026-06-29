@@ -7,6 +7,12 @@ spring:
       enabled: true
 
 app:
+  auth:
+    jwt:
+      issuer: https://todolab.local
+      secret: ${TODOLAB_JWT_SECRET:dev-only-not-for-production-jwt-secret}
+      access-token-ttl: PT1H
+
   cors:
     allowed-origins: http://localhost:8081,http://localhost:8090
 

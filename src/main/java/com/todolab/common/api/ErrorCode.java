@@ -13,6 +13,9 @@ public enum ErrorCode {
     REQUIRED_VALUE_MISSING(HttpStatus.BAD_REQUEST, 10002, "필수값이 없습니다."),
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, 10003, "요청한 리소스를 찾을 수 없습니다."),
 
+    // Auth
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, 11001, "이메일 또는 비밀번호가 올바르지 않습니다."),
+
     // Task
     TASK_NOT_FOUND(HttpStatus.NOT_FOUND, 20001, "일정을 찾을 수 없습니다."),
 

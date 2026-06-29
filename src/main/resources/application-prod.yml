@@ -35,6 +35,12 @@ spring:
           starttls.enable: true
 
 app:
+  auth:
+    jwt:
+      issuer: ${TODOLAB_JWT_ISSUER}
+      secret: ${TODOLAB_JWT_SECRET}
+      access-token-ttl: ${TODOLAB_JWT_ACCESS_TOKEN_TTL:PT1H}
+
   cors:
     allowed-origins: ${TODOLAB_ALLOWED_ORIGINS:}
 

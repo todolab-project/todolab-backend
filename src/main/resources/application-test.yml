@@ -6,3 +6,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+
+app:
+  auth:
+    jwt:
+      issuer: https://todolab.test
+      secret: test-only-jwt-secret-at-least-32-bytes
+      access-token-ttl: PT1H
