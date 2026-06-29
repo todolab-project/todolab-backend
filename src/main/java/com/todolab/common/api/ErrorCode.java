@@ -19,6 +19,9 @@ public enum ErrorCode {
     // D-Day
     DDAY_GOAL_NOT_FOUND(HttpStatus.NOT_FOUND, 30001, "D-Day 목표를 찾을 수 없습니다."),
 
+    // User
+    USER_EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, 40001, "이미 가입된 이메일입니다."),
+
     // 서버 내부 오류
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 99999, "서버 오류가 발생했습니다.");
 

@@ -1,0 +1,102 @@
+package com.todolab.auth.controller;
+
+import com.todolab.auth.dto.RegisterRequest;
+import com.todolab.common.api.ApiExceptionHandler;
+import com.todolab.common.api.ErrorCode;
+import com.todolab.user.domain.UserRole;
+import com.todolab.user.dto.UserResponse;
+import com.todolab.user.exception.UserEmailAlreadyExistsException;
+import com.todolab.user.service.UserService;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
+
+import java.time.LocalDateTime;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@Import(ApiExceptionHandler.class)
+@WebMvcTest(controllers = AuthController.class)
+class AuthControllerTest {
+
+    @Autowired
+    MockMvc mockMvc;
+
+    @Autowired
+    ObjectMapper objectMapper;
+
+    @MockitoBean
+    UserService userService;
+
+    @Test
+    @DisplayName("회원가입 성공")
+    void register_success() throws Exception {
+        RegisterRequest request = new RegisterRequest("test@example.com", "password123", "테스터");
+        UserResponse response = new UserResponse(
+                1L,
+                "test@example.com",
+                "테스터",
+                UserRole.USER,
+                LocalDateTime.of(2026, 6, 30, 0, 30)
+        );
+
+        given(userService.register(any(RegisterRequest.class))).willReturn(response);
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.email").value("test@example.com"))
+                .andExpect(jsonPath("$.data.displayName").value("테스터"))
+                .andExpect(jsonPath("$.data.role").value("USER"))
+                .andExpect(jsonPath("$.data.passwordHash").doesNotExist());
+
+        then(userService).should().register(any(RegisterRequest.class));
+        then(userService).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("회원가입 실패 - 요청값이 올바르지 않으면 400을 반환한다")
+    void register_invalidRequest() throws Exception {
+        RegisterRequest request = new RegisterRequest("not-email", "short", "");
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.error.code").value(ErrorCode.INVALID_INPUT.getCode()));
+
+        then(userService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("회원가입 실패 - 이미 가입된 이메일이면 409를 반환한다")
+    void register_duplicateEmail() throws Exception {
+        RegisterRequest request = new RegisterRequest("test@example.com", "password123", "테스터");
+        given(userService.register(any(RegisterRequest.class)))
+                .willThrow(new UserEmailAlreadyExistsException("test@example.com"));
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.error.code").value(ErrorCode.USER_EMAIL_ALREADY_EXISTS.getCode()));
+
+        then(userService).should().register(any(RegisterRequest.class));
+        then(userService).shouldHaveNoMoreInteractions();
+    }
+}

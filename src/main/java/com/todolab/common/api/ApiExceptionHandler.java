@@ -3,6 +3,7 @@ package com.todolab.common.api;
 import com.todolab.dday.exception.DdayGoalNotFoundException;
 import com.todolab.task.exception.TaskValidationException;
 import com.todolab.task.exception.TaskNotFoundException;
+import com.todolab.user.exception.UserEmailAlreadyExistsException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -95,6 +96,13 @@ public class ApiExceptionHandler {
         log.warn("Resource Not Found : {}", e.getResourcePath());
         return ResponseEntity.status(ErrorCode.RESOURCE_NOT_FOUND.getStatus())
                 .body(ApiResponse.failure(ErrorCode.RESOURCE_NOT_FOUND));
+    }
+
+    @ExceptionHandler(UserEmailAlreadyExistsException.class)
+    public ResponseEntity<ApiResponse<?>> handleUserEmailAlreadyExistsException(UserEmailAlreadyExistsException e) {
+        log.warn("User Email Already Exists : {}", e.getDetail());
+        return ResponseEntity.status(ErrorCode.USER_EMAIL_ALREADY_EXISTS.getStatus())
+                .body(ApiResponse.failure(ErrorCode.USER_EMAIL_ALREADY_EXISTS));
     }
 
     @ExceptionHandler(Exception.class)
