@@ -63,11 +63,17 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/images/**"
                         ).permitAll()
-                        // TODO: 웹 로그인 화면이 준비되면 authenticated()로 전환한다.
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated()
                 )
-                .formLogin(form -> form.loginPage("/login").permitAll())
-                .logout(logout -> logout.logoutUrl("/logout"))
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/tasks/today", true)
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                )
                 .build();
     }
 
