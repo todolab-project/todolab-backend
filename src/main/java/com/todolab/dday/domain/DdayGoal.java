@@ -1,5 +1,6 @@
 package com.todolab.dday.domain;
 
+import com.todolab.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -28,8 +29,17 @@ public class DdayGoal {
     @Column(name = "`CREATED_AT`", nullable = false)
     private LocalDateTime createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "`OWNER_USER_ID`")
+    private User owner;
+
     public DdayGoal(String title, LocalDate targetDate) {
+        this(title, targetDate, null);
+    }
+
+    public DdayGoal(String title, LocalDate targetDate, User owner) {
         update(title, targetDate);
+        this.owner = owner;
     }
 
     @PrePersist
@@ -48,6 +58,13 @@ public class DdayGoal {
 
         this.title = normalizedTitle;
         this.targetDate = targetDate;
+    }
+
+    public void assignOwner(User owner) {
+        if (owner == null) {
+            throw new IllegalArgumentException("owner는 필수입니다.");
+        }
+        this.owner = owner;
     }
 
     private String normalizeTitle(String title) {

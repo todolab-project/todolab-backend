@@ -2,6 +2,7 @@ package com.todolab.task.domain;
 
 import com.todolab.Constant;
 import com.todolab.dday.domain.DdayGoal;
+import com.todolab.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -81,6 +82,10 @@ public class Task {
     @JoinColumn(name = "`DDAY_GOAL_ID`")
     private DdayGoal ddayGoal;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "`OWNER_USER_ID`")
+    private User owner;
+
     @Column(name = "`CREATED_AT`")
     private LocalDateTime createdAt;
 
@@ -104,13 +109,14 @@ public class Task {
     @Builder
     public Task(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category,
                 TaskStatus status, LocalDate targetDate, Integer todayOrder, LocalDateTime completedAt, Integer carryOverCount,
-                DeferReason deferReason, DdayGoal ddayGoal) {
+                DeferReason deferReason, DdayGoal ddayGoal, User owner) {
         apply(title, description, type, startAt, endAt, allDay, category);
         applyStatus(status, targetDate, completedAt);
         this.todayOrder = todayOrder;
         this.carryOverCount = carryOverCount == null ? 0 : Math.max(0, carryOverCount);
         this.deferReason = deferReason;
         this.ddayGoal = ddayGoal;
+        this.owner = owner;
     }
 
     public void update(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category) {
@@ -191,6 +197,13 @@ public class Task {
 
     public void disconnectDdayGoal() {
         this.ddayGoal = null;
+    }
+
+    public void assignOwner(User owner) {
+        if (owner == null) {
+            throw new IllegalArgumentException("owner는 필수입니다.");
+        }
+        this.owner = owner;
     }
 
     public void setDeferReason(DeferReason deferReason) {
