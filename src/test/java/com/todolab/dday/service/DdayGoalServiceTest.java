@@ -7,9 +7,11 @@ import com.todolab.dday.repository.DdayGoalRepository;
 import com.todolab.task.domain.Task;
 import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.repository.TaskRepository;
+import com.todolab.user.domain.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -43,6 +45,42 @@ class DdayGoalServiceTest {
         assertThat(response.title()).isEqualTo("정보처리기사");
         assertThat(response.targetDate()).isEqualTo(LocalDate.of(2026, 6, 10));
         then(ddayGoalRepository).should().save(org.mockito.ArgumentMatchers.any(DdayGoal.class));
+        then(taskRepository).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("인증 사용자용 D-Day 목표 생성은 owner를 저장한다")
+    void createForOwner_success_assignOwner() {
+        DdayGoalService service = new DdayGoalService(ddayGoalRepository, taskRepository);
+        User owner = new User("owner@example.com", "encoded-password", "Owner");
+        given(ddayGoalRepository.save(org.mockito.ArgumentMatchers.any(DdayGoal.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        var response = service.createForOwner(
+                new DdayGoalRequest("정보처리기사", LocalDate.of(2026, 6, 10)),
+                owner
+        );
+
+        assertThat(response.title()).isEqualTo("정보처리기사");
+        ArgumentCaptor<DdayGoal> goalCaptor = ArgumentCaptor.forClass(DdayGoal.class);
+        then(ddayGoalRepository).should().save(goalCaptor.capture());
+        assertThat(goalCaptor.getValue().getOwner()).isSameAs(owner);
+        then(taskRepository).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("인증 사용자용 D-Day 목표 생성은 owner가 필수다")
+    void createForOwner_fail_nullOwner() {
+        DdayGoalService service = new DdayGoalService(ddayGoalRepository, taskRepository);
+
+        assertThatThrownBy(() -> service.createForOwner(
+                new DdayGoalRequest("정보처리기사", LocalDate.of(2026, 6, 10)),
+                null
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("owner는 필수입니다.");
+
+        then(ddayGoalRepository).shouldHaveNoInteractions();
         then(taskRepository).shouldHaveNoInteractions();
     }
 

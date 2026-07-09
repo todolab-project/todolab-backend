@@ -8,6 +8,7 @@ import com.todolab.dday.repository.DdayGoalRepository;
 import com.todolab.task.domain.Task;
 import com.todolab.task.dto.TaskResponse;
 import com.todolab.task.repository.TaskRepository;
+import com.todolab.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +25,19 @@ public class DdayGoalService {
 
     @Transactional
     public DdayGoalResponse create(DdayGoalRequest request) {
-        DdayGoal saved = ddayGoalRepository.save(new DdayGoal(request.title(), request.targetDate()));
+        return create(request, null);
+    }
+
+    @Transactional
+    public DdayGoalResponse createForOwner(DdayGoalRequest request, User owner) {
+        if (owner == null) {
+            throw new IllegalArgumentException("owner는 필수입니다.");
+        }
+        return create(request, owner);
+    }
+
+    private DdayGoalResponse create(DdayGoalRequest request, User owner) {
+        DdayGoal saved = ddayGoalRepository.save(new DdayGoal(request.title(), request.targetDate(), owner));
         return DdayGoalResponse.from(saved);
     }
 

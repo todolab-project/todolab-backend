@@ -13,6 +13,7 @@ import com.todolab.task.dto.TaskRecommendationResponse;
 import com.todolab.task.dto.TaskResponse;
 import com.todolab.task.exception.TaskNotFoundException;
 import com.todolab.task.repository.TaskRepository;
+import com.todolab.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,17 @@ public class TaskService {
     private final TaskCategoryGrouper taskCategoryGrouper;
 
     public TaskResponse create(TaskRequest req) {
+        return create(req, null);
+    }
+
+    public TaskResponse createForOwner(TaskRequest req, User owner) {
+        if (owner == null) {
+            throw new IllegalArgumentException("owner는 필수입니다.");
+        }
+        return create(req, owner);
+    }
+
+    private TaskResponse create(TaskRequest req, User owner) {
         Task task = Task.builder()
                 .title(req.title())
                 .description(req.description())
@@ -39,6 +51,7 @@ public class TaskService {
                 .endAt(req.endAt())
                 .allDay(req.allDay())
                 .category(req.category())
+                .owner(owner)
                 .build();
 
         Task saved = taskRepository.save(task);

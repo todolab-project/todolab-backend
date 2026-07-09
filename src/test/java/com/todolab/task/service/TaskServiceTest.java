@@ -16,10 +16,12 @@ import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.dto.TaskResponse;
 import com.todolab.task.exception.TaskNotFoundException;
 import com.todolab.task.repository.TaskRepository;
+import com.todolab.user.domain.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -164,6 +166,53 @@ class TaskServiceTest {
         assertThat(res.unscheduled()).isTrue();
 
         then(taskRepository).should(times(1)).save(any(Task.class));
+        then(taskTxService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("인증 사용자용 Task 생성은 owner를 저장한다")
+    void createForOwner_success_assignOwner() {
+        // given
+        User owner = new User("owner@example.com", "encoded-password", "Owner");
+        TaskRequest request = new TaskRequest(
+                "owned task",
+                null,
+                null,
+                null,
+                null,
+                false
+        );
+        given(taskRepository.save(any(Task.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        // when
+        TaskResponse res = taskService.createForOwner(request, owner);
+
+        // then
+        assertThat(res.title()).isEqualTo("owned task");
+        ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
+        then(taskRepository).should().save(taskCaptor.capture());
+        assertThat(taskCaptor.getValue().getOwner()).isSameAs(owner);
+        then(taskTxService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("인증 사용자용 Task 생성은 owner가 필수다")
+    void createForOwner_fail_nullOwner() {
+        TaskRequest request = new TaskRequest(
+                "owned task",
+                null,
+                null,
+                null,
+                null,
+                false
+        );
+
+        assertThatThrownBy(() -> taskService.createForOwner(request, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("owner는 필수입니다.");
+
+        then(taskRepository).shouldHaveNoInteractions();
         then(taskTxService).shouldHaveNoInteractions();
     }
 
