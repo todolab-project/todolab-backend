@@ -1,0 +1,36 @@
+package com.todolab.auth.service;
+
+import com.todolab.user.domain.User;
+import com.todolab.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class CurrentUserService {
+
+    private final UserRepository userRepository;
+
+    @Transactional(readOnly = true)
+    public User requireUser(Jwt jwt) {
+        if (jwt == null || jwt.getSubject() == null || jwt.getSubject().isBlank()) {
+            throw new AuthenticationCredentialsNotFoundException("인증 정보가 필요합니다.");
+        }
+
+        Long userId = parseUserId(jwt.getSubject());
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+    }
+
+    private Long parseUserId(String subject) {
+        try {
+            return Long.valueOf(subject);
+        } catch (NumberFormatException e) {
+            throw new AuthenticationCredentialsNotFoundException("인증 정보가 올바르지 않습니다.", e);
+        }
+    }
+}
