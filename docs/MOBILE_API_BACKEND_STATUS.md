@@ -14,7 +14,7 @@ Last audited: 2026-07-13
 
 1. [~] 인증 사용자 소유권
    - 완료: `Task`, `DdayGoal` owner 필드와 owner-aware repository/service path 추가
-   - 남음: `/api/v1/tasks`, `/api/v1/dday-goals`의 조회/수정/삭제 endpoint를 owner-aware service path로 확장
+   - 완료: `/api/v1/tasks`, `/api/v1/dday-goals`의 주요 조회/수정/삭제 endpoint를 owner-aware service path로 확장
    - 남음: 기존 `/api/tasks`, `/api/ddays` 호환 유지/제거 정책 결정
 
 2. [ ] Today / Calendar 여러 날 일정 범위 조회
@@ -172,8 +172,8 @@ Last audited: 2026-07-13
 
 ## 9. 추천 구현 순서
 
-1. [ ] `/api/v1/tasks` 조회/수정/삭제를 owner-aware service path로 확장
-2. [ ] `/api/v1/dday-goals` 조회/삭제/연결 Task 조회를 owner-aware service path로 확장
+1. [x] `/api/v1/tasks` 조회/수정/삭제를 owner-aware service path로 확장
+2. [x] `/api/v1/dday-goals` 조회/삭제/연결 Task 조회를 owner-aware service path로 확장
 3. [ ] Today 조회에 여러 날 schedule overlap 포함
 4. [ ] D-Day legacy 500 이슈 재현 테스트 또는 endpoint 계약 정리
 5. [ ] `GET /api/tasks/search` 구현
