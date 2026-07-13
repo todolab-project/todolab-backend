@@ -11,6 +11,8 @@ Last updated: 2026-07-14
 | `README.md` | 로컬 개발, 빌드, API 문서 endpoint 안내 | 유지 |
 | `docs/API_V1_FRONTEND.md` | 모바일/프론트 연동용 v1 요약 계약 | 유지, OpenAPI와 동기화 필요 |
 | `docs/MOBILE_API_BACKEND_STATUS.md` | 모바일 요구사항 대비 백엔드 구현 상태 | 유지, 테스트 결과 반영 필요 |
+| `docs/ENVIRONMENT_INTEGRATION.md` | 환경별 API URL, CORS origin, 문서 UI 공개 기준 | 신규, staging/prod URL 확정 후 갱신 필요 |
+| `docs/MOBILE_INTEGRATION_RUNBOOK.md` | 모바일 real-mode smoke test 절차와 결과 기록 방식 | 신규, 실제 테스트 결과 누적 필요 |
 | `docs/ROADMAP.md` | 앞으로의 백엔드 작업 우선순위 | 유지 |
 | `/v3/api-docs` | 기계 판독 가능한 OpenAPI 원본 계약 | 신규 기준 |
 | `/swagger-ui` | 개발자 테스트용 OpenAPI UI | 신규 기준 |
@@ -86,7 +88,7 @@ Last updated: 2026-07-14
 
 목적: 로컬, 스테이징, 운영에서 어떤 URL과 CORS 설정을 쓰는지 명확히 한다.
 
-파일 제안:
+파일:
 
 - `docs/ENVIRONMENT_INTEGRATION.md`
 
@@ -99,13 +101,13 @@ Last updated: 2026-07-14
 - Swagger UI/Scalar 공개 범위
 - 운영 secrets 관리 원칙
 
-우선순위: 높음
+상태: 초안 작성 완료, staging/prod URL 확정 후 갱신 필요
 
 ### 2.5 모바일 연동 테스트 Runbook
 
 목적: “붙여봤다”를 재현 가능한 절차와 결과로 남긴다.
 
-파일 제안:
+파일:
 
 - `docs/MOBILE_INTEGRATION_RUNBOOK.md`
 
@@ -120,7 +122,7 @@ Last updated: 2026-07-14
 - 실패 시 확인할 로그와 설정
 - 결과 기록 템플릿
 
-우선순위: 높음
+상태: 초안 작성 완료, real-mode 결과 누적 필요
 
 ### 2.6 데이터 모델 사전
 
@@ -165,8 +167,8 @@ Last updated: 2026-07-14
 
 1. `API_ERROR_CODES.md`
 2. `AUTH_CONTRACT.md`
-3. `ENVIRONMENT_INTEGRATION.md`
-4. `MOBILE_INTEGRATION_RUNBOOK.md`
+3. `ENVIRONMENT_INTEGRATION.md` 초안 작성 완료, staging/prod 확정값 반영
+4. `MOBILE_INTEGRATION_RUNBOOK.md` 초안 작성 완료, smoke test 결과 누적
 5. `API_V1_FRONTEND.md`와 OpenAPI JSON 대조 정리
 6. `DATA_MODEL_GLOSSARY.md`
 7. `API_COMPATIBILITY_POLICY.md`

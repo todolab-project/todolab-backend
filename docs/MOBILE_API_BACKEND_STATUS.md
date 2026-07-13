@@ -18,6 +18,7 @@ Last audited: 2026-07-14
 - [x] CORS preflight 회귀 테스트 추가
 - [x] OpenAPI JSON `/v3/api-docs`, Swagger UI `/swagger-ui`, Scalar `/scalar.html` 노출
 - [x] `UserResponse.updatedAt` 문서/모바일 타입/백엔드 DTO 계약 일치
+- [x] 2026-07-14 문서 기준: local CORS origin, 인증 smoke test, Today/Calendar/D-Day real-mode 확인 절차를 runbook으로 정리
 
 1. [~] 인증 사용자 소유권
    - 완료: `Task`, `DdayGoal` owner 필드와 owner-aware repository/service path 추가
@@ -170,7 +171,7 @@ Last audited: 2026-07-14
 
 | 항목 | 상태 | 메모 |
 | --- | --- | --- |
-| 개발 / 스테이징 / 운영 API URL | [~] | local CORS는 있음. staging/production URL 정책은 미정 |
+| 개발 / 스테이징 / 운영 API URL | [~] | `ENVIRONMENT_INTEGRATION.md`에 local 기준과 staging/production 미정 상태 정리 |
 | 인증 방식과 토큰 계약 | [~] | `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/me` 있음. 모바일 저장/refresh token 정책은 미정 |
 | OpenAPI 명세 | [x] | `/v3/api-docs`, `/swagger-ui`, `/scalar.html` 제공 |
 | `GET /api/tasks` 범위 조회 계약 | [~] | `DAY/WEEK/MONTH`, `taskType` 지원. v1/owner 기준 계약 문서화 필요 |

@@ -22,9 +22,14 @@ Last updated: 2026-07-14
 
 - [x] Expo Web 인증 요청의 CORS preflight에서 `Authorization` 헤더 허용
 - [x] real-mode smoke test 결과를 `MOBILE_API_BACKEND_STATUS.md`에 날짜별로 기록
-- [ ] 모바일에서 확인한 CORS origin 목록을 local/staging/prod 환경별로 정리
-- [ ] `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/me` 수동 검증 절차 문서화
-- [ ] Today, Calendar, D-Day 생성/조회/삭제 real-mode 확인 절차 문서화
+- [x] 모바일에서 확인한 CORS origin 목록을 local/staging/prod 환경별로 정리
+- [x] `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/me` 수동 검증 절차 문서화
+- [x] Today, Calendar, D-Day 생성/조회/삭제 real-mode 확인 절차 문서화
+
+관련 문서:
+
+- [`ENVIRONMENT_INTEGRATION.md`](./ENVIRONMENT_INTEGRATION.md)
+- [`MOBILE_INTEGRATION_RUNBOOK.md`](./MOBILE_INTEGRATION_RUNBOOK.md)
 
 완료 기준:
 
@@ -154,12 +159,12 @@ Last updated: 2026-07-14
 우선 작성할 문서:
 
 - [ ] API 연동 규격서: v1 endpoint, 인증, envelope, 오류, 날짜 규칙
-- [ ] 환경별 연동 가이드: local/staging/prod URL, CORS, 실행 순서
+- [x] 환경별 연동 가이드: local/staging/prod URL, CORS, 실행 순서
 - [ ] 오류 코드 카탈로그: code, HTTP status, 사용자 노출 message
 - [ ] 인증/인가 계약서: JWT claim, 만료, 401/403 처리
 - [ ] 데이터 모델 사전: Task, D-Day, User 주요 필드와 상태 전이
 - [ ] 릴리스/호환성 정책: v1 유지, deprecation, breaking change 기준
-- [ ] 모바일 연동 테스트 runbook: smoke test 절차와 기록 방식
+- [x] 모바일 연동 테스트 runbook: smoke test 절차와 기록 방식
 
 상세 목록과 우선순위는 [`BACKEND_DOCUMENTATION_PLAN.md`](./BACKEND_DOCUMENTATION_PLAN.md)에서 관리한다.
 

@@ -526,15 +526,16 @@ class TaskControllerTest {
         then(taskService).shouldHaveNoMoreInteractions();
     }
 
-    @Test
-    @DisplayName("Expo Web 인증 요청의 CORS preflight를 허용한다")
-    void cors_authorizationPreflight_success() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {"http://localhost:8081", "http://localhost:8090"})
+    @DisplayName("local Expo Web 인증 요청의 CORS preflight를 허용한다")
+    void cors_authorizationPreflight_success(String origin) throws Exception {
         mockMvc.perform(options("/api/v1/tasks/today")
-                        .header(HttpHeaders.ORIGIN, "http://localhost:8090")
+                        .header(HttpHeaders.ORIGIN, origin)
                         .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
                         .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, HttpHeaders.AUTHORIZATION))
                 .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost:8090"))
+                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, origin))
                 .andExpect(header().string(
                         HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
                         containsString(HttpHeaders.AUTHORIZATION)
