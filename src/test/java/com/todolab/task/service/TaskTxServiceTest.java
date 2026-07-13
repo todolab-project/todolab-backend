@@ -12,6 +12,7 @@ import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.exception.TaskNotFoundException;
 import com.todolab.task.exception.TaskValidationException;
 import com.todolab.task.repository.TaskRepository;
+import com.todolab.user.domain.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,6 +76,60 @@ class TaskTxServiceTest {
         then(taskRepository).should(times(1)).findById(id);
         then(taskRepository).should(times(1)).save(task);
     }
+
+    @Test
+    @DisplayName("updateTxForOwner는 owner 조건으로 Task를 조회한다")
+    void updateTxForOwner_success_ownerScoped() {
+        long id = 1L;
+        User owner = persistedOwner(10L);
+        Task task = Task.builder()
+                .title("기존 제목")
+                .owner(owner)
+                .build();
+        TaskRequest request = new TaskRequest(
+                "새 제목",
+                null,
+                TaskType.TODO,
+                null,
+                null,
+                null,
+                false
+        );
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
+
+        given(taskRepository.findByIdAndOwnerId(id, 10L)).willReturn(Optional.of(task));
+        given(taskRepository.save(task)).willReturn(task);
+
+        Task result = service.updateTxForOwner(id, request, owner);
+
+        assertThat(result.getTitle()).isEqualTo("새 제목");
+        then(taskRepository).should().findByIdAndOwnerId(id, 10L);
+        then(taskRepository).should().save(task);
+    }
+
+    @Test
+    @DisplayName("updateTxForOwner는 다른 사용자 Task를 찾지 못한 것처럼 처리한다")
+    void updateTxForOwner_fail_notFound() {
+        long id = 1L;
+        User owner = persistedOwner(10L);
+        TaskRequest request = new TaskRequest(
+                "새 제목",
+                null,
+                TaskType.TODO,
+                null,
+                null,
+                null,
+                false
+        );
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
+        given(taskRepository.findByIdAndOwnerId(id, 10L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.updateTxForOwner(id, request, owner))
+                .isInstanceOf(TaskNotFoundException.class);
+
+        then(taskRepository).should().findByIdAndOwnerId(id, 10L);
+    }
+
 
     @Test
     @DisplayName("moveToTodayTx는 일정 없는 Task에 자동 종일 일정을 만들고 저장한다")
@@ -432,6 +487,53 @@ class TaskTxServiceTest {
     }
 
     @Test
+    @DisplayName("connectDdayGoalTxForOwner는 Task와 D-Day 목표 모두 owner 조건으로 조회한다")
+    void connectDdayGoalTxForOwner_success_ownerScoped() {
+        long id = 1L;
+        long ddayGoalId = 2L;
+        User owner = persistedOwner(10L);
+        Task task = Task.builder()
+                .title("기출 20문제 풀기")
+                .owner(owner)
+                .build();
+        DdayGoal goal = new DdayGoal("정보처리기사", LocalDate.of(2026, 6, 10), owner);
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
+
+        given(taskRepository.findByIdAndOwnerId(id, 10L)).willReturn(Optional.of(task));
+        given(ddayGoalRepository.findByIdAndOwnerId(ddayGoalId, 10L)).willReturn(Optional.of(goal));
+        given(taskRepository.save(task)).willReturn(task);
+
+        Task result = service.connectDdayGoalTxForOwner(id, ddayGoalId, owner);
+
+        assertThat(result.getDdayGoal()).isSameAs(goal);
+        then(taskRepository).should().findByIdAndOwnerId(id, 10L);
+        then(ddayGoalRepository).should().findByIdAndOwnerId(ddayGoalId, 10L);
+        then(taskRepository).should().save(task);
+    }
+
+    @Test
+    @DisplayName("connectDdayGoalTxForOwner는 다른 사용자 D-Day 목표를 찾지 못한 것처럼 처리한다")
+    void connectDdayGoalTxForOwner_fail_goalNotFound() {
+        long id = 1L;
+        long ddayGoalId = 2L;
+        User owner = persistedOwner(10L);
+        Task task = Task.builder()
+                .title("기출 20문제 풀기")
+                .owner(owner)
+                .build();
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
+
+        given(taskRepository.findByIdAndOwnerId(id, 10L)).willReturn(Optional.of(task));
+        given(ddayGoalRepository.findByIdAndOwnerId(ddayGoalId, 10L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.connectDdayGoalTxForOwner(id, ddayGoalId, owner))
+                .isInstanceOf(DdayGoalNotFoundException.class);
+
+        then(taskRepository).should().findByIdAndOwnerId(id, 10L);
+        then(ddayGoalRepository).should().findByIdAndOwnerId(ddayGoalId, 10L);
+    }
+
+    @Test
     @DisplayName("connectDdayGoalTx는 D-Day 목표가 없으면 DdayGoalNotFoundException이 발생한다")
     void connectDdayGoalTx_fail_goalNotFound() {
         // given
@@ -535,5 +637,11 @@ class TaskTxServiceTest {
                 .build();
         ReflectionTestUtils.setField(task, "id", id);
         return task;
+    }
+
+    private User persistedOwner(Long id) {
+        User owner = new User("owner" + id + "@example.com", "encoded-password", "Owner");
+        ReflectionTestUtils.setField(owner, "id", id);
+        return owner;
     }
 }

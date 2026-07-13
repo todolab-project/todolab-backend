@@ -23,12 +23,18 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
     @Override
     public List<Task> findByDateRange(LocalDateTime start, LocalDateTime end) {
+        return findByDateRange(null, start, end);
+    }
+
+    @Override
+    public List<Task> findByDateRange(Long ownerId, LocalDateTime start, LocalDateTime end) {
         QTask t = QTask.task;
 
         return queryFactory
                 .selectFrom(t)
                 .leftJoin(t.ddayGoal).fetchJoin()
                 .where(
+                        ownerIdEq(t, ownerId),
                         t.startAt.isNotNull(),
                         overlapsRange(t, start, end)
                 )
@@ -38,12 +44,18 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
     @Override
     public List<Task> findByDateRangeAndType(LocalDateTime start, LocalDateTime end, TaskType taskType) {
+        return findByDateRangeAndType(null, start, end, taskType);
+    }
+
+    @Override
+    public List<Task> findByDateRangeAndType(Long ownerId, LocalDateTime start, LocalDateTime end, TaskType taskType) {
         QTask t = QTask.task;
 
         return queryFactory
                 .selectFrom(t)
                 .leftJoin(t.ddayGoal).fetchJoin()
                 .where(
+                        ownerIdEq(t, ownerId),
                         t.type.eq(taskType),
                         t.startAt.isNotNull(),
                         overlapsRange(t, start, end)
@@ -54,11 +66,17 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
     @Override
     public List<Task> findUnscheduledTask() {
+        return findUnscheduledTask(null);
+    }
+
+    @Override
+    public List<Task> findUnscheduledTask(Long ownerId) {
         QTask t = QTask.task;
 
         return queryFactory
                 .selectFrom(t)
                 .where(
+                        ownerIdEq(t, ownerId),
                         t.startAt.isNull(),
                         t.endAt.isNull()
                 )
@@ -68,23 +86,37 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
     @Override
     public List<Task> findByStatus(TaskStatus status) {
+        return findByStatus(null, status);
+    }
+
+    @Override
+    public List<Task> findByStatus(Long ownerId, TaskStatus status) {
         QTask t = QTask.task;
 
         return queryFactory
                 .selectFrom(t)
-                .where(t.status.eq(status))
+                .where(
+                        ownerIdEq(t, ownerId),
+                        t.status.eq(status)
+                )
                 .orderBy(t.createdAt.asc(), t.id.asc())
                 .fetch();
     }
 
     @Override
     public List<Task> findPlannedTasks(LocalDate fromInclusive, LocalDate toExclusive) {
+        return findPlannedTasks(null, fromInclusive, toExclusive);
+    }
+
+    @Override
+    public List<Task> findPlannedTasks(Long ownerId, LocalDate fromInclusive, LocalDate toExclusive) {
         QTask t = QTask.task;
 
         return queryFactory
                 .selectFrom(t)
                 .leftJoin(t.ddayGoal).fetchJoin()
                 .where(
+                        ownerIdEq(t, ownerId),
                         t.status.eq(TaskStatus.TODAY),
                         plannedDateFrom(t, fromInclusive),
                         plannedDateBefore(t, toExclusive)
@@ -102,12 +134,18 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
     @Override
     public Integer findMaxTodayOrder(LocalDate targetDate) {
+        return findMaxTodayOrder(null, targetDate);
+    }
+
+    @Override
+    public Integer findMaxTodayOrder(Long ownerId, LocalDate targetDate) {
         QTask t = QTask.task;
 
         return queryFactory
                 .select(t.todayOrder.max())
                 .from(t)
                 .where(
+                        ownerIdEq(t, ownerId),
                         t.status.eq(TaskStatus.TODAY),
                         t.targetDate.eq(targetDate)
                 )
@@ -131,6 +169,11 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
     @Override
     public List<Task> findDoneTasks(LocalDate completedDate) {
+        return findDoneTasks(null, completedDate);
+    }
+
+    @Override
+    public List<Task> findDoneTasks(Long ownerId, LocalDate completedDate) {
         QTask t = QTask.task;
         LocalDateTime start = completedDate.atStartOfDay();
         LocalDateTime end = completedDate.plusDays(1).atStartOfDay();
@@ -139,6 +182,7 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
                 .selectFrom(t)
                 .leftJoin(t.ddayGoal).fetchJoin()
                 .where(
+                        ownerIdEq(t, ownerId),
                         t.status.eq(TaskStatus.DONE),
                         t.completedAt.goe(start),
                         t.completedAt.lt(end)
@@ -149,6 +193,11 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
     @Override
     public List<Task> findDoneTasksBetween(LocalDate startDate, LocalDate endDate) {
+        return findDoneTasksBetween(null, startDate, endDate);
+    }
+
+    @Override
+    public List<Task> findDoneTasksBetween(Long ownerId, LocalDate startDate, LocalDate endDate) {
         QTask t = QTask.task;
         LocalDateTime start = startDate.atStartOfDay();
         LocalDateTime end = endDate.plusDays(1).atStartOfDay();
@@ -157,6 +206,7 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
                 .selectFrom(t)
                 .leftJoin(t.ddayGoal).fetchJoin()
                 .where(
+                        ownerIdEq(t, ownerId),
                         t.status.eq(TaskStatus.DONE),
                         t.completedAt.goe(start),
                         t.completedAt.lt(end)
@@ -167,13 +217,25 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
 
     @Override
     public List<Task> findByDdayGoalId(Long ddayGoalId) {
+        return findByDdayGoalId(null, ddayGoalId);
+    }
+
+    @Override
+    public List<Task> findByDdayGoalId(Long ownerId, Long ddayGoalId) {
         QTask t = QTask.task;
 
         return queryFactory
                 .selectFrom(t)
-                .where(t.ddayGoal.id.eq(ddayGoalId))
+                .where(
+                        ownerIdEq(t, ownerId),
+                        t.ddayGoal.id.eq(ddayGoalId)
+                )
                 .orderBy(t.targetDate.asc().nullsLast(), t.createdAt.asc(), t.id.asc())
                 .fetch();
+    }
+
+    private BooleanExpression ownerIdEq(QTask task, Long ownerId) {
+        return ownerId == null ? null : task.owner.id.eq(ownerId);
     }
 
     private BooleanExpression overlapsRange(QTask t, LocalDateTime start, LocalDateTime end) {

@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -101,6 +102,23 @@ class DdayGoalServiceTest {
     }
 
     @Test
+    @DisplayName("인증 사용자용 D-Day 목표 목록 조회는 owner 조건을 적용한다")
+    void findAllForOwner_success_ownerScoped() {
+        DdayGoalService service = new DdayGoalService(ddayGoalRepository, taskRepository);
+        User owner = persistedOwner(10L);
+        given(ddayGoalRepository.findAllByOwnerIdOrderByTargetDateAscIdAsc(10L)).willReturn(List.of(
+                new DdayGoal("포트폴리오 제출", LocalDate.of(2026, 6, 5), owner)
+        ));
+
+        var responses = service.findAllForOwner(owner);
+
+        assertThat(responses).hasSize(1);
+        assertThat(responses.getFirst().title()).isEqualTo("포트폴리오 제출");
+        then(ddayGoalRepository).should().findAllByOwnerIdOrderByTargetDateAscIdAsc(10L);
+        then(taskRepository).shouldHaveNoInteractions();
+    }
+
+    @Test
     @DisplayName("D-Day 목표를 날짜 범위로 조회한다")
     void findByDateRange_success() {
         DdayGoalService service = new DdayGoalService(ddayGoalRepository, taskRepository);
@@ -144,6 +162,46 @@ class DdayGoalServiceTest {
     }
 
     @Test
+    @DisplayName("인증 사용자용 D-Day 연결 Task 조회는 목표와 Task 모두 owner 조건을 적용한다")
+    void findTasksForOwner_success_ownerScoped() {
+        DdayGoalService service = new DdayGoalService(ddayGoalRepository, taskRepository);
+        long ddayGoalId = 1L;
+        User owner = persistedOwner(10L);
+        DdayGoal goal = new DdayGoal("정보처리기사", LocalDate.of(2026, 6, 10), owner);
+        Task task = Task.builder()
+                .title("기출 20문제 풀기")
+                .status(TaskStatus.TODAY)
+                .targetDate(LocalDate.of(2026, 5, 30))
+                .ddayGoal(goal)
+                .owner(owner)
+                .build();
+
+        given(ddayGoalRepository.existsByIdAndOwnerId(ddayGoalId, 10L)).willReturn(true);
+        given(taskRepository.findByDdayGoalId(10L, ddayGoalId)).willReturn(List.of(task));
+
+        var responses = service.findTasksForOwner(ddayGoalId, owner);
+
+        assertThat(responses).hasSize(1);
+        assertThat(responses.getFirst().title()).isEqualTo("기출 20문제 풀기");
+        then(ddayGoalRepository).should().existsByIdAndOwnerId(ddayGoalId, 10L);
+        then(taskRepository).should().findByDdayGoalId(10L, ddayGoalId);
+    }
+
+    @Test
+    @DisplayName("인증 사용자용 D-Day 연결 Task 조회는 다른 사용자 목표를 찾지 못한 것처럼 처리한다")
+    void findTasksForOwner_fail_notFound() {
+        DdayGoalService service = new DdayGoalService(ddayGoalRepository, taskRepository);
+        User owner = persistedOwner(10L);
+        given(ddayGoalRepository.existsByIdAndOwnerId(99L, 10L)).willReturn(false);
+
+        assertThatThrownBy(() -> service.findTasksForOwner(99L, owner))
+                .isInstanceOf(DdayGoalNotFoundException.class);
+
+        then(ddayGoalRepository).should().existsByIdAndOwnerId(99L, 10L);
+        then(taskRepository).shouldHaveNoInteractions();
+    }
+
+    @Test
     @DisplayName("존재하지 않는 D-Day 목표의 Task 조회 시 예외를 던진다")
     void findTasks_fail_notFound() {
         DdayGoalService service = new DdayGoalService(ddayGoalRepository, taskRepository);
@@ -181,6 +239,32 @@ class DdayGoalServiceTest {
     }
 
     @Test
+    @DisplayName("인증 사용자용 D-Day 목표 삭제는 owner 조건을 적용한다")
+    void deleteForOwner_success_ownerScoped() {
+        DdayGoalService service = new DdayGoalService(ddayGoalRepository, taskRepository);
+        long ddayGoalId = 1L;
+        User owner = persistedOwner(10L);
+        DdayGoal goal = new DdayGoal("정보처리기사", LocalDate.of(2026, 6, 10), owner);
+        Task task = Task.builder()
+                .title("기출 20문제 풀기")
+                .status(TaskStatus.TODAY)
+                .targetDate(LocalDate.of(2026, 5, 31))
+                .ddayGoal(goal)
+                .owner(owner)
+                .build();
+
+        given(ddayGoalRepository.existsByIdAndOwnerId(ddayGoalId, 10L)).willReturn(true);
+        given(taskRepository.findByDdayGoalId(10L, ddayGoalId)).willReturn(List.of(task));
+
+        service.deleteForOwner(ddayGoalId, owner);
+
+        assertThat(task.getDdayGoal()).isNull();
+        then(ddayGoalRepository).should().existsByIdAndOwnerId(ddayGoalId, 10L);
+        then(taskRepository).should().findByDdayGoalId(10L, ddayGoalId);
+        then(ddayGoalRepository).should().deleteById(ddayGoalId);
+    }
+
+    @Test
     @DisplayName("존재하지 않는 D-Day 목표 삭제 시 예외를 던진다")
     void delete_fail_notFound() {
         DdayGoalService service = new DdayGoalService(ddayGoalRepository, taskRepository);
@@ -191,5 +275,11 @@ class DdayGoalServiceTest {
 
         then(ddayGoalRepository).should().existsById(99L);
         then(taskRepository).shouldHaveNoInteractions();
+    }
+
+    private User persistedOwner(Long id) {
+        User owner = new User("owner" + id + "@example.com", "encoded-password", "Owner");
+        ReflectionTestUtils.setField(owner, "id", id);
+        return owner;
     }
 }

@@ -65,8 +65,19 @@ public class TaskService {
         return TaskResponse.from(task);
     }
 
+    public TaskResponse getTaskForOwner(Long id, User owner) {
+        Task task = taskRepository.findByIdAndOwnerId(id, ownerId(owner))
+                .orElseThrow(() -> new TaskNotFoundException(id));
+
+        return TaskResponse.from(task);
+    }
+
     public List<TaskResponse> getTasks(TaskQueryRequest request) {
         return findTasks(request);
+    }
+
+    public List<TaskResponse> getTasksForOwner(TaskQueryRequest request, User owner) {
+        return findTasks(request, ownerId(owner));
     }
 
     public List<TaskCategoryGroupResponse> getGroupedTasks(TaskQueryRequest request) {
@@ -77,12 +88,22 @@ public class TaskService {
         return findUnscheduledTasks();
     }
 
+    public List<TaskResponse> getUnscheduledTasksForOwner(User owner) {
+        return findUnscheduledTasks(ownerId(owner));
+    }
+
     public List<TaskCategoryGroupResponse> getGroupedUnscheduledTasks() {
         return taskCategoryGrouper.group(findUnscheduledTasks());
     }
 
     public List<TaskResponse> getInboxTasks() {
         return taskRepository.findByStatus(TaskStatus.INBOX).stream()
+                .map(TaskResponse::from)
+                .toList();
+    }
+
+    public List<TaskResponse> getInboxTasksForOwner(User owner) {
+        return taskRepository.findByStatus(ownerId(owner), TaskStatus.INBOX).stream()
                 .map(TaskResponse::from)
                 .toList();
     }
@@ -106,8 +127,34 @@ public class TaskService {
                 .toList();
     }
 
+    public List<TaskRecommendationResponse> getTodayRecommendationsForOwner(LocalDate referenceDate, User owner) {
+        Long ownerId = ownerId(owner);
+        List<TaskResponse> overdueTasks = taskRepository.findPlannedTasks(ownerId, null, referenceDate).stream()
+                .map(TaskResponse::from)
+                .toList();
+        List<TaskResponse> inboxTasks = taskRepository.findByStatus(ownerId, TaskStatus.INBOX).stream()
+                .map(TaskResponse::from)
+                .toList();
+
+        return java.util.stream.Stream.concat(overdueTasks.stream(), inboxTasks.stream())
+                .map(task -> RecommendationCandidate.from(task, referenceDate))
+                .sorted(Comparator
+                        .comparingInt(RecommendationCandidate::priority)
+                        .thenComparingLong(RecommendationCandidate::sortKey)
+                        .thenComparing(candidate -> candidate.task().id(), Comparator.nullsLast(Comparator.naturalOrder())))
+                .limit(5)
+                .map(candidate -> new TaskRecommendationResponse(candidate.task(), candidate.reason()))
+                .toList();
+    }
+
     public List<TaskResponse> getTodayTasks(LocalDate targetDate) {
         return taskRepository.findPlannedTasks(targetDate, targetDate.plusDays(1)).stream()
+                .map(TaskResponse::from)
+                .toList();
+    }
+
+    public List<TaskResponse> getTodayTasksForOwner(LocalDate targetDate, User owner) {
+        return taskRepository.findPlannedTasks(ownerId(owner), targetDate, targetDate.plusDays(1)).stream()
                 .map(TaskResponse::from)
                 .toList();
     }
@@ -118,8 +165,20 @@ public class TaskService {
                 .toList();
     }
 
+    public List<TaskResponse> getPlannedTasksBetweenForOwner(LocalDate startDate, LocalDate endDate, User owner) {
+        return taskRepository.findPlannedTasks(ownerId(owner), startDate, endDate.plusDays(1)).stream()
+                .map(TaskResponse::from)
+                .toList();
+    }
+
     public List<TaskResponse> getOverdueTasks(LocalDate beforeDate) {
         return taskRepository.findPlannedTasks(null, beforeDate).stream()
+                .map(TaskResponse::from)
+                .toList();
+    }
+
+    public List<TaskResponse> getOverdueTasksForOwner(LocalDate beforeDate, User owner) {
+        return taskRepository.findPlannedTasks(ownerId(owner), null, beforeDate).stream()
                 .map(TaskResponse::from)
                 .toList();
     }
@@ -130,8 +189,20 @@ public class TaskService {
                 .toList();
     }
 
+    public List<TaskResponse> getDoneTasksForOwner(LocalDate completedDate, User owner) {
+        return taskRepository.findDoneTasks(ownerId(owner), completedDate).stream()
+                .map(TaskResponse::from)
+                .toList();
+    }
+
     public List<TaskResponse> getDoneTasksBetween(LocalDate startDate, LocalDate endDate) {
         return taskRepository.findDoneTasksBetween(startDate, endDate).stream()
+                .map(TaskResponse::from)
+                .toList();
+    }
+
+    public List<TaskResponse> getDoneTasksBetweenForOwner(LocalDate startDate, LocalDate endDate, User owner) {
+        return taskRepository.findDoneTasksBetween(ownerId(owner), startDate, endDate).stream()
                 .map(TaskResponse::from)
                 .toList();
     }
@@ -141,8 +212,18 @@ public class TaskService {
         return TaskResponse.from(updated);
     }
 
+    public TaskResponse updateForOwner(Long id, TaskRequest taskRequest, User owner) {
+        Task updated = taskTxService.updateTxForOwner(id, taskRequest, owner);
+        return TaskResponse.from(updated);
+    }
+
     public TaskResponse moveToToday(Long id, LocalDate targetDate) {
         Task moved = taskTxService.moveToTodayTx(id, targetDate);
+        return TaskResponse.from(moved);
+    }
+
+    public TaskResponse moveToTodayForOwner(Long id, LocalDate targetDate, User owner) {
+        Task moved = taskTxService.moveToTodayTxForOwner(id, targetDate, owner);
         return TaskResponse.from(moved);
     }
 
@@ -151,8 +232,18 @@ public class TaskService {
         return TaskResponse.from(moved);
     }
 
+    public TaskResponse moveToInboxForOwner(Long id, User owner) {
+        Task moved = taskTxService.moveToInboxTxForOwner(id, owner);
+        return TaskResponse.from(moved);
+    }
+
     public TaskResponse complete(Long id, LocalDateTime completedAt) {
         Task completed = taskTxService.completeTx(id, completedAt);
+        return TaskResponse.from(completed);
+    }
+
+    public TaskResponse completeForOwner(Long id, LocalDateTime completedAt, User owner) {
+        Task completed = taskTxService.completeTxForOwner(id, completedAt, owner);
         return TaskResponse.from(completed);
     }
 
@@ -161,8 +252,18 @@ public class TaskService {
         return TaskResponse.from(reopened);
     }
 
+    public TaskResponse reopenTodayForOwner(Long id, LocalDate targetDate, User owner) {
+        Task reopened = taskTxService.reopenTodayTxForOwner(id, targetDate, owner);
+        return TaskResponse.from(reopened);
+    }
+
     public TaskResponse carryOver(Long id, LocalDate nextDate) {
         Task carriedOver = taskTxService.carryOverTx(id, nextDate);
+        return TaskResponse.from(carriedOver);
+    }
+
+    public TaskResponse carryOverForOwner(Long id, LocalDate nextDate, User owner) {
+        Task carriedOver = taskTxService.carryOverTxForOwner(id, nextDate, owner);
         return TaskResponse.from(carriedOver);
     }
 
@@ -171,8 +272,18 @@ public class TaskService {
         return TaskResponse.from(reordered);
     }
 
+    public TaskResponse reorderTodayForOwner(Long id, LocalDate targetDate, TodayOrderDirection direction, User owner) {
+        Task reordered = taskTxService.reorderTodayTxForOwner(id, targetDate, direction, owner);
+        return TaskResponse.from(reordered);
+    }
+
     public TaskResponse setDeferReason(Long id, DeferReason reason) {
         Task updated = taskTxService.setDeferReasonTx(id, reason);
+        return TaskResponse.from(updated);
+    }
+
+    public TaskResponse setDeferReasonForOwner(Long id, DeferReason reason, User owner) {
+        Task updated = taskTxService.setDeferReasonTxForOwner(id, reason, owner);
         return TaskResponse.from(updated);
     }
 
@@ -181,13 +292,28 @@ public class TaskService {
         return TaskResponse.from(updated);
     }
 
+    public TaskResponse clearDeferReasonForOwner(Long id, User owner) {
+        Task updated = taskTxService.clearDeferReasonTxForOwner(id, owner);
+        return TaskResponse.from(updated);
+    }
+
     public TaskResponse connectDdayGoal(Long id, Long ddayGoalId) {
         Task connected = taskTxService.connectDdayGoalTx(id, ddayGoalId);
         return TaskResponse.from(connected);
     }
 
+    public TaskResponse connectDdayGoalForOwner(Long id, Long ddayGoalId, User owner) {
+        Task connected = taskTxService.connectDdayGoalTxForOwner(id, ddayGoalId, owner);
+        return TaskResponse.from(connected);
+    }
+
     public TaskResponse disconnectDdayGoal(Long id) {
         Task disconnected = taskTxService.disconnectDdayGoalTx(id);
+        return TaskResponse.from(disconnected);
+    }
+
+    public TaskResponse disconnectDdayGoalForOwner(Long id, User owner) {
+        Task disconnected = taskTxService.disconnectDdayGoalTxForOwner(id, owner);
         return TaskResponse.from(disconnected);
     }
 
@@ -198,22 +324,52 @@ public class TaskService {
         taskRepository.deleteById(id);
     }
 
+    public void deleteForOwner(Long id, User owner) {
+        if (!taskRepository.existsByIdAndOwnerId(id, ownerId(owner))) {
+            throw new TaskNotFoundException(id);
+        }
+        taskRepository.deleteById(id);
+    }
+
     private List<TaskResponse> findTasks(TaskQueryRequest request) {
+        return findTasks(request, null);
+    }
+
+    private List<TaskResponse> findTasks(TaskQueryRequest request, Long ownerId) {
         final TaskQueryType type = request.getType();
         final String strDate = request.getDate();
 
         DateRange range = type.calculate(strDate);
 
-        return taskRepository.findByDateRangeAndType(range.getStart(), range.getEnd(), request.getTaskType())
+        List<Task> tasks = ownerId == null
+                ? taskRepository.findByDateRangeAndType(range.getStart(), range.getEnd(), request.getTaskType())
+                : taskRepository.findByDateRangeAndType(ownerId, range.getStart(), range.getEnd(), request.getTaskType());
+
+        return tasks
                 .stream()
                 .map(TaskResponse::from)
                 .toList();
     }
 
     private List<TaskResponse> findUnscheduledTasks() {
-        return taskRepository.findUnscheduledTask().stream()
+        return findUnscheduledTasks(null);
+    }
+
+    private List<TaskResponse> findUnscheduledTasks(Long ownerId) {
+        List<Task> tasks = ownerId == null
+                ? taskRepository.findUnscheduledTask()
+                : taskRepository.findUnscheduledTask(ownerId);
+
+        return tasks.stream()
                 .map(TaskResponse::from)
                 .toList();
+    }
+
+    private Long ownerId(User owner) {
+        if (owner == null || owner.getId() == null) {
+            throw new IllegalArgumentException("owner는 영속화된 사용자여야 합니다.");
+        }
+        return owner.getId();
     }
 
     private record RecommendationCandidate(TaskResponse task, String reason, int priority, long sortKey) {

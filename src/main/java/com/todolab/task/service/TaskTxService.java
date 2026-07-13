@@ -11,6 +11,7 @@ import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.exception.TaskNotFoundException;
 import com.todolab.task.exception.TaskValidationException;
 import com.todolab.task.repository.TaskRepository;
+import com.todolab.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,10 +37,25 @@ public class TaskTxService {
     }
 
     @Transactional
+    public Task updateTxForOwner(Long id, TaskRequest req, User owner) {
+        Task task = findTaskForOwner(id, owner);
+        task.update(req.title(), req.description(), req.normalizedType(), req.startAt(), req.endAt(), req.allDay(), req.category());
+        return taskRepository.save(task);
+    }
+
+    @Transactional
     public Task moveToTodayTx(Long id, LocalDate targetDate) {
         Task task = findTask(id);
         task.moveToToday(targetDate);
         assignLastTodayOrder(task, targetDate);
+        return taskRepository.save(task);
+    }
+
+    @Transactional
+    public Task moveToTodayTxForOwner(Long id, LocalDate targetDate, User owner) {
+        Task task = findTaskForOwner(id, owner);
+        task.moveToToday(targetDate);
+        assignLastTodayOrder(task, targetDate, ownerId(owner));
         return taskRepository.save(task);
     }
 
@@ -51,8 +67,22 @@ public class TaskTxService {
     }
 
     @Transactional
+    public Task moveToInboxTxForOwner(Long id, User owner) {
+        Task task = findTaskForOwner(id, owner);
+        task.moveToInbox();
+        return taskRepository.save(task);
+    }
+
+    @Transactional
     public Task completeTx(Long id, LocalDateTime completedAt) {
         Task task = findTask(id);
+        task.complete(completedAt);
+        return taskRepository.save(task);
+    }
+
+    @Transactional
+    public Task completeTxForOwner(Long id, LocalDateTime completedAt, User owner) {
+        Task task = findTaskForOwner(id, owner);
         task.complete(completedAt);
         return taskRepository.save(task);
     }
@@ -66,10 +96,26 @@ public class TaskTxService {
     }
 
     @Transactional
+    public Task reopenTodayTxForOwner(Long id, LocalDate targetDate, User owner) {
+        Task task = findTaskForOwner(id, owner);
+        task.reopenToday(targetDate);
+        assignLastTodayOrder(task, targetDate, ownerId(owner));
+        return taskRepository.save(task);
+    }
+
+    @Transactional
     public Task carryOverTx(Long id, LocalDate nextDate) {
         Task task = findTask(id);
         task.carryOverTo(nextDate);
         assignLastTodayOrder(task, nextDate);
+        return taskRepository.save(task);
+    }
+
+    @Transactional
+    public Task carryOverTxForOwner(Long id, LocalDate nextDate, User owner) {
+        Task task = findTaskForOwner(id, owner);
+        task.carryOverTo(nextDate);
+        assignLastTodayOrder(task, nextDate, ownerId(owner));
         return taskRepository.save(task);
     }
 
@@ -96,6 +142,28 @@ public class TaskTxService {
     }
 
     @Transactional
+    public Task reorderTodayTxForOwner(Long id, LocalDate targetDate, TodayOrderDirection direction, User owner) {
+        Task task = findTaskForOwner(id, owner);
+        validateTodayOrderTarget(task, targetDate, direction);
+
+        List<Task> tasks = taskRepository.findPlannedTasks(ownerId(owner), targetDate, targetDate.plusDays(1));
+        int currentIndex = findTaskIndex(tasks, id);
+        int nextIndex = direction == TodayOrderDirection.UP ? currentIndex - 1 : currentIndex + 1;
+        if (nextIndex < 0 || nextIndex >= tasks.size()) {
+            return task;
+        }
+
+        normalizeTodayOrder(tasks);
+        Task target = tasks.get(currentIndex);
+        Task neighbor = tasks.get(nextIndex);
+        int targetOrder = target.getTodayOrder();
+        target.assignTodayOrder(neighbor.getTodayOrder());
+        neighbor.assignTodayOrder(targetOrder);
+        taskRepository.saveAll(tasks);
+        return target;
+    }
+
+    @Transactional
     public Task setDeferReasonTx(Long id, DeferReason reason) {
         Task task = findTask(id);
         task.setDeferReason(reason);
@@ -103,8 +171,22 @@ public class TaskTxService {
     }
 
     @Transactional
+    public Task setDeferReasonTxForOwner(Long id, DeferReason reason, User owner) {
+        Task task = findTaskForOwner(id, owner);
+        task.setDeferReason(reason);
+        return taskRepository.save(task);
+    }
+
+    @Transactional
     public Task clearDeferReasonTx(Long id) {
         Task task = findTask(id);
+        task.clearDeferReason();
+        return taskRepository.save(task);
+    }
+
+    @Transactional
+    public Task clearDeferReasonTxForOwner(Long id, User owner) {
+        Task task = findTaskForOwner(id, owner);
         task.clearDeferReason();
         return taskRepository.save(task);
     }
@@ -120,8 +202,25 @@ public class TaskTxService {
     }
 
     @Transactional
+    public Task connectDdayGoalTxForOwner(Long id, Long ddayGoalId, User owner) {
+        Task task = findTaskForOwner(id, owner);
+        DdayGoal ddayGoal = ddayGoalRepository.findByIdAndOwnerId(ddayGoalId, ownerId(owner))
+                .orElseThrow(() -> new DdayGoalNotFoundException(ddayGoalId));
+
+        task.connectDdayGoal(ddayGoal);
+        return taskRepository.save(task);
+    }
+
+    @Transactional
     public Task disconnectDdayGoalTx(Long id) {
         Task task = findTask(id);
+        task.disconnectDdayGoal();
+        return taskRepository.save(task);
+    }
+
+    @Transactional
+    public Task disconnectDdayGoalTxForOwner(Long id, User owner) {
+        Task task = findTaskForOwner(id, owner);
         task.disconnectDdayGoal();
         return taskRepository.save(task);
     }
@@ -131,9 +230,26 @@ public class TaskTxService {
                 .orElseThrow(() -> new TaskNotFoundException(id));
     }
 
+    private Task findTaskForOwner(Long id, User owner) {
+        return taskRepository.findByIdAndOwnerId(id, ownerId(owner))
+                .orElseThrow(() -> new TaskNotFoundException(id));
+    }
+
     private void assignLastTodayOrder(Task task, LocalDate targetDate) {
         Integer maxOrder = taskRepository.findMaxTodayOrder(targetDate);
         task.assignTodayOrder(maxOrder == null ? 0 : maxOrder + 1);
+    }
+
+    private void assignLastTodayOrder(Task task, LocalDate targetDate, Long ownerId) {
+        Integer maxOrder = taskRepository.findMaxTodayOrder(ownerId, targetDate);
+        task.assignTodayOrder(maxOrder == null ? 0 : maxOrder + 1);
+    }
+
+    private Long ownerId(User owner) {
+        if (owner == null || owner.getId() == null) {
+            throw new IllegalArgumentException("owner는 영속화된 사용자여야 합니다.");
+        }
+        return owner.getId();
     }
 
     private void validateTodayOrderTarget(Task task, LocalDate targetDate, TodayOrderDirection direction) {

@@ -49,8 +49,22 @@ public class DdayGoalService {
     }
 
     @Transactional(readOnly = true)
+    public List<DdayGoalResponse> findAllForOwner(User owner) {
+        return ddayGoalRepository.findAllByOwnerIdOrderByTargetDateAscIdAsc(ownerId(owner)).stream()
+                .map(DdayGoalResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<DdayGoalResponse> findByDateRange(LocalDate startDate, LocalDate endDate) {
         return ddayGoalRepository.findByTargetDateBetweenOrderByTargetDateAscIdAsc(startDate, endDate).stream()
+                .map(DdayGoalResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<DdayGoalResponse> findByDateRangeForOwner(LocalDate startDate, LocalDate endDate, User owner) {
+        return ddayGoalRepository.findByOwnerIdAndTargetDateBetweenOrderByTargetDateAscIdAsc(ownerId(owner), startDate, endDate).stream()
                 .map(DdayGoalResponse::from)
                 .toList();
     }
@@ -66,6 +80,18 @@ public class DdayGoalService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<TaskResponse> findTasksForOwner(Long id, User owner) {
+        Long ownerId = ownerId(owner);
+        if (!ddayGoalRepository.existsByIdAndOwnerId(id, ownerId)) {
+            throw new DdayGoalNotFoundException(id);
+        }
+
+        return taskRepository.findByDdayGoalId(ownerId, id).stream()
+                .map(TaskResponse::from)
+                .toList();
+    }
+
     @Transactional
     public void delete(Long id) {
         if (!ddayGoalRepository.existsById(id)) {
@@ -74,5 +100,23 @@ public class DdayGoalService {
         taskRepository.findByDdayGoalId(id)
                 .forEach(Task::disconnectDdayGoal);
         ddayGoalRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void deleteForOwner(Long id, User owner) {
+        Long ownerId = ownerId(owner);
+        if (!ddayGoalRepository.existsByIdAndOwnerId(id, ownerId)) {
+            throw new DdayGoalNotFoundException(id);
+        }
+        taskRepository.findByDdayGoalId(ownerId, id)
+                .forEach(Task::disconnectDdayGoal);
+        ddayGoalRepository.deleteById(id);
+    }
+
+    private Long ownerId(User owner) {
+        if (owner == null || owner.getId() == null) {
+            throw new IllegalArgumentException("owner는 영속화된 사용자여야 합니다.");
+        }
+        return owner.getId();
     }
 }

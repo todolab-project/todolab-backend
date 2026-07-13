@@ -1225,4 +1225,74 @@ class TaskServiceTest {
         then(taskTxService).should(times(1)).clearDeferReasonTx(id);
         then(taskRepository).shouldHaveNoInteractions();
     }
+
+    @Test
+    @DisplayName("인증 사용자용 Task 단건 조회는 owner 조건을 적용한다")
+    void getTaskForOwner_success_ownerScoped() {
+        User owner = persistedOwner(1L);
+        Task task = Task.builder()
+                .title("owned task")
+                .owner(owner)
+                .build();
+        given(taskRepository.findByIdAndOwnerId(10L, 1L)).willReturn(Optional.of(task));
+
+        TaskResponse result = taskService.getTaskForOwner(10L, owner);
+
+        assertThat(result.title()).isEqualTo("owned task");
+        then(taskRepository).should().findByIdAndOwnerId(10L, 1L);
+        then(taskTxService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("인증 사용자용 Task 단건 조회는 다른 사용자 Task를 찾지 못한 것처럼 처리한다")
+    void getTaskForOwner_fail_notFound() {
+        User owner = persistedOwner(1L);
+        given(taskRepository.findByIdAndOwnerId(10L, 1L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> taskService.getTaskForOwner(10L, owner))
+                .isInstanceOf(TaskNotFoundException.class);
+
+        then(taskRepository).should().findByIdAndOwnerId(10L, 1L);
+        then(taskTxService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("인증 사용자용 Task 삭제는 owner 조건을 적용한다")
+    void deleteForOwner_success_ownerScoped() {
+        User owner = persistedOwner(1L);
+        given(taskRepository.existsByIdAndOwnerId(10L, 1L)).willReturn(true);
+
+        taskService.deleteForOwner(10L, owner);
+
+        then(taskRepository).should().existsByIdAndOwnerId(10L, 1L);
+        then(taskRepository).should().deleteById(10L);
+        then(taskTxService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("인증 사용자용 Today 조회는 owner 조건을 적용한다")
+    void getTodayTasksForOwner_success_ownerScoped() {
+        User owner = persistedOwner(1L);
+        LocalDate date = LocalDate.of(2026, 7, 13);
+        Task task = Task.builder()
+                .title("today")
+                .status(TaskStatus.TODAY)
+                .targetDate(date)
+                .owner(owner)
+                .build();
+        given(taskRepository.findPlannedTasks(1L, date, date.plusDays(1))).willReturn(List.of(task));
+
+        List<TaskResponse> result = taskService.getTodayTasksForOwner(date, owner);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().title()).isEqualTo("today");
+        then(taskRepository).should().findPlannedTasks(1L, date, date.plusDays(1));
+        then(taskTxService).shouldHaveNoInteractions();
+    }
+
+    private User persistedOwner(Long id) {
+        User owner = new User("owner" + id + "@example.com", "encoded-password", "Owner");
+        ReflectionTestUtils.setField(owner, "id", id);
+        return owner;
+    }
 }
