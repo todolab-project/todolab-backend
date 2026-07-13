@@ -1,428 +1,172 @@
-# ToDoLab Roadmap
+# ToDoLab Backend Roadmap
 
-ToDoLab은 사용자가 오늘 실제로 끝낼 수 있는 크기로 일을 고르고 실행하게 돕는 앱이다.
+Last updated: 2026-07-14
 
-핵심 흐름은 아래와 같다.
-
-```text
-빠르게 기록
--> 오늘 할 일로 선별
--> 실행 가능한 크기로 정리
--> 완료 처리
--> 완료 로그로 확인
--> 미룬 일은 다시 판단
-```
+이 문서는 완료 이력보다 **앞으로 백엔드에서 닫아야 할 작업**을 관리한다. 이미 구현된 인증, v1 경로, owner scope, OpenAPI/Swagger/Scalar 문서 UI는 기준 상태로 보고, 아래 항목은 모바일 실사용과 운영 안정성에 필요한 후속 작업이다.
 
 ## 1. 현재 기준
 
-현재 백엔드는 Today 중심 MVP 기능을 갖춘 상태다.
+- 모바일 API 기준 경로는 `/api/v1/**`다.
+- 모바일 API 인증은 `Authorization: Bearer <accessToken>` JWT 방식이다.
+- 웹 화면은 세션 기반 인증을 사용한다.
+- API 문서 원본은 `/v3/api-docs` OpenAPI JSON이다.
+- 개발 확인용 문서 UI는 `/swagger-ui`, 읽기용 문서 UI는 `/scalar.html`을 사용한다.
+- 모바일 연동 요약 문서는 [`API_V1_FRONTEND.md`](./API_V1_FRONTEND.md)에 둔다.
+- 모바일 연동 상태 관리는 [`MOBILE_API_BACKEND_STATUS.md`](./MOBILE_API_BACKEND_STATUS.md)에 둔다.
 
-간략 완료 범위:
+## 2. 최우선 작업
 
-- Task 기록, 기록함, Today 이동
-- Today 조회, 완료, 완료 취소, 이월, 순서 변경
-- 지난 미완료 조회와 미룬 이유 저장
-- D-Day 목표와 Task 연결
-- 주간/월간 Calendar 조회
-- 서버 렌더링 Thymeleaf 화면
-- 모바일 연동용 API CORS와 일부 API alias 정리
+### 2.1 모바일 real-mode smoke test 보강
 
-앞으로는 기능 고도화 전에 **사용자 계정, 인증, API 버전 관리**를 먼저 도입한다.
-기존 데이터는 더미 데이터로 보고, 사용자 소유권 도입 시 초기화해도 된다.
+목표: 모바일이 실제 백엔드와 붙었을 때 로그인, Today, Calendar, D-Day 흐름이 안정적으로 동작하는지 자동/수동 검증한다.
 
-## 2. 다음 작업 우선순위
-
-### 1. 로그인과 사용자 소유권
-
-웹과 모바일의 인증 방식을 분리한다.
-
-- Thymeleaf 웹: 세션 기반 인증
-- 모바일 API: JWT 기반 인증
-- 기존 Task/D-Day 데이터는 사용자별 데이터로 전환
-- 기존 로컬/개발 데이터는 초기화 가능
-
-구현 순서:
-
-1. [ ] `User` 도메인 설계
-2. [ ] 사용자 테이블과 기본 권한 필드 추가
-3. [ ] 비밀번호 해시 저장
-4. [ ] Spring Security 도입
-5. [ ] 웹 form login과 session 인증 구성
-6. [ ] 모바일 JSON login과 JWT 발급 구성
-7. [ ] Task, D-Day에 사용자 소유권 연결
-8. [ ] 모든 조회/수정/삭제에서 소유자 조건 적용
-9. [ ] 인증/인가 실패 응답 계약 정리
-10. [ ] 인증 테스트와 소유권 테스트 추가
+- [x] Expo Web 인증 요청의 CORS preflight에서 `Authorization` 헤더 허용
+- [x] real-mode smoke test 결과를 `MOBILE_API_BACKEND_STATUS.md`에 날짜별로 기록
+- [ ] 모바일에서 확인한 CORS origin 목록을 local/staging/prod 환경별로 정리
+- [ ] `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/me` 수동 검증 절차 문서화
+- [ ] Today, Calendar, D-Day 생성/조회/삭제 real-mode 확인 절차 문서화
 
 완료 기준:
 
-- 웹 화면은 로그인 후 세션으로 접근한다.
-- 모바일은 `Authorization: Bearer <token>`으로 API를 호출한다.
-- 한 사용자는 다른 사용자의 Task/D-Day를 조회하거나 수정할 수 없다.
-- 인증되지 않은 API 요청은 일관된 오류 응답을 반환한다.
+- 모바일 앱에서 회원가입, 로그인, Today 조회, D-Day Today Task 생성까지 한 흐름으로 검증된다.
+- CORS 오류, 401 처리, 안전한 오류 message 노출 여부가 기록된다.
 
-### 2. API 버전 관리
+### 2.2 v1 API 계약과 OpenAPI 품질 개선
 
-모바일 클라이언트와 웹 API 계약을 안정적으로 관리하기 위해 API 버전을 도입한다.
+목표: OpenAPI JSON을 프론트/모바일이 신뢰할 수 있는 원본 계약으로 만든다.
 
-기본 방향:
-
-- 신규 API는 `/api/v1/**`로 제공
-- 기존 `/api/**`는 전환 기간 동안 유지하거나 alias로 둔다
-- breaking change는 `/api/v2/**`에서 처리
-- 응답 포맷과 오류 코드는 버전별로 문서화
-
-구현 순서:
-
-1. [ ] 현재 `/api/tasks`, `/api/dday-goals` 계약 정리
-2. [ ] `/api/v1/tasks`, `/api/v1/dday-goals`, `/api/v1/auth` 경로 도입
-3. [ ] 기존 경로 호환 정책 결정
-4. [ ] 모바일이 사용할 v1 API 기준 문서 작성
-5. [ ] CORS와 Security matcher를 `/api/v1/**` 기준으로 정리
-6. [ ] API 버전별 테스트 추가
+- [ ] v1 controller에 operation summary, tag, security, error response schema 보강
+- [ ] 공통 `ApiResponse<T>` envelope가 OpenAPI에서 읽기 쉽게 보이도록 schema 정리
+- [ ] enum, 날짜 형식, validation 제약을 request schema에 노출
+- [ ] Swagger UI에서 Bearer token 입력 후 v1 API 호출 확인
+- [ ] Scalar에서 모바일 개발자가 읽기 쉬운 tag 순서 확인
+- [ ] OpenAPI JSON diff를 CI 또는 릴리스 체크에 포함할지 결정
 
 완료 기준:
 
-- 모바일은 `/api/v1/**`만 호출해도 핵심 흐름을 사용할 수 있다.
-- 기존 API 경로 유지 여부가 명확하다.
-- API 변경 시 어떤 버전에 영향을 주는지 판단할 수 있다.
+- `/v3/api-docs`만 보고 모바일 request/response 타입을 재현할 수 있다.
+- 문서에 legacy `/api/**`와 v1 `/api/v1/**`가 혼동되지 않는다.
 
-### 3. 마감일과 실행일 분리
+### 2.3 API 계약 불일치 정리
 
-현재 `targetDate`는 사용자가 실행하기로 한 날짜다.
-여기에 마감일을 추가해 “언제 할지”와 “언제까지 끝낼지”를 분리한다.
+목표: 현재 문서, 모바일 타입, 실제 백엔드 응답의 차이를 없앤다.
 
-기본 방향:
-
-- `targetDate`: Today에 올려 실행할 날짜
-- `deadlineDate`: 끝내야 하는 날짜
-- `startAt/endAt`: 실제 시간을 차지하는 일정 구간
-- 날짜 없는 Inbox Task에는 마감일만 붙일 수 있다
-
-구현 순서:
-
-1. [ ] `deadlineDate` 필드 설계
-2. [ ] Task 생성/수정 DTO에 마감일 추가
-3. [ ] 마감 임박/마감 초과 계산 필드 추가
-4. [ ] Today와 D-Day 화면에서 마감 표시 기준 정리
-5. [ ] Calendar에는 실행일과 시간 일정 중심으로 표시하고, 마감은 보조 표시로 제한
-6. [ ] 마감일 기준 필터 추가
+- [x] `UserResponse.updatedAt` 응답 필드 반영
+- [ ] `DdayGoalResponse`의 nullable 필드와 실제 응답 확인
+- [ ] `TaskResponse`의 nullable 필드, 생성/수정 시 기본값, 날짜 규칙 재확인
+- [ ] `GET /api/v1/tasks?type=MONTH&date=YYYY-MM` 계약과 실제 binding 동작 검증
+- [ ] 삭제 응답은 모든 v1 API에서 `data: null`로 통일
+- [ ] legacy `/api/tasks`, `/api/ddays` 유지/제거 정책 확정
 
 완료 기준:
 
-- 사용자는 실행일 없이 마감일만 있는 Task를 만들 수 있다.
-- Today에는 실행일 기준으로 나타난다.
-- 마감 임박 Task는 검색/필터와 추천에서 찾을 수 있다.
-- 기간 일정과 마감일이 UI에서 혼동되지 않는다.
+- `API_V1_FRONTEND.md`, OpenAPI JSON, 모바일 타입이 같은 계약을 설명한다.
 
-### 4. 보류함과 하지 않기로 정리
+## 3. 모바일 실사용 후속 기능
 
-기록함은 “아직 날짜를 정하지 않은 일”이고, 보류함은 “지금은 하지 않기로 판단한 일”이다.
-계속 미루는 일을 삭제하지 않고 정리할 수 있게 별도 상태를 둔다.
+### 3.1 통합 검색 API
 
-구현 순서:
+문서: `todolab-mobile/docs/API_SEARCH_FILTER.md`
 
-1. [ ] `ON_HOLD` 또는 `SOMEDAY` 상태 설계
-2. [ ] `DROPPED` 또는 `CANCELED` 상태 설계
-3. [ ] 기록함/보류함/하지 않기로 정리의 차이를 API 계약에 반영
-4. [ ] 지난 미완료에서 보류함 이동 액션 추가
-5. [ ] 보류함 검토 화면 또는 필터 추가
-
-완료 기준:
-
-- 보류한 일은 Today 추천에서 기본 제외된다.
-- 하지 않기로 정리한 일은 삭제와 구분된다.
-- 사용자는 보류함에서 다시 Today나 기록함으로 되돌릴 수 있다.
-
-### 5. 빠른 입력 고도화
-
-사용자가 제목과 날짜/시간을 한 번에 입력할 수 있게 한다.
-
-예시:
-
-- `내일 3시 병원 예약`
-- `금요일 포트폴리오 제출`
-- `6월 30일 종일 세금 신고`
-
-구현 순서:
-
-1. [ ] 빠른 입력 파서 문법 정리
-2. [ ] 오늘, 내일, 요일, `M월 D일`, `HH시` 파싱
-3. [ ] 파싱 결과 미리보기 API
-4. [ ] 확정 저장 API
-5. [ ] 파싱 실패 시 기존처럼 기록함 저장
+- [ ] `GET /api/v1/tasks/search`
+- [ ] `q` 제목/설명 검색
+- [ ] `statuses`, `taskTypes`, `category`, `ddayGoalId`, `hasDday`, `allDay`
+- [ ] `dateField`, `dateFrom`, `dateTo`
+- [ ] `sort`, `cursor`, `limit`
+- [ ] `relevantDate`, `dateSource` 반환
+- [ ] 한글 검색, 영문 대소문자 검색 일관성
+- [ ] 잘못된 enum, 날짜 범위, cursor는 HTTP 400
+- [ ] owner scope 적용
 
 완료 기준:
 
-- 날짜 없는 입력은 기록함에 저장된다.
-- 날짜가 있는 입력은 Today와 Calendar에 같은 날짜로 보인다.
-- 시간 입력은 시간 일정처럼 보인다.
-- 사용자는 저장 전에 파싱 결과를 이해할 수 있다.
+- 모바일 real mode에서 검색 화면을 준비 중 상태가 아니라 실제 검색으로 열 수 있다.
 
-### 6. 검색과 필터
+### 3.2 Today 일괄 재정렬 API
 
-할 일이 쌓였을 때 오래된 기록이나 특정 조건의 일을 빠르게 찾게 한다.
+문서: `todolab-mobile/docs/API_TODAY_REORDER.md`
 
-초기 필터:
-
-- 기록함
-- 오늘
-- 지난 미완료
-- 완료
-- D-Day 연결됨
-- 3회 이상 이월
-- 날짜 없음
-- 마감 임박
-- 보류함
-
-구현 순서:
-
-1. [ ] 제목/설명 검색 API
-2. [ ] 상태, 날짜 있음/없음, D-Day 연결 여부 필터
-3. [ ] 마감일, 이월 횟수, 미룬 이유 필터
-4. [ ] 저장된 필터 또는 스마트 뷰 모델 설계
-5. [ ] More 또는 별도 검색 화면
-6. [ ] 자주 쓰는 필터 칩
+- [ ] `PUT /api/v1/tasks/today-order`
+- [ ] request `{ date, orderedTaskIds }`
+- [ ] 전체 순서를 transaction으로 저장
+- [ ] 중복/누락/다른 날짜/완료/일정 Task ID 거부
+- [ ] 동시 변경 시 HTTP 409
+- [ ] 저장 직후 Today 조회 순서와 응답 순서 일치
 
 완료 기준:
 
-- 사용자는 오래된 기록을 제목으로 찾을 수 있다.
-- 미룬 일, 날짜 없는 일, D-Day 연결 일을 빠르게 볼 수 있다.
-- 필터는 Today 흐름을 방해하지 않고 보조 화면에서 제공된다.
-- 자주 쓰는 조건은 저장된 뷰로 다시 열 수 있다.
+- 모바일 drag-and-drop 재정렬이 한 번의 요청으로 안정적으로 저장된다.
 
-### 7. 향후 7일 실행 계획
+### 3.3 반복 Task / 반복 일정
 
-오늘 이후 일주일 동안 실행하기로 한 일을 날짜별로 미리 본다.
+문서: `todolab-mobile/docs/API_RECURRENCE.md`
 
-구현 순서:
-
-1. [ ] 오늘 이후 7일의 실행 할 일 조회
-2. [ ] 날짜별 개수와 목록 표시
-3. [ ] 날짜별 과부하 표시
-4. [ ] 날짜 간 이동 또는 날짜 재설정
-5. [ ] Calendar 일정과 TODO 실행 계획을 구분해 표시
+- [ ] recurrence series 모델 설계
+- [ ] RRULE validation 범위 확정
+- [ ] Today/Calendar 조회 시 occurrence materialize
+- [ ] occurrence별 완료 상태 저장
+- [ ] `THIS`, `THIS_AND_FUTURE`, `ALL` 수정/삭제 scope
+- [ ] 반복 전체 수정 후 기존 완료 기록 보존
+- [ ] 월말, 윤년, 타임존 경계 테스트
 
 완료 기준:
 
-- 사용자는 앞으로 7일의 할 일 분포를 볼 수 있다.
-- 특정 날짜에 일이 많은지 바로 알 수 있다.
-- 날짜 변경 후 Today와 Calendar가 같은 날짜를 보여준다.
+- 모바일이 반복 UI를 실제 저장 기능처럼 열 수 있다.
 
-### 8. 큰 할 일 쪼개기
+### 3.4 알림 책임 계약
 
-큰 할 일을 사용자가 직접 작은 실행 단위로 나눌 수 있게 한다.
+문서: `todolab-mobile/docs/API_NOTIFICATIONS.md`
 
-구현 순서:
-
-1. [ ] 상위/하위 Task 관계 설계
-2. [ ] 상세 화면에서 하위 작업 추가
-3. [ ] 하위 작업 완료 체크
-4. [ ] 상위 작업 진행률 표시
-5. [ ] 큰 작업을 Today에 넣을 때 쪼개기 제안
+- [ ] 반복 occurrence 계산은 백엔드 책임으로 확정
+- [ ] 모바일 로컬 알림 예약 후보 범위 정의
+- [ ] 완료, 미룸, 삭제, 이동 후 알림 후보 갱신 규칙 정의
+- [ ] 향후 서버 push와 로컬 알림 중복 방지 정책 정리
 
 완료 기준:
 
-- 큰 작업 하나에 여러 하위 작업을 붙일 수 있다.
-- 하위 작업 완료율이 보인다.
-- 상위 작업 상태와 하위 작업 상태가 모순되지 않는다.
+- 모바일 알림 구현 전, 백엔드가 내려줄 occurrence/상태/예외 계약이 확정된다.
 
-### 9. 미룬 일 후속 조치
+## 4. 운영과 보안
 
-3회 이상 이월된 일에 대해 이유 저장 이후의 다음 행동을 제공한다.
+### 4.1 환경과 CORS
 
-후속 액션 후보:
+- [ ] local, staging, production API URL 문서화
+- [ ] `TODOLAB_ALLOWED_ORIGINS` 운영 값 관리 방식 정리
+- [ ] Expo Web, iOS Simulator, Android Emulator, 실제 기기 origin 차이 문서화
+- [ ] staging/prod에서 Swagger UI와 Scalar 공개 범위 결정
 
-- 작게 쪼개기
-- 보류함으로 이동
-- 날짜 다시 정하기
-- 삭제
-- 하지 않기로 정리
+### 4.2 인증 토큰 정책
 
-구현 순서:
+- [ ] access token TTL 운영값 확정
+- [ ] refresh token 도입 여부 결정
+- [ ] 토큰 폐기/로그아웃 서버 책임 범위 결정
+- [ ] 401, 403 오류 message와 code 정리
 
-1. [ ] 후속 액션 타입 설계
-2. [ ] 보류/하지 않기로 정리 상태 모델링
-3. [ ] 미룬 이유별 제안 규칙 추가
-4. [ ] Today의 지난 미완료 섹션에 액션 노출
-5. [ ] 완료 로그/리포트와 구분되도록 응답 정리
+### 4.3 관측과 장애 대응
 
-완료 기준:
+- [ ] API error code catalog 작성
+- [ ] 4xx/5xx logging 기준 정리
+- [ ] 개인정보가 포함될 수 있는 필드 masking 정책 정리
+- [ ] 모바일 연동 장애 대응 runbook 작성
 
-- 3회 이상 이월된 일은 별도 상태로 눈에 띈다.
-- 이유 선택 후 다음 행동을 제안한다.
-- 삭제와 `하지 않기로 정리`는 구분된다.
+## 5. 백엔드 문서화 과제
 
-## 3. 이후 고도화 후보
+우선 작성할 문서:
 
-### 반복 작업
+- [ ] API 연동 규격서: v1 endpoint, 인증, envelope, 오류, 날짜 규칙
+- [ ] 환경별 연동 가이드: local/staging/prod URL, CORS, 실행 순서
+- [ ] 오류 코드 카탈로그: code, HTTP status, 사용자 노출 message
+- [ ] 인증/인가 계약서: JWT claim, 만료, 401/403 처리
+- [ ] 데이터 모델 사전: Task, D-Day, User 주요 필드와 상태 전이
+- [ ] 릴리스/호환성 정책: v1 유지, deprecation, breaking change 기준
+- [ ] 모바일 연동 테스트 runbook: smoke test 절차와 기록 방식
 
-- 매일, 매주, 매월 반복
-- 완료 시 다음 반복 Task 생성
-- 반복 Task와 완료 로그 분리
+상세 목록과 우선순위는 [`BACKEND_DOCUMENTATION_PLAN.md`](./BACKEND_DOCUMENTATION_PLAN.md)에서 관리한다.
 
-### 알림과 리마인더
+## 6. 개발 원칙
 
-- 앱 안의 아침 계획 안내
-- 마감 임박 알림
-- 모바일 푸시 알림은 인증과 모바일 계정 흐름 안정화 후 도입
-
-### 오늘 할 일 개수 제한
-
-- 권장 개수 3개 또는 5개 설정
-- 초과 시 안내
-- Today 요약에서 과부하 표시
-
-### 완료와 연속 실행 요약
-
-- 오늘 완료 개수
-- 이번 주 완료 개수
-- 연속 실행 일수
-- 어제보다 나아진 점
-
-### 주간 완료 리포트
-
-- 이번 주 완료한 일 개수
-- 카테고리별 완료 개수
-- 계속 미룬 일 목록
-- 다음 주로 넘길 일 목록
-
-### 저녁 회고
-
-- 오늘 완료한 일
-- 오늘 못 한 일
-- 내일로 넘길 일
-- 계속 미루는 일
-
-### AI 쪼개기
-
-직접 하위 작업을 추가하는 흐름이 안정화된 뒤 붙인다.
-
-- 큰 일을 작은 실행 단위 후보로 제안
-- 사용자가 선택한 항목만 하위 작업으로 생성
-- Today 추천과 연결
-
-### 낮은 우선순위 후보
-
-- 위치 기반 알림
-- Pomodoro 집중 타이머
-- Kanban 또는 Timeline 뷰
-- 팀 협업, 댓글, 파일 첨부
-
-## 4. API 운영 기준
-
-### 경로
-
-- 신규 모바일 API는 `/api/v1/**`를 기준으로 한다.
-- 서버 렌더링 화면은 `/today`, `/week`, `/month`, `/dday` 같은 웹 경로를 유지한다.
-- 웹 화면 전용 요청과 모바일 API 요청은 Security matcher와 CORS 정책을 분리한다.
-
-### 인증
-
-- 웹은 session cookie 기반 인증을 사용한다.
-- 모바일은 JWT access token을 사용한다.
-- refresh token 도입 여부는 JWT 1차 구현 후 결정한다.
-- CORS는 API 경로에만 허용하고, 운영 origin은 환경변수로 명시한다.
-
-### 오류 응답
-
-오류 응답은 아래 형태를 유지한다.
-
-```json
-{
-  "status": "fail",
-  "data": null,
-  "error": {
-    "code": 10001,
-    "message": "값이 올바르지 않습니다."
-  },
-  "timestamp": "..."
-}
-```
-
-### 삭제 응답
-
-삭제 성공은 기본적으로 `data: null`을 사용한다.
-
-```json
-{
-  "status": "success",
-  "data": null,
-  "timestamp": "..."
-}
-```
-
-## 5. 데이터 모델 기준
-
-현재 중요한 Task 개념:
-
-- `INBOX`: 날짜 없이 기록된 항목
-- `TODAY`: 특정 날짜에 실행하기로 한 항목
-- `DONE`: 완료된 항목
-- `targetDate`: 사용자가 실행하기로 한 날짜
-- `deadlineDate`: 사용자가 끝내야 하는 날짜
-- `startAt/endAt`: 시간이 필요한 경우의 일정 시간
-- `todayOrder`: Today 안에서 사용자가 정한 실행 순서
-- `carryOverCount`: 이월 횟수
-- `deferReason`: 미룬 이유
-- `ON_HOLD`: 지금은 하지 않기로 보류한 항목
-- `DROPPED`: 삭제는 아니지만 하지 않기로 정리한 항목
-
-로그인 도입 후 추가할 핵심 개념:
-
-- `User`: ToDoLab 사용자
-- Task 소유자
-- D-Day 목표 소유자
-- 인증 방식별 principal
-
-날짜 규칙:
-
-- 날짜가 없으면 기록함이다.
-- 오늘, 내일 또는 특정 날짜로 보내면 `targetDate`가 생긴다.
-- 마감일은 실행일과 다르며, Calendar 기간 일정처럼 표현하지 않는다.
-- 날짜가 있는 TODO는 Calendar에도 같은 날짜로 보인다.
-- 시간이 없으면 종일 할 일처럼 보인다.
-- 기록함으로 이동하면 날짜와 시간이 제거된다.
-- 날짜 없는 Inbox Task는 `allDay: false`로 저장한다.
-- 종일 일정은 `startAt=해당일 00:00`, `endAt=다음날 00:00`의 end-exclusive 형태다.
-
-## 6. 개발 참고
-
-기능 작업 시 우선 확인할 위치:
-
-- `src/main/java/com/todolab/task/domain/Task.java`
-- `src/main/java/com/todolab/task/controller/TaskController.java`
-- `src/main/java/com/todolab/task/service/TaskService.java`
-- `src/main/java/com/todolab/task/service/TaskTxService.java`
-- `src/main/java/com/todolab/task/repository/TaskRepositoryImpl.java`
-- `src/main/java/com/todolab/dday/`
-- `src/main/java/com/todolab/config/CorsConfig.java`
-- `src/main/resources/schema.sql`
-- `docs/db/migrations/`
-
-로그인 도입 시 새로 만들 가능성이 높은 위치:
-
-- `src/main/java/com/todolab/user/`
-- `src/main/java/com/todolab/auth/`
-- `src/main/java/com/todolab/config/SecurityConfig.java`
-- `src/test/java/com/todolab/auth/`
-- `src/test/java/com/todolab/user/`
-
-스키마를 바꿀 때 같이 확인할 것:
-
-- 도메인 필드와 메서드
-- 요청/응답 DTO
-- Repository 조회 조건
-- `schema.sql`
-- 테스트
-- 필요하면 `docs/db/migrations/`
-
-## 7. 개발 원칙
-
-- 사용자가 매일 들어왔을 때 Today에서 바로 실행할 수 있어야 한다.
-- 기능 요구가 불명확하면 Today 흐름을 우선한다.
-- 인증 도입 후 모든 사용자 데이터는 소유자 기준으로 격리한다.
-- API 계약 변경은 버전과 호환성 기준으로 판단한다.
-- 기존 구조를 한 번에 갈아엎지 않는다.
-- 데이터 모델 변경은 API, 화면, 테스트까지 함께 닫는다.
-- AI 기능은 핵심 실행 흐름이 안정된 뒤 붙인다.
+- 모바일과 웹의 인증 방식은 분리하되 사용자 데이터 격리는 동일하게 유지한다.
+- 새 모바일 API는 `/api/v1/**`에 추가한다.
+- API 계약 변경은 OpenAPI JSON, `API_V1_FRONTEND.md`, 테스트를 함께 갱신한다.
+- 날짜/시간은 사용자 time zone 도입 전까지 `Asia/Seoul` 기준을 유지한다.
+- 반복/알림처럼 계약이 확정되지 않은 기능은 실제 저장 기능처럼 열지 않는다.

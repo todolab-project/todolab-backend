@@ -56,7 +56,8 @@ class AuthControllerTest {
                 "test@example.com",
                 "테스터",
                 UserRole.USER,
-                LocalDateTime.of(2026, 6, 30, 0, 30)
+                LocalDateTime.of(2026, 6, 30, 0, 30),
+                null
         );
 
         given(userService.register(any(RegisterRequest.class))).willReturn(response);
@@ -118,7 +119,8 @@ class AuthControllerTest {
                 "test@example.com",
                 "테스터",
                 UserRole.USER,
-                LocalDateTime.of(2026, 6, 30, 0, 30)
+                LocalDateTime.of(2026, 6, 30, 0, 30),
+                null
         );
         TokenResponse response = new TokenResponse(
                 "Bearer",

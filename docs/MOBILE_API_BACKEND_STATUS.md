@@ -1,6 +1,6 @@
 # Mobile API Backend Status
 
-Last audited: 2026-07-13
+Last audited: 2026-07-14
 
 이 문서는 `todolab-mobile/docs/API_*.md`와 모바일 로드맵의 백엔드 확인 항목을 `todolab-backend` 현재 코드 기준으로 대조한 관리 문서다.
 
@@ -12,10 +12,18 @@ Last audited: 2026-07-13
 
 ## 1. 실제 사용 전 최우선
 
+최근 모바일 연동 테스트 결과:
+
+- [x] Expo Web에서 JWT 요청 preflight 시 `Authorization` header가 CORS 허용 목록에 없어 막히는 문제 수정
+- [x] CORS preflight 회귀 테스트 추가
+- [x] OpenAPI JSON `/v3/api-docs`, Swagger UI `/swagger-ui`, Scalar `/scalar.html` 노출
+- [x] `UserResponse.updatedAt` 문서/모바일 타입/백엔드 DTO 계약 일치
+
 1. [~] 인증 사용자 소유권
    - 완료: `Task`, `DdayGoal` owner 필드와 owner-aware repository/service path 추가
    - 완료: `/api/v1/tasks`, `/api/v1/dday-goals`의 주요 조회/수정/삭제 endpoint를 owner-aware service path로 확장
    - 남음: 기존 `/api/tasks`, `/api/ddays` 호환 유지/제거 정책 결정
+   - 남음: access token TTL, refresh token 도입 여부, 로그아웃 서버 책임 범위 결정
 
 2. [~] Today / Calendar 여러 날 일정 범위 조회
    - 완료: `GET /api/tasks/today?date=...`는 요청 날짜와 겹치는 `SCHEDULE`을 포함한다.
@@ -164,7 +172,7 @@ Last audited: 2026-07-13
 | --- | --- | --- |
 | 개발 / 스테이징 / 운영 API URL | [~] | local CORS는 있음. staging/production URL 정책은 미정 |
 | 인증 방식과 토큰 계약 | [~] | `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/me` 있음. 모바일 저장/refresh token 정책은 미정 |
-| OpenAPI 명세 | [ ] | springdoc/swagger 설정 없음 |
+| OpenAPI 명세 | [x] | `/v3/api-docs`, `/swagger-ui`, `/scalar.html` 제공 |
 | `GET /api/tasks` 범위 조회 계약 | [~] | `DAY/WEEK/MONTH`, `taskType` 지원. v1/owner 기준 계약 문서화 필요 |
 | `GET /api/ddays/{id}` HTTP 500 | [~] | legacy endpoint 없음. v1 `GET /api/v1/dday-goals/{id}` 추가됨 |
 | `POST /api/ddays/{id}/tasks` HTTP 500 | [~] | legacy endpoint 없음. v1 `POST /api/v1/dday-goals/{id}/tasks` 추가됨 |
@@ -175,7 +183,9 @@ Last audited: 2026-07-13
 1. [x] `/api/v1/tasks` 조회/수정/삭제를 owner-aware service path로 확장
 2. [x] `/api/v1/dday-goals` 조회/삭제/연결 Task 조회를 owner-aware service path로 확장
 3. [x] Today 조회에 여러 날 schedule overlap 포함
-4. [~] D-Day legacy 500 이슈 재현 테스트 또는 endpoint 계약 정리
-5. [ ] `GET /api/tasks/search` 구현
-6. [ ] Today 일괄 재정렬 API 구현
-7. [ ] 반복/알림 계약 설계 확정 후 recurrence 모델링
+4. [x] OpenAPI/Swagger/Scalar 문서 UI 추가
+5. [x] Expo Web Authorization CORS preflight 허용
+6. [~] D-Day legacy 500 이슈 재현 테스트 또는 endpoint 계약 정리
+7. [ ] `GET /api/v1/tasks/search` 구현
+8. [ ] Today 일괄 재정렬 API 구현
+9. [ ] 반복/알림 계약 설계 확정 후 recurrence 모델링

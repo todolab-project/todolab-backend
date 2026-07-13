@@ -10,7 +10,8 @@ public record UserResponse(
         String email,
         String displayName,
         UserRole role,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ) {
 
     public static UserResponse from(User user) {
@@ -19,7 +20,8 @@ public record UserResponse(
                 user.getEmail(),
                 user.getDisplayName(),
                 user.getRole(),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                user.getUpdatedAt()
         );
     }
 }
