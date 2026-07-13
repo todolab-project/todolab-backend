@@ -148,13 +148,13 @@ public class TaskService {
     }
 
     public List<TaskResponse> getTodayTasks(LocalDate targetDate) {
-        return taskRepository.findPlannedTasks(targetDate, targetDate.plusDays(1)).stream()
+        return taskRepository.findTodayTasks(targetDate).stream()
                 .map(TaskResponse::from)
                 .toList();
     }
 
     public List<TaskResponse> getTodayTasksForOwner(LocalDate targetDate, User owner) {
-        return taskRepository.findPlannedTasks(ownerId(owner), targetDate, targetDate.plusDays(1)).stream()
+        return taskRepository.findTodayTasks(ownerId(owner), targetDate).stream()
                 .map(TaskResponse::from)
                 .toList();
     }

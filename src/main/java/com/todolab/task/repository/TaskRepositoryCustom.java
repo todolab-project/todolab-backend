@@ -29,6 +29,10 @@ public interface TaskRepositoryCustom {
 
     List<Task> findPlannedTasks(Long ownerId, LocalDate fromInclusive, LocalDate toExclusive);
 
+    List<Task> findTodayTasks(LocalDate targetDate);
+
+    List<Task> findTodayTasks(Long ownerId, LocalDate targetDate);
+
     Integer findMaxTodayOrder(LocalDate targetDate);
 
     Integer findMaxTodayOrder(Long ownerId, LocalDate targetDate);

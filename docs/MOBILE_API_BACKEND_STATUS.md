@@ -17,11 +17,10 @@ Last audited: 2026-07-13
    - 완료: `/api/v1/tasks`, `/api/v1/dday-goals`의 주요 조회/수정/삭제 endpoint를 owner-aware service path로 확장
    - 남음: 기존 `/api/tasks`, `/api/ddays` 호환 유지/제거 정책 결정
 
-2. [ ] Today / Calendar 여러 날 일정 범위 조회
-   - 현재 `GET /api/tasks/today?date=...`는 `targetDate` 기준 `TODAY` Task만 조회한다.
-   - 여러 날 `SCHEDULE`이 요청 날짜와 겹쳐도 `targetDate`가 시작일이면 다음 날 Today에는 포함되지 않는다.
+2. [~] Today / Calendar 여러 날 일정 범위 조회
+   - 완료: `GET /api/tasks/today?date=...`는 요청 날짜와 겹치는 `SCHEDULE`을 포함한다.
    - `DAY/WEEK/MONTH` 범위 조회는 `startAt/endAt` overlap 조건을 사용하므로 Calendar 쪽 기반은 있음.
-   - 남음: Today도 `API_SCHEDULE_RANGE.md`의 overlap 기준을 적용하고, 여러 날 일정이 실행 순서와 `todayOrder`에 섞이지 않게 분리.
+   - 남음: 여러 날 일정이 실행 순서와 `todayOrder`에 섞이지 않게 API 응답/모바일 표시 기준을 더 명확히 분리.
 
 3. [ ] 통합 검색 API
    - `GET /api/tasks/search` 없음.
@@ -39,7 +38,7 @@ Last audited: 2026-07-13
 
 | 항목 | 상태 | 백엔드 현재 상태 |
 | --- | --- | --- |
-| `GET /api/tasks/today?date=YYYY-MM-DD`가 오늘과 겹치는 `SCHEDULE`도 반환 | [ ] | `TaskService.getTodayTasks`는 `findPlannedTasks(targetDate, targetDate+1)` 사용. overlap 미적용 |
+| `GET /api/tasks/today?date=YYYY-MM-DD`가 오늘과 겹치는 `SCHEDULE`도 반환 | [x] | `TaskRepository.findTodayTasks`가 `targetDate` 일치 또는 `SCHEDULE` overlap 조건 사용 |
 | Calendar `DAY/WEEK/MONTH`가 범위와 겹치는 일정 반환 | [x] | `TaskRepositoryImpl.findByDateRangeAndType`가 `startAt < end && endAt > start` overlap 사용 |
 | 원본 ID로 한 번만 반환 | [x] | 날짜별 row materialize 없이 `Task` row를 그대로 반환 |
 | 여러 날 일정이 날짜마다 중복 row로 내려오지 않음 | [x] | Calendar 범위 조회는 원본 row 조회 방식 |
@@ -49,8 +48,8 @@ Last audited: 2026-07-13
 
 필요 작업:
 
-- [ ] Today 조회에 schedule overlap 포함
-- [ ] Today 응답에서 실행 TODO 정렬과 일정 정렬 기준 분리
+- [x] Today 조회에 schedule overlap 포함
+- [~] Today 응답에서 실행 TODO 정렬과 일정 정렬 기준 분리
 - [ ] 여러 날 일정이 `todayOrder` 재정렬 대상에서 제외되는 테스트 추가
 - [ ] Today/Calendar가 같은 overlap 기준을 쓰는 통합 테스트 추가
 
@@ -174,7 +173,7 @@ Last audited: 2026-07-13
 
 1. [x] `/api/v1/tasks` 조회/수정/삭제를 owner-aware service path로 확장
 2. [x] `/api/v1/dday-goals` 조회/삭제/연결 Task 조회를 owner-aware service path로 확장
-3. [ ] Today 조회에 여러 날 schedule overlap 포함
+3. [x] Today 조회에 여러 날 schedule overlap 포함
 4. [ ] D-Day legacy 500 이슈 재현 테스트 또는 endpoint 계약 정리
 5. [ ] `GET /api/tasks/search` 구현
 6. [ ] Today 일괄 재정렬 API 구현

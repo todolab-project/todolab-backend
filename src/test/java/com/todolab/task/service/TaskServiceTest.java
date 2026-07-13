@@ -831,7 +831,7 @@ class TaskServiceTest {
     }
 
     @Test
-    @DisplayName("Today 조회는 targetDate 기준 Task를 반환한다")
+    @DisplayName("Today 조회는 Today 전용 Repository 조회 결과를 반환한다")
     void getTodayTasks_success() {
         // given
         LocalDate targetDate = LocalDate.of(2026, 5, 20);
@@ -841,7 +841,7 @@ class TaskServiceTest {
                 .targetDate(targetDate)
                 .build();
 
-        given(taskRepository.findPlannedTasks(targetDate, targetDate.plusDays(1)))
+        given(taskRepository.findTodayTasks(targetDate))
                 .willReturn(List.of(today));
 
         // when
@@ -854,7 +854,7 @@ class TaskServiceTest {
         assertThat(result.getFirst().targetDate()).isEqualTo(targetDate);
 
         then(taskRepository).should(times(1))
-                .findPlannedTasks(targetDate, targetDate.plusDays(1));
+                .findTodayTasks(targetDate);
         then(taskRepository).shouldHaveNoMoreInteractions();
         then(taskTxService).shouldHaveNoInteractions();
     }
@@ -1280,13 +1280,13 @@ class TaskServiceTest {
                 .targetDate(date)
                 .owner(owner)
                 .build();
-        given(taskRepository.findPlannedTasks(1L, date, date.plusDays(1))).willReturn(List.of(task));
+        given(taskRepository.findTodayTasks(1L, date)).willReturn(List.of(task));
 
         List<TaskResponse> result = taskService.getTodayTasksForOwner(date, owner);
 
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().title()).isEqualTo("today");
-        then(taskRepository).should().findPlannedTasks(1L, date, date.plusDays(1));
+        then(taskRepository).should().findTodayTasks(1L, date);
         then(taskTxService).shouldHaveNoInteractions();
     }
 

@@ -396,6 +396,54 @@ class TaskRepositoryTest extends RepositoryTestSupport {
     }
 
     @Test
+    @DisplayName("findTodayTasks()는 요청 날짜와 겹치는 여러 날 일정을 포함한다")
+    void findTodayTasks_includesOverlappingPeriodSchedule() {
+        // given
+        LocalDate targetDate = LocalDate.of(2026, 5, 20);
+        Task spanningSchedule = Task.builder()
+                .title("spanning")
+                .type(TaskType.SCHEDULE)
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate.minusDays(1))
+                .startAt(targetDate.minusDays(1).atTime(9, 0))
+                .endAt(targetDate.plusDays(1).atTime(18, 0))
+                .build();
+        Task todayTask = Task.builder()
+                .title("today")
+                .type(TaskType.TODO)
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate)
+                .todayOrder(1)
+                .build();
+        Task endedAtStart = Task.builder()
+                .title("endedAtStart")
+                .type(TaskType.SCHEDULE)
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate.minusDays(1))
+                .startAt(targetDate.minusDays(1).atTime(9, 0))
+                .endAt(targetDate.atStartOfDay())
+                .build();
+        Task startsAtNextDay = Task.builder()
+                .title("startsAtNextDay")
+                .type(TaskType.SCHEDULE)
+                .status(TaskStatus.TODAY)
+                .targetDate(targetDate.plusDays(1))
+                .startAt(targetDate.plusDays(1).atStartOfDay())
+                .endAt(targetDate.plusDays(1).atTime(1, 0))
+                .build();
+
+        taskRepository.saveAll(List.of(spanningSchedule, todayTask, endedAtStart, startsAtNextDay));
+        flushAndClear();
+
+        // when
+        List<Task> result = taskRepository.findTodayTasks(targetDate);
+
+        // then
+        then(result).extracting("title")
+                .containsExactly("spanning", "today");
+    }
+
+    @Test
     @DisplayName("findMaxTodayOrder()는 지정 날짜의 가장 큰 실행 순서를 반환한다")
     void findMaxTodayOrder_success() {
         // given
