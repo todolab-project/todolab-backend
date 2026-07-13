@@ -4,7 +4,9 @@ import com.todolab.auth.service.CurrentUserService;
 import com.todolab.common.api.ApiResponse;
 import com.todolab.dday.dto.DdayGoalRequest;
 import com.todolab.dday.dto.DdayGoalResponse;
+import com.todolab.dday.dto.DdayGoalTaskRequest;
 import com.todolab.dday.service.DdayGoalService;
+import com.todolab.task.service.TaskService;
 import com.todolab.user.domain.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ import java.util.List;
 public class DdayGoalV1Controller {
 
     private final DdayGoalService ddayGoalService;
+    private final TaskService taskService;
     private final CurrentUserService currentUserService;
 
     @PostMapping
@@ -50,6 +53,15 @@ public class DdayGoalV1Controller {
         return ResponseEntity.ok(ApiResponse.success(ddayGoalService.findAllForOwner(owner)));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<DdayGoalResponse>> get(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long id
+    ) {
+        User owner = currentUserService.requireUser(jwt);
+        return ResponseEntity.ok(ApiResponse.success(ddayGoalService.getForOwner(id, owner)));
+    }
+
     @GetMapping("/{id}/tasks")
     public ResponseEntity<ApiResponse<List<TaskResponse>>> findTasks(
             @AuthenticationPrincipal Jwt jwt,
@@ -57,6 +69,23 @@ public class DdayGoalV1Controller {
     ) {
         User owner = currentUserService.requireUser(jwt);
         return ResponseEntity.ok(ApiResponse.success(ddayGoalService.findTasksForOwner(id, owner)));
+    }
+
+    @PostMapping("/{id}/tasks")
+    public ResponseEntity<ApiResponse<TaskResponse>> createTodayTask(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long id,
+            @Valid @RequestBody DdayGoalTaskRequest request
+    ) {
+        User owner = currentUserService.requireUser(jwt);
+        TaskResponse response = taskService.createTodayTaskForDdayGoalForOwner(
+                id,
+                request.title(),
+                request.date(),
+                owner
+        );
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(response));
     }
 
     @DeleteMapping("/{id}")

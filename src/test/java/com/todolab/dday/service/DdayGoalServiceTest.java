@@ -119,6 +119,35 @@ class DdayGoalServiceTest {
     }
 
     @Test
+    @DisplayName("인증 사용자용 D-Day 목표 단건 조회는 owner 조건을 적용한다")
+    void getForOwner_success_ownerScoped() {
+        DdayGoalService service = new DdayGoalService(ddayGoalRepository, taskRepository);
+        User owner = persistedOwner(10L);
+        DdayGoal goal = new DdayGoal("정보처리기사", LocalDate.of(2026, 6, 10), owner);
+        given(ddayGoalRepository.findByIdAndOwnerId(1L, 10L)).willReturn(java.util.Optional.of(goal));
+
+        var response = service.getForOwner(1L, owner);
+
+        assertThat(response.title()).isEqualTo("정보처리기사");
+        then(ddayGoalRepository).should().findByIdAndOwnerId(1L, 10L);
+        then(taskRepository).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("인증 사용자용 D-Day 목표 단건 조회는 다른 사용자 목표를 찾지 못한 것처럼 처리한다")
+    void getForOwner_fail_notFound() {
+        DdayGoalService service = new DdayGoalService(ddayGoalRepository, taskRepository);
+        User owner = persistedOwner(10L);
+        given(ddayGoalRepository.findByIdAndOwnerId(99L, 10L)).willReturn(java.util.Optional.empty());
+
+        assertThatThrownBy(() -> service.getForOwner(99L, owner))
+                .isInstanceOf(DdayGoalNotFoundException.class);
+
+        then(ddayGoalRepository).should().findByIdAndOwnerId(99L, 10L);
+        then(taskRepository).shouldHaveNoInteractions();
+    }
+
+    @Test
     @DisplayName("D-Day 목표를 날짜 범위로 조회한다")
     void findByDateRange_success() {
         DdayGoalService service = new DdayGoalService(ddayGoalRepository, taskRepository);

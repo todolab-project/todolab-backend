@@ -317,6 +317,11 @@ public class TaskService {
         return TaskResponse.from(disconnected);
     }
 
+    public TaskResponse createTodayTaskForDdayGoalForOwner(Long ddayGoalId, String title, LocalDate targetDate, User owner) {
+        Task created = taskTxService.createTodayTaskForDdayGoalTxForOwner(ddayGoalId, title, targetDate, owner);
+        return TaskResponse.from(created);
+    }
+
     public void delete(Long id) {
         if (!taskRepository.existsById(id)) {
             throw new TaskNotFoundException(id);

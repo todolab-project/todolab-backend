@@ -4,7 +4,11 @@ import com.todolab.auth.service.CurrentUserService;
 import com.todolab.dday.domain.DdayGoal;
 import com.todolab.dday.dto.DdayGoalRequest;
 import com.todolab.dday.dto.DdayGoalResponse;
+import com.todolab.dday.dto.DdayGoalTaskRequest;
 import com.todolab.dday.service.DdayGoalService;
+import com.todolab.task.domain.Task;
+import com.todolab.task.dto.TaskResponse;
+import com.todolab.task.service.TaskService;
 import com.todolab.user.domain.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,12 +32,15 @@ class DdayGoalV1ControllerTest {
     DdayGoalService ddayGoalService;
 
     @Mock
+    TaskService taskService;
+
+    @Mock
     CurrentUserService currentUserService;
 
     @Test
     @DisplayName("v1 D-Day 목표 생성은 JWT 사용자를 owner로 전달한다")
     void create_success_ownerAware() {
-        DdayGoalV1Controller controller = new DdayGoalV1Controller(ddayGoalService, currentUserService);
+        DdayGoalV1Controller controller = controller();
         Jwt jwt = jwt("1");
         User owner = new User("owner@example.com", "encoded-password", "Owner");
         DdayGoalRequest request = new DdayGoalRequest("정보처리기사", LocalDate.of(2026, 6, 10));
@@ -57,7 +64,7 @@ class DdayGoalV1ControllerTest {
     @Test
     @DisplayName("v1 D-Day 목표 목록 조회는 owner 범위 서비스를 호출한다")
     void findAll_success_ownerScoped() {
-        DdayGoalV1Controller controller = new DdayGoalV1Controller(ddayGoalService, currentUserService);
+        DdayGoalV1Controller controller = controller();
         Jwt jwt = jwt("1");
         User owner = owner();
         DdayGoalResponse response = DdayGoalResponse.from(new DdayGoal(
@@ -77,9 +84,31 @@ class DdayGoalV1ControllerTest {
     }
 
     @Test
+    @DisplayName("v1 D-Day 목표 단건 조회는 owner 범위 서비스를 호출한다")
+    void get_success_ownerScoped() {
+        DdayGoalV1Controller controller = controller();
+        Jwt jwt = jwt("1");
+        User owner = owner();
+        DdayGoalResponse response = DdayGoalResponse.from(new DdayGoal(
+                "정보처리기사",
+                LocalDate.of(2026, 6, 10),
+                owner
+        ));
+        given(currentUserService.requireUser(jwt)).willReturn(owner);
+        given(ddayGoalService.getForOwner(10L, owner)).willReturn(response);
+
+        var result = controller.get(jwt, 10L);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getBody()).isNotNull();
+        assertThat(result.getBody().data().title()).isEqualTo("정보처리기사");
+        then(ddayGoalService).should().getForOwner(10L, owner);
+    }
+
+    @Test
     @DisplayName("v1 D-Day 연결 Task 조회는 owner 범위 서비스를 호출한다")
     void findTasks_success_ownerScoped() {
-        DdayGoalV1Controller controller = new DdayGoalV1Controller(ddayGoalService, currentUserService);
+        DdayGoalV1Controller controller = controller();
         Jwt jwt = jwt("1");
         User owner = owner();
         given(currentUserService.requireUser(jwt)).willReturn(owner);
@@ -94,9 +123,33 @@ class DdayGoalV1ControllerTest {
     }
 
     @Test
+    @DisplayName("v1 D-Day 목표 기반 Today Task 생성은 owner 범위 서비스를 호출한다")
+    void createTodayTask_success_ownerScoped() {
+        DdayGoalV1Controller controller = controller();
+        Jwt jwt = jwt("1");
+        User owner = owner();
+        DdayGoalTaskRequest request = new DdayGoalTaskRequest("기출 20문제 풀기", LocalDate.of(2026, 7, 13));
+        TaskResponse response = TaskResponse.from(Task.builder()
+                .title("기출 20문제 풀기")
+                .owner(owner)
+                .build());
+        given(currentUserService.requireUser(jwt)).willReturn(owner);
+        given(taskService.createTodayTaskForDdayGoalForOwner(10L, request.title(), request.date(), owner))
+                .willReturn(response);
+
+        var result = controller.createTodayTask(jwt, 10L, request);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(result.getBody()).isNotNull();
+        assertThat(result.getBody().data().title()).isEqualTo("기출 20문제 풀기");
+        then(taskService).should()
+                .createTodayTaskForDdayGoalForOwner(10L, request.title(), request.date(), owner);
+    }
+
+    @Test
     @DisplayName("v1 D-Day 목표 삭제는 owner 범위 서비스를 호출하고 null data를 반환한다")
     void delete_success_ownerScoped() {
-        DdayGoalV1Controller controller = new DdayGoalV1Controller(ddayGoalService, currentUserService);
+        DdayGoalV1Controller controller = controller();
         Jwt jwt = jwt("1");
         User owner = owner();
         given(currentUserService.requireUser(jwt)).willReturn(owner);
@@ -118,5 +171,9 @@ class DdayGoalV1ControllerTest {
 
     private User owner() {
         return new User("owner@example.com", "encoded-password", "Owner");
+    }
+
+    private DdayGoalV1Controller controller() {
+        return new DdayGoalV1Controller(ddayGoalService, taskService, currentUserService);
     }
 }

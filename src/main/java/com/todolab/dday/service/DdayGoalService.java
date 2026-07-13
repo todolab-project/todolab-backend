@@ -56,6 +56,13 @@ public class DdayGoalService {
     }
 
     @Transactional(readOnly = true)
+    public DdayGoalResponse getForOwner(Long id, User owner) {
+        DdayGoal goal = ddayGoalRepository.findByIdAndOwnerId(id, ownerId(owner))
+                .orElseThrow(() -> new DdayGoalNotFoundException(id));
+        return DdayGoalResponse.from(goal);
+    }
+
+    @Transactional(readOnly = true)
     public List<DdayGoalResponse> findByDateRange(LocalDate startDate, LocalDate endDate) {
         return ddayGoalRepository.findByTargetDateBetweenOrderByTargetDateAscIdAsc(startDate, endDate).stream()
                 .map(DdayGoalResponse::from)

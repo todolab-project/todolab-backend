@@ -30,7 +30,8 @@ Last audited: 2026-07-13
    - 현재 `GET /api/ddays/{id}` endpoint 자체가 없음.
    - 현재 `POST /api/ddays/{id}/tasks` endpoint 자체가 없음.
    - 현재 Task와 D-Day 연결은 `PATCH /api/tasks/{id}/dday-goal?ddayGoalId=...`로 제공됨.
-   - 남음: 모바일 문서/클라이언트가 기대하는 D-Day endpoint 이름을 백엔드 실제 계약과 맞추거나 alias 추가.
+   - 완료: v1 기준 `GET /api/v1/dday-goals/{id}`와 `POST /api/v1/dday-goals/{id}/tasks` 추가.
+   - 남음: legacy `/api/ddays/**`에 alias를 둘지, 모바일을 v1 계약으로 전환할지 결정.
 
 ## 2. 여러 날 일정 / Calendar 범위 조회
 
@@ -165,8 +166,8 @@ Last audited: 2026-07-13
 | 인증 방식과 토큰 계약 | [~] | `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/me` 있음. 모바일 저장/refresh token 정책은 미정 |
 | OpenAPI 명세 | [ ] | springdoc/swagger 설정 없음 |
 | `GET /api/tasks` 범위 조회 계약 | [~] | `DAY/WEEK/MONTH`, `taskType` 지원. v1/owner 기준 계약 문서화 필요 |
-| `GET /api/ddays/{id}` HTTP 500 | [~] | endpoint 없음. 구현하거나 모바일 계약에서 제거 필요 |
-| `POST /api/ddays/{id}/tasks` HTTP 500 | [~] | endpoint 없음. 현재는 Task 생성 후 D-Day 연결 API를 사용 |
+| `GET /api/ddays/{id}` HTTP 500 | [~] | legacy endpoint 없음. v1 `GET /api/v1/dday-goals/{id}` 추가됨 |
+| `POST /api/ddays/{id}/tasks` HTTP 500 | [~] | legacy endpoint 없음. v1 `POST /api/v1/dday-goals/{id}/tasks` 추가됨 |
 | D-Day 연결 Task Today 이동 후 HTTP 500 | [~] | 관련 회귀 테스트 필요. 현재 `PATCH /api/tasks/{id}/today`와 D-Day fetch join 응답 구조는 있음 |
 
 ## 9. 추천 구현 순서
@@ -174,7 +175,7 @@ Last audited: 2026-07-13
 1. [x] `/api/v1/tasks` 조회/수정/삭제를 owner-aware service path로 확장
 2. [x] `/api/v1/dday-goals` 조회/삭제/연결 Task 조회를 owner-aware service path로 확장
 3. [x] Today 조회에 여러 날 schedule overlap 포함
-4. [ ] D-Day legacy 500 이슈 재현 테스트 또는 endpoint 계약 정리
+4. [~] D-Day legacy 500 이슈 재현 테스트 또는 endpoint 계약 정리
 5. [ ] `GET /api/tasks/search` 구현
 6. [ ] Today 일괄 재정렬 API 구현
 7. [ ] 반복/알림 계약 설계 확정 후 recurrence 모델링

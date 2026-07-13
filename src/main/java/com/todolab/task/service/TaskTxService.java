@@ -6,6 +6,7 @@ import com.todolab.dday.repository.DdayGoalRepository;
 import com.todolab.task.domain.DeferReason;
 import com.todolab.task.domain.Task;
 import com.todolab.task.domain.TaskStatus;
+import com.todolab.task.domain.TaskType;
 import com.todolab.task.domain.TodayOrderDirection;
 import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.exception.TaskNotFoundException;
@@ -222,6 +223,23 @@ public class TaskTxService {
     public Task disconnectDdayGoalTxForOwner(Long id, User owner) {
         Task task = findTaskForOwner(id, owner);
         task.disconnectDdayGoal();
+        return taskRepository.save(task);
+    }
+
+    @Transactional
+    public Task createTodayTaskForDdayGoalTxForOwner(Long ddayGoalId, String title, LocalDate targetDate, User owner) {
+        Long ownerId = ownerId(owner);
+        DdayGoal ddayGoal = ddayGoalRepository.findByIdAndOwnerId(ddayGoalId, ownerId)
+                .orElseThrow(() -> new DdayGoalNotFoundException(ddayGoalId));
+
+        Task task = Task.builder()
+                .title(title)
+                .type(TaskType.TODO)
+                .owner(owner)
+                .ddayGoal(ddayGoal)
+                .build();
+        task.moveToToday(targetDate);
+        assignLastTodayOrder(task, targetDate, ownerId);
         return taskRepository.save(task);
     }
 

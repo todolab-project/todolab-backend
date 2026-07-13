@@ -534,6 +534,62 @@ class TaskTxServiceTest {
     }
 
     @Test
+    @DisplayName("createTodayTaskForDdayGoalTxForOwner는 목표 연결과 Today 이동을 하나의 트랜잭션에서 처리한다")
+    void createTodayTaskForDdayGoalTxForOwner_success() {
+        long ddayGoalId = 2L;
+        User owner = persistedOwner(10L);
+        LocalDate targetDate = LocalDate.of(2026, 7, 13);
+        DdayGoal goal = new DdayGoal("정보처리기사", LocalDate.of(2026, 8, 1), owner);
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
+
+        given(ddayGoalRepository.findByIdAndOwnerId(ddayGoalId, 10L)).willReturn(Optional.of(goal));
+        given(taskRepository.findMaxTodayOrder(10L, targetDate)).willReturn(2);
+        given(taskRepository.save(org.mockito.ArgumentMatchers.any(Task.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        Task result = service.createTodayTaskForDdayGoalTxForOwner(
+                ddayGoalId,
+                "기출 20문제 풀기",
+                targetDate,
+                owner
+        );
+
+        assertThat(result.getTitle()).isEqualTo("기출 20문제 풀기");
+        assertThat(result.getOwner()).isSameAs(owner);
+        assertThat(result.getDdayGoal()).isSameAs(goal);
+        assertThat(result.getStatus()).isEqualTo(TaskStatus.TODAY);
+        assertThat(result.getTargetDate()).isEqualTo(targetDate);
+        assertThat(result.getTodayOrder()).isEqualTo(3);
+        assertThat(result.getStartAt()).isEqualTo(targetDate.atStartOfDay());
+        assertThat(result.getEndAt()).isEqualTo(targetDate.plusDays(1).atStartOfDay());
+
+        then(ddayGoalRepository).should().findByIdAndOwnerId(ddayGoalId, 10L);
+        then(taskRepository).should().findMaxTodayOrder(10L, targetDate);
+        then(taskRepository).should().save(org.mockito.ArgumentMatchers.any(Task.class));
+    }
+
+    @Test
+    @DisplayName("createTodayTaskForDdayGoalTxForOwner는 다른 사용자 목표를 찾지 못한 것처럼 처리한다")
+    void createTodayTaskForDdayGoalTxForOwner_fail_goalNotFound() {
+        long ddayGoalId = 2L;
+        User owner = persistedOwner(10L);
+        LocalDate targetDate = LocalDate.of(2026, 7, 13);
+        TaskTxService service = new TaskTxService(taskRepository, ddayGoalRepository);
+
+        given(ddayGoalRepository.findByIdAndOwnerId(ddayGoalId, 10L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.createTodayTaskForDdayGoalTxForOwner(
+                ddayGoalId,
+                "기출 20문제 풀기",
+                targetDate,
+                owner
+        ))
+                .isInstanceOf(DdayGoalNotFoundException.class);
+
+        then(ddayGoalRepository).should().findByIdAndOwnerId(ddayGoalId, 10L);
+    }
+
+    @Test
     @DisplayName("connectDdayGoalTx는 D-Day 목표가 없으면 DdayGoalNotFoundException이 발생한다")
     void connectDdayGoalTx_fail_goalNotFound() {
         // given
