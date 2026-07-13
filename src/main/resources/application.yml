@@ -19,3 +19,11 @@ app:
   batch:
     scheduler:
       enabled: false
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui
+    display-request-duration: true
+    operations-sorter: method

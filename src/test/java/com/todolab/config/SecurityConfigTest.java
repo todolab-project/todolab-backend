@@ -20,4 +20,11 @@ class SecurityConfigTest {
         assertThat(encoded).isNotEqualTo("password");
         assertThat(passwordEncoder.matches("password", encoded)).isTrue();
     }
+
+    @Test
+    @DisplayName("API 문서 endpoint는 공개 경로에 포함한다")
+    void documentationMatchersArePublic() {
+        assertThat(SecurityConfig.WEB_PUBLIC_MATCHERS)
+                .contains(SecurityConfig.DOCUMENTATION_MATCHERS);
+    }
 }

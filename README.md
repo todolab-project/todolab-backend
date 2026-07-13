@@ -22,6 +22,7 @@ ToDoLab의 일정·할 일 도메인, 서버 렌더링 화면, 배치 작업을 
 | Data | Spring Data JPA, QueryDSL, MySQL 8 |
 | Batch & Mail | Spring Batch, Spring Mail |
 | View | Thymeleaf |
+| API Docs | OpenAPI, Swagger UI, Scalar |
 | Build & Test | Gradle Wrapper, JUnit, JaCoCo |
 | Runtime | Docker, Docker Compose |
 
@@ -56,6 +57,18 @@ src/main/java/com/todolab/
 ```bash
 ./gradlew clean build
 ```
+
+### API 문서
+
+애플리케이션 실행 후 다음 endpoint에서 API 계약을 확인합니다.
+
+| 용도 | URL |
+| --- | --- |
+| OpenAPI JSON | `/v3/api-docs` |
+| Swagger UI | `/swagger-ui` |
+| Scalar Reference | `/scalar.html` |
+
+프론트엔드와 모바일 연동의 기계 판독 가능한 원본 계약은 OpenAPI JSON입니다. 사람이 읽기 좋은 현재 v1 요약은 [`docs/API_V1_FRONTEND.md`](./docs/API_V1_FRONTEND.md)에서 함께 관리합니다.
 
 ### Docker Compose
 

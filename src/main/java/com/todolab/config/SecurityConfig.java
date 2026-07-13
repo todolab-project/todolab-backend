@@ -27,6 +27,25 @@ import java.nio.charset.StandardCharsets;
 @EnableConfigurationProperties(AuthJwtProperties.class)
 public class SecurityConfig {
 
+    static final String[] DOCUMENTATION_MATCHERS = {
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/scalar.html"
+    };
+
+    static final String[] WEB_PUBLIC_MATCHERS = {
+            "/login",
+            "/favicon.ico",
+            "/css/**",
+            "/js/**",
+            "/images/**",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/scalar.html"
+    };
+
     private final ApiAuthenticationEntryPoint apiAuthenticationEntryPoint;
 
     @Bean
@@ -56,13 +75,7 @@ public class SecurityConfig {
     public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/login",
-                                "/favicon.ico",
-                                "/css/**",
-                                "/js/**",
-                                "/images/**"
-                        ).permitAll()
+                        .requestMatchers(WEB_PUBLIC_MATCHERS).permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
