@@ -1,0 +1,482 @@
+# ToDoLab v1 Frontend API
+
+Last updated: 2026-07-14
+
+이 문서는 모바일/프론트엔드가 실제 연동할 수 있는 현재 백엔드 v1 API 계약이다.
+
+## 1. 공통
+
+Base path:
+
+```text
+/api/v1
+```
+
+인증이 필요한 요청:
+
+```http
+Authorization: Bearer <accessToken>
+```
+
+공통 성공 응답:
+
+```ts
+type ApiResponse<T> = {
+  status: 'success';
+  data: T;
+  error: null;
+  timestamp: string; // LocalDateTime, 예: 2026-07-14T09:30:00
+};
+```
+
+공통 실패 응답:
+
+```ts
+type ApiErrorResponse = {
+  status: 'fail';
+  data: null;
+  error: {
+    code: number;
+    message: string;
+  };
+  timestamp: string;
+};
+```
+
+날짜/시간:
+
+- `LocalDate`: `YYYY-MM-DD`
+- `LocalDateTime`: offset 없는 `YYYY-MM-DDTHH:mm:ss`
+- 서비스 기준 시간대는 `Asia/Seoul`
+
+## 2. 인증
+
+### 회원가입
+
+```http
+POST /api/v1/auth/register
+Content-Type: application/json
+```
+
+Request:
+
+```ts
+type RegisterRequest = {
+  email: string;
+  password: string; // 8-72자
+  displayName: string; // 50자 이하
+};
+```
+
+Response:
+
+```ts
+type UserResponse = {
+  id: number;
+  email: string;
+  displayName: string;
+  role: 'USER' | 'ADMIN';
+  createdAt: string;
+  updatedAt: string | null;
+};
+```
+
+### 로그인
+
+```http
+POST /api/v1/auth/login
+Content-Type: application/json
+```
+
+Request:
+
+```ts
+type LoginRequest = {
+  email: string;
+  password: string;
+};
+```
+
+Response:
+
+```ts
+type TokenResponse = {
+  tokenType: 'Bearer';
+  accessToken: string;
+  expiresAt: string;
+  user: UserResponse;
+};
+```
+
+### 내 정보
+
+```http
+GET /api/v1/auth/me
+Authorization: Bearer <accessToken>
+```
+
+Response:
+
+```ts
+type AuthenticatedUserResponse = {
+  id: number;
+  email: string;
+  role: string;
+};
+```
+
+## 3. Task 타입
+
+```ts
+type TaskType = 'SCHEDULE' | 'TODO' | 'IDEA';
+type TaskStatus = 'INBOX' | 'TODAY' | 'DONE';
+type DeferReason = 'TOO_BIG' | 'NOT_IMPORTANT' | 'NEED_INFO' | 'NO_TIME' | 'ETC';
+type TodayOrderDirection = 'UP' | 'DOWN';
+
+type TaskResponse = {
+  id: number;
+  type: TaskType;
+  title: string;
+  description: string | null;
+  startAt: string | null;
+  endAt: string | null;
+  allDay: boolean;
+  unscheduled: boolean;
+  category: string | null;
+  status: TaskStatus;
+  plannedDate: string | null;
+  targetDate: string | null;
+  todayOrder: number | null;
+  completedAt: string | null;
+  carryOverCount: number;
+  staleCarryOver: boolean;
+  deferReason: DeferReason | null;
+  deferReasonLabel: string | null;
+  ddayGoalId: number | null;
+  ddayGoalTitle: string | null;
+  ddayGoalTargetDate: string | null;
+  ddayDaysLeft: number | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+type TaskRequest = {
+  title: string; // 30자 이하
+  description?: string | null; // 300자 이하
+  type?: TaskType | null;
+  startAt?: string | null;
+  endAt?: string | null;
+  category?: string | null; // 30자 이하
+  allDay: boolean;
+};
+```
+
+Task 생성 규칙:
+
+- `startAt`/`endAt`이 모두 없으면 `INBOX`로 저장된다.
+- 날짜/시간이 있으면 `TODAY`로 저장되고 `targetDate`는 `startAt` 날짜다.
+- `endAt`만 보낼 수 없다.
+- `endAt`은 `startAt` 이후여야 한다.
+- `allDay=true`이면 `startAt`, `endAt`은 모두 자정이어야 한다.
+- 날짜 없는 Task에는 `allDay=true`를 사용할 수 없다.
+
+## 4. Task API
+
+모든 `/api/v1/tasks/**` 요청은 현재 로그인 사용자의 Task만 대상으로 한다. 다른 사용자의 Task ID는 `TASK_NOT_FOUND`처럼 처리된다.
+
+### 생성
+
+```http
+POST /api/v1/tasks
+```
+
+Request: `TaskRequest`
+
+Response: `TaskResponse`
+
+### 단건 조회
+
+```http
+GET /api/v1/tasks/{id}
+```
+
+Response: `TaskResponse`
+
+### 범위 조회
+
+```http
+GET /api/v1/tasks?type=DAY|WEEK|MONTH&taskType=TODO|SCHEDULE|IDEA&date=...
+```
+
+Query:
+
+- `type`: `DAY`, `WEEK`, `MONTH`
+- `taskType`: Task 종류. 생략 시 현재 백엔드 기본값 정책을 따른다.
+- `date`:
+  - `DAY`, `WEEK`: `YYYY-MM-DD`
+  - `MONTH`: `YYYY-MM`
+
+Response: `TaskResponse[]`
+
+### Today 조회
+
+```http
+GET /api/v1/tasks/today?date=YYYY-MM-DD
+```
+
+Response: `TaskResponse[]`
+
+현재 동작:
+
+- `targetDate`가 요청 날짜인 `TODAY` Task를 반환한다.
+- 요청 날짜와 겹치는 `SCHEDULE`도 반환한다.
+- 여러 날 일정은 날짜별 복제 row가 아니라 원본 `id`로 한 번 반환한다.
+- `endAt`은 exclusive 경계로 처리한다. 예: `endAt=2026-07-14T00:00:00`이면 7월 14일에는 점유하지 않는다.
+
+### Inbox 조회
+
+```http
+GET /api/v1/tasks/inbox
+```
+
+Response: `TaskResponse[]`
+
+### 미정 일정 조회
+
+```http
+GET /api/v1/tasks/unscheduled
+```
+
+Response: `TaskResponse[]`
+
+### Today 추천
+
+```http
+GET /api/v1/tasks/today/recommendations?date=YYYY-MM-DD
+```
+
+Response:
+
+```ts
+type TaskRecommendationResponse = {
+  task: TaskResponse;
+  reason: string;
+};
+```
+
+### 지난 미완료
+
+```http
+GET /api/v1/tasks/stale?date=YYYY-MM-DD
+GET /api/v1/tasks/overdue?date=YYYY-MM-DD
+```
+
+Response: `TaskResponse[]`
+
+`stale`의 `date`는 생략 가능하다. 생략 시 서버 현재 날짜 기준이다.
+
+### 완료 조회
+
+```http
+GET /api/v1/tasks/done?date=YYYY-MM-DD
+```
+
+Response: `TaskResponse[]`
+
+### 수정
+
+```http
+PUT /api/v1/tasks/{id}
+```
+
+Request: `TaskRequest`
+
+Response: `TaskResponse`
+
+### 삭제
+
+```http
+DELETE /api/v1/tasks/{id}
+```
+
+Response: `data: null`
+
+### Today 이동
+
+```http
+PATCH /api/v1/tasks/{id}/today?date=YYYY-MM-DD
+```
+
+Response: `TaskResponse`
+
+### Inbox 이동
+
+```http
+PATCH /api/v1/tasks/{id}/inbox
+```
+
+Response: `TaskResponse`
+
+### 완료
+
+```http
+PATCH /api/v1/tasks/{id}/done
+PATCH /api/v1/tasks/{id}/done?completedAt=YYYY-MM-DDTHH:mm:ss
+```
+
+Response: `TaskResponse`
+
+### 완료 취소
+
+```http
+PATCH /api/v1/tasks/{id}/done/cancel?date=YYYY-MM-DD
+```
+
+Response: `TaskResponse`
+
+### 이월
+
+```http
+PATCH /api/v1/tasks/{id}/carry-over?date=YYYY-MM-DD
+```
+
+Response: `TaskResponse`
+
+### Today 한 칸 재정렬
+
+```http
+PATCH /api/v1/tasks/{id}/today-order?date=YYYY-MM-DD&direction=UP|DOWN
+```
+
+Response: `TaskResponse`
+
+주의:
+
+- 모바일 drag-and-drop용 일괄 재정렬 `PUT /api/v1/tasks/today-order`는 아직 없다.
+- 현재 API는 한 칸씩 이동하는 호환 API다.
+
+### 미룬 이유
+
+```http
+PATCH /api/v1/tasks/{id}/defer-reason?reason=TOO_BIG|NOT_IMPORTANT|NEED_INFO|NO_TIME|ETC
+DELETE /api/v1/tasks/{id}/defer-reason
+```
+
+Response: `TaskResponse`
+
+### D-Day 연결
+
+```http
+PATCH /api/v1/tasks/{id}/dday-goal?ddayGoalId={goalId}
+DELETE /api/v1/tasks/{id}/dday-goal
+```
+
+Response: `TaskResponse`
+
+## 5. D-Day API
+
+모든 `/api/v1/dday-goals/**` 요청은 현재 로그인 사용자의 D-Day 목표만 대상으로 한다.
+
+```ts
+type DdayGoalRequest = {
+  title: string; // 50자 이하
+  targetDate: string; // YYYY-MM-DD
+};
+
+type DdayGoalResponse = {
+  id: number;
+  title: string;
+  targetDate: string;
+  daysLeft: number;
+  createdAt: string | null;
+};
+
+type DdayGoalTaskRequest = {
+  title: string; // 30자 이하
+  date: string; // YYYY-MM-DD
+};
+```
+
+### 목표 생성
+
+```http
+POST /api/v1/dday-goals
+```
+
+Request: `DdayGoalRequest`
+
+Response: `DdayGoalResponse`
+
+### 목표 목록
+
+```http
+GET /api/v1/dday-goals
+```
+
+Response: `DdayGoalResponse[]`
+
+### 목표 단건
+
+```http
+GET /api/v1/dday-goals/{id}
+```
+
+Response: `DdayGoalResponse`
+
+### 목표 연결 Task 목록
+
+```http
+GET /api/v1/dday-goals/{id}/tasks
+```
+
+Response: `TaskResponse[]`
+
+### 목표 기반 Today Task 생성
+
+```http
+POST /api/v1/dday-goals/{id}/tasks
+```
+
+Request: `DdayGoalTaskRequest`
+
+Response: `TaskResponse`
+
+동작:
+
+- 지정 D-Day 목표에 연결된 `TODO` Task를 만든다.
+- `date` 기준으로 Today에 추가한다.
+- 생성, 목표 연결, Today 이동, `todayOrder` 배정을 하나의 트랜잭션으로 처리한다.
+
+### 목표 삭제
+
+```http
+DELETE /api/v1/dday-goals/{id}
+```
+
+Response: `data: null`
+
+동작:
+
+- 목표는 삭제한다.
+- 연결된 Task는 삭제하지 않고 D-Day 연결만 해제한다.
+
+## 6. 아직 프론트에서 의존하면 안 되는 계약
+
+아래는 모바일 문서에 요구사항이 있으나 현재 백엔드 v1에는 없다.
+
+- `GET /api/v1/tasks/search`
+- Today 일괄 재정렬 `PUT /api/v1/tasks/today-order`
+- 반복 Task/일정 API
+- 알림 예약 후보 API
+- refresh token API
+- OpenAPI/Swagger JSON
+
+## 7. 모바일 전환 체크리스트
+
+- [ ] 로그인 성공 시 `accessToken` 저장
+- [ ] 모든 v1 요청에 `Authorization: Bearer <accessToken>` 추가
+- [ ] Task path를 `/api/tasks`에서 `/api/v1/tasks`로 전환
+- [ ] D-Day path를 `/api/ddays`에서 `/api/v1/dday-goals`로 전환
+- [ ] D-Day Today Task 생성은 3단계 workflow 대신 `POST /api/v1/dday-goals/{id}/tasks` 사용
+- [ ] 401 응답 시 로그인 화면으로 이동하거나 세션 만료 안내
+- [ ] 검색/반복/알림 UI는 백엔드 계약 구현 전까지 실제 저장 기능처럼 열지 않음
