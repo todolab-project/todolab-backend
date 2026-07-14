@@ -3,28 +3,41 @@ package com.todolab.task.dto;
 import com.todolab.Constant;
 import com.todolab.task.domain.TaskType;
 import com.todolab.task.exception.TaskValidationException;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+@Schema(description = "Task 생성/수정 요청")
 public record TaskRequest(
         @NotBlank(message = "제목은 필수값입니다")
         @Size(max = 30, message = "제목은 30자 이하여야 합니다")
+        @Schema(description = "Task 제목", example = "출시 준비", maxLength = 30)
         String title,
 
         @Size(max = 300, message = "설명은 300자 이하여야 합니다")
+        @Schema(description = "Task 설명", example = "체크리스트 정리", maxLength = 300, nullable = true)
         String description,
 
+        @Schema(
+                description = "Task 종류. 생략하면 날짜 없는 요청은 TODO, 날짜 있는 요청은 기본 일정 타입으로 처리됩니다.",
+                example = "TODO",
+                nullable = true
+        )
         TaskType type,
 
+        @Schema(description = "시작 일시. offset 없는 LocalDateTime 형식입니다.", example = "2026-07-15T09:00:00", nullable = true)
         LocalDateTime startAt,
+        @Schema(description = "종료 일시. startAt 이후여야 하며 endAt만 단독으로 보낼 수 없습니다.", example = "2026-07-15T10:00:00", nullable = true)
         LocalDateTime endAt,
 
         @Size(max = 30, message = "카테고리는 30자 이하여야 합니다")
+        @Schema(description = "카테고리명. '미분류'는 시스템 예약어라 사용할 수 없습니다.", example = "업무", maxLength = 30, nullable = true)
         String category,
 
+        @Schema(description = "종일 일정 여부. true이면 startAt/endAt은 모두 00:00이어야 합니다.", example = "false")
         boolean allDay
 ) {
 

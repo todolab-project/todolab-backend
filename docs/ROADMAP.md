@@ -1,6 +1,6 @@
 # ToDoLab Backend Roadmap
 
-Last updated: 2026-07-14
+Last updated: 2026-07-15
 
 이 문서는 완료 이력보다 **앞으로 백엔드에서 닫아야 할 작업**을 관리한다. 이미 구현된 인증, v1 경로, owner scope, OpenAPI/Swagger/Scalar 문서 UI는 기준 상태로 보고, 아래 항목은 모바일 실사용과 운영 안정성에 필요한 후속 작업이다.
 
@@ -42,7 +42,7 @@ Last updated: 2026-07-14
 
 - [x] v1 controller에 operation summary, tag, security, error response schema 보강
 - [x] 공통 `ApiResponse<T>` envelope가 OpenAPI에서 읽기 쉽게 보이도록 schema 정리
-- [ ] enum, 날짜 형식, validation 제약을 request schema에 노출
+- [x] enum, 날짜 형식, validation 제약을 request schema에 노출
 - [ ] Swagger UI에서 Bearer token 입력 후 v1 API 호출 확인
 - [ ] Scalar에서 모바일 개발자가 읽기 쉬운 tag 순서 확인
 - [ ] OpenAPI JSON diff를 CI 또는 릴리스 체크에 포함할지 결정
@@ -57,6 +57,7 @@ Last updated: 2026-07-14
 목표: 현재 문서, 모바일 타입, 실제 백엔드 응답의 차이를 없앤다.
 
 - [x] `UserResponse.updatedAt` 응답 필드 반영
+- [x] `DeferReason` enum 문서와 실제 응답/요청 계약 일치
 - [ ] `DdayGoalResponse`의 nullable 필드와 실제 응답 확인
 - [ ] `TaskResponse`의 nullable 필드, 생성/수정 시 기본값, 날짜 규칙 재확인
 - [ ] `GET /api/v1/tasks?type=MONTH&date=YYYY-MM` 계약과 실제 binding 동작 검증

@@ -11,6 +11,7 @@ import com.todolab.task.dto.TaskResponse;
 import com.todolab.task.service.TaskService;
 import com.todolab.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -97,8 +98,20 @@ public class TaskV1Controller {
     @GetMapping
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getTasks(
             @AuthenticationPrincipal Jwt jwt,
+            @Parameter(
+                    description = "조회 범위. DAY/WEEK는 date=YYYY-MM-DD, MONTH는 date=YYYY-MM 형식을 사용합니다.",
+                    schema = @Schema(allowableValues = {"DAY", "WEEK", "MONTH"}, example = "MONTH")
+            )
             @RequestParam(required = false) String type,
+            @Parameter(
+                    description = "Task 종류 필터",
+                    schema = @Schema(allowableValues = {"TODO", "SCHEDULE", "IDEA"}, example = "SCHEDULE")
+            )
             @RequestParam(required = false) String taskType,
+            @Parameter(
+                    description = "조회 기준 날짜. DAY/WEEK는 YYYY-MM-DD, MONTH는 YYYY-MM 형식입니다.",
+                    schema = @Schema(example = "2026-07")
+            )
             @RequestParam(required = false) String date
     ) {
         User owner = currentUserService.requireUser(jwt);
@@ -122,6 +135,7 @@ public class TaskV1Controller {
     @GetMapping({"/recommendations/today", "/today/recommendations"})
     public ResponseEntity<ApiResponse<List<TaskRecommendationResponse>>> getTodayRecommendations(
             @AuthenticationPrincipal Jwt jwt,
+            @Parameter(description = "추천 기준 날짜", schema = @Schema(type = "string", format = "date", example = "2026-07-15"))
             @RequestParam LocalDate date
     ) {
         User owner = currentUserService.requireUser(jwt);
@@ -132,6 +146,7 @@ public class TaskV1Controller {
     @GetMapping("/today")
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getTodayTasks(
             @AuthenticationPrincipal Jwt jwt,
+            @Parameter(description = "Today 조회 날짜", schema = @Schema(type = "string", format = "date", example = "2026-07-15"))
             @RequestParam LocalDate date
     ) {
         User owner = currentUserService.requireUser(jwt);
@@ -142,6 +157,7 @@ public class TaskV1Controller {
     @GetMapping("/overdue")
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getOverdueTasks(
             @AuthenticationPrincipal Jwt jwt,
+            @Parameter(description = "지난 미완료 기준 날짜", schema = @Schema(type = "string", format = "date", example = "2026-07-15"))
             @RequestParam LocalDate date
     ) {
         User owner = currentUserService.requireUser(jwt);
@@ -152,6 +168,7 @@ public class TaskV1Controller {
     @GetMapping("/stale")
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getStaleTasks(
             @AuthenticationPrincipal Jwt jwt,
+            @Parameter(description = "오래된 미완료 기준 날짜. 생략하면 서버 현재 날짜를 사용합니다.", schema = @Schema(type = "string", format = "date", example = "2026-07-15"))
             @RequestParam(required = false) LocalDate date
     ) {
         User owner = currentUserService.requireUser(jwt);
@@ -163,6 +180,7 @@ public class TaskV1Controller {
     @GetMapping("/done")
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getDoneTasks(
             @AuthenticationPrincipal Jwt jwt,
+            @Parameter(description = "완료 조회 날짜", schema = @Schema(type = "string", format = "date", example = "2026-07-15"))
             @RequestParam LocalDate date
     ) {
         User owner = currentUserService.requireUser(jwt);
@@ -186,6 +204,7 @@ public class TaskV1Controller {
     public ResponseEntity<ApiResponse<TaskResponse>> moveToToday(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long id,
+            @Parameter(description = "Today 이동 날짜", schema = @Schema(type = "string", format = "date", example = "2026-07-15"))
             @RequestParam LocalDate date
     ) {
         User owner = currentUserService.requireUser(jwt);
@@ -207,6 +226,7 @@ public class TaskV1Controller {
     public ResponseEntity<ApiResponse<TaskResponse>> complete(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long id,
+            @Parameter(description = "완료 시각. 생략하면 서버 현재 시각을 사용합니다.", schema = @Schema(type = "string", format = "date-time", example = "2026-07-15T09:30:00"))
             @RequestParam(required = false) LocalDateTime completedAt
     ) {
         User owner = currentUserService.requireUser(jwt);
@@ -219,6 +239,7 @@ public class TaskV1Controller {
     public ResponseEntity<ApiResponse<TaskResponse>> reopenToday(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long id,
+            @Parameter(description = "완료 취소 후 Today에 배치할 날짜", schema = @Schema(type = "string", format = "date", example = "2026-07-15"))
             @RequestParam LocalDate date
     ) {
         User owner = currentUserService.requireUser(jwt);
@@ -230,6 +251,7 @@ public class TaskV1Controller {
     public ResponseEntity<ApiResponse<TaskResponse>> carryOver(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long id,
+            @Parameter(description = "이월 대상 날짜", schema = @Schema(type = "string", format = "date", example = "2026-07-15"))
             @RequestParam LocalDate date
     ) {
         User owner = currentUserService.requireUser(jwt);
@@ -241,7 +263,9 @@ public class TaskV1Controller {
     public ResponseEntity<ApiResponse<TaskResponse>> reorderToday(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long id,
+            @Parameter(description = "재정렬 기준 Today 날짜", schema = @Schema(type = "string", format = "date", example = "2026-07-15"))
             @RequestParam LocalDate date,
+            @Parameter(description = "한 칸 이동 방향", schema = @Schema(allowableValues = {"UP", "DOWN"}, example = "UP"))
             @RequestParam TodayOrderDirection direction
     ) {
         User owner = currentUserService.requireUser(jwt);
@@ -253,6 +277,13 @@ public class TaskV1Controller {
     public ResponseEntity<ApiResponse<TaskResponse>> setDeferReason(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long id,
+            @Parameter(
+                    description = "미룬 이유",
+                    schema = @Schema(
+                            allowableValues = {"TOO_BIG", "NOT_NEEDED_NOW", "AVOIDING", "NO_DEADLINE", "WAITING_OTHER", "ETC"},
+                            example = "TOO_BIG"
+                    )
+            )
             @RequestParam DeferReason reason
     ) {
         User owner = currentUserService.requireUser(jwt);

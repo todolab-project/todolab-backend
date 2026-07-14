@@ -130,7 +130,7 @@ type AuthenticatedUserResponse = {
 ```ts
 type TaskType = 'SCHEDULE' | 'TODO' | 'IDEA';
 type TaskStatus = 'INBOX' | 'TODAY' | 'DONE';
-type DeferReason = 'TOO_BIG' | 'NOT_IMPORTANT' | 'NEED_INFO' | 'NO_TIME' | 'ETC';
+type DeferReason = 'TOO_BIG' | 'NOT_NEEDED_NOW' | 'AVOIDING' | 'NO_DEADLINE' | 'WAITING_OTHER' | 'ETC';
 type TodayOrderDirection = 'UP' | 'DOWN';
 
 type TaskResponse = {
@@ -358,7 +358,7 @@ Response: `TaskResponse`
 ### 미룬 이유
 
 ```http
-PATCH /api/v1/tasks/{id}/defer-reason?reason=TOO_BIG|NOT_IMPORTANT|NEED_INFO|NO_TIME|ETC
+PATCH /api/v1/tasks/{id}/defer-reason?reason=TOO_BIG|NOT_NEEDED_NOW|AVOIDING|NO_DEADLINE|WAITING_OTHER|ETC
 DELETE /api/v1/tasks/{id}/defer-reason
 ```
 

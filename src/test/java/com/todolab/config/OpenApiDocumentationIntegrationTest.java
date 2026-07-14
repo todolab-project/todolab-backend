@@ -55,4 +55,26 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath("$.paths['/api/v1/dday-goals'].post.responses['404'].description")
                         .value("D-Day 목표 없음"));
     }
+
+    @Test
+    @DisplayName("OpenAPI JSON에 request schema의 enum, 날짜 형식, validation 제약이 노출된다")
+    void apiDocs_requestSchemaConstraints() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.components.schemas.TaskRequest.description").value("Task 생성/수정 요청"))
+                .andExpect(jsonPath("$.components.schemas.TaskRequest.properties.title.maxLength").value(30))
+                .andExpect(jsonPath("$.components.schemas.TaskRequest.properties.description.maxLength").value(300))
+                .andExpect(jsonPath("$.components.schemas.TaskRequest.properties.type.enum[0]").value("SCHEDULE"))
+                .andExpect(jsonPath("$.components.schemas.TaskRequest.properties.startAt.format").value("date-time"))
+                .andExpect(jsonPath("$.components.schemas.TaskRequest.properties.startAt.example").value("2026-07-15T09:00:00"))
+                .andExpect(jsonPath("$.components.schemas.RegisterRequest.properties.password.minLength").value(8))
+                .andExpect(jsonPath("$.components.schemas.RegisterRequest.properties.password.maxLength").value(72))
+                .andExpect(jsonPath("$.components.schemas.DdayGoalRequest.properties.targetDate.format").value("date"))
+                .andExpect(jsonPath("$.components.schemas.DdayGoalTaskRequest.properties.date.example").value("2026-07-15"))
+                .andExpect(jsonPath("$.paths['/api/v1/tasks'].get.parameters[0].schema.enum[0]").value("DAY"))
+                .andExpect(jsonPath("$.paths['/api/v1/tasks'].get.parameters[1].schema.enum[1]").value("SCHEDULE"))
+                .andExpect(jsonPath("$.paths['/api/v1/tasks/{id}/today-order'].patch.parameters[2].schema.enum[0]").value("UP"))
+                .andExpect(jsonPath("$.paths['/api/v1/tasks/{id}/defer-reason'].patch.parameters[1].schema.enum[1]")
+                        .value("NOT_NEEDED_NOW"));
+    }
 }
