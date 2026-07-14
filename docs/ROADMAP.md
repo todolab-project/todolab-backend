@@ -40,8 +40,8 @@ Last updated: 2026-07-14
 
 목표: OpenAPI JSON을 프론트/모바일이 신뢰할 수 있는 원본 계약으로 만든다.
 
-- [ ] v1 controller에 operation summary, tag, security, error response schema 보강
-- [ ] 공통 `ApiResponse<T>` envelope가 OpenAPI에서 읽기 쉽게 보이도록 schema 정리
+- [x] v1 controller에 operation summary, tag, security, error response schema 보강
+- [x] 공통 `ApiResponse<T>` envelope가 OpenAPI에서 읽기 쉽게 보이도록 schema 정리
 - [ ] enum, 날짜 형식, validation 제약을 request schema에 노출
 - [ ] Swagger UI에서 Bearer token 입력 후 v1 API 호출 확인
 - [ ] Scalar에서 모바일 개발자가 읽기 쉬운 tag 순서 확인

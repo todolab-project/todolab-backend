@@ -10,6 +10,12 @@ import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.dto.TaskResponse;
 import com.todolab.task.service.TaskService;
 import com.todolab.user.domain.User;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,11 +40,36 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/tasks")
 @RequiredArgsConstructor
+@Tag(name = "v1 Task", description = "모바일 Task API")
+@SecurityRequirement(name = "bearerAuth")
+@ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "400",
+                description = "요청값 검증 실패",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class))
+        ),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "401",
+                description = "인증 필요",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class))
+        ),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "404",
+                description = "Task 또는 연결 리소스 없음",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class))
+        ),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "500",
+                description = "서버 오류",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class))
+        )
+})
 public class TaskV1Controller {
 
     private final TaskService taskService;
     private final CurrentUserService currentUserService;
 
+    @Operation(summary = "Task 생성", description = "로그인 사용자의 Task를 생성합니다.")
     @PostMapping
     public ResponseEntity<ApiResponse<TaskResponse>> createTask(
             @AuthenticationPrincipal Jwt jwt,
@@ -52,6 +83,7 @@ public class TaskV1Controller {
                 .body(ApiResponse.success(response));
     }
 
+    @Operation(summary = "Task 단건 조회", description = "로그인 사용자의 Task를 단건 조회합니다.")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<TaskResponse>> getTask(
             @AuthenticationPrincipal Jwt jwt,
@@ -61,6 +93,7 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.getTaskForOwner(id, owner)));
     }
 
+    @Operation(summary = "Task 범위 조회", description = "DAY/WEEK/MONTH 기준으로 로그인 사용자의 Task를 조회합니다.")
     @GetMapping
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getTasks(
             @AuthenticationPrincipal Jwt jwt,
@@ -78,12 +111,14 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.getTasksForOwner(request, owner)));
     }
 
+    @Operation(summary = "Inbox Task 조회", description = "로그인 사용자의 Inbox Task 목록을 조회합니다.")
     @GetMapping("/inbox")
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getInboxTasks(@AuthenticationPrincipal Jwt jwt) {
         User owner = currentUserService.requireUser(jwt);
         return ResponseEntity.ok(ApiResponse.success(taskService.getInboxTasksForOwner(owner)));
     }
 
+    @Operation(summary = "Today 추천 Task 조회", description = "요청 날짜 기준 로그인 사용자에게 추천할 Today Task 목록을 조회합니다.")
     @GetMapping({"/recommendations/today", "/today/recommendations"})
     public ResponseEntity<ApiResponse<List<TaskRecommendationResponse>>> getTodayRecommendations(
             @AuthenticationPrincipal Jwt jwt,
@@ -93,6 +128,7 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.getTodayRecommendationsForOwner(date, owner)));
     }
 
+    @Operation(summary = "Today Task 조회", description = "요청 날짜의 Today Task와 겹치는 일정을 조회합니다.")
     @GetMapping("/today")
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getTodayTasks(
             @AuthenticationPrincipal Jwt jwt,
@@ -102,6 +138,7 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.getTodayTasksForOwner(date, owner)));
     }
 
+    @Operation(summary = "지난 미완료 Task 조회", description = "요청 날짜 이전의 미완료 Task를 조회합니다.")
     @GetMapping("/overdue")
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getOverdueTasks(
             @AuthenticationPrincipal Jwt jwt,
@@ -111,6 +148,7 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.getOverdueTasksForOwner(date, owner)));
     }
 
+    @Operation(summary = "오래된 미완료 Task 조회", description = "기준 날짜 이전의 미완료 Task를 조회합니다.")
     @GetMapping("/stale")
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getStaleTasks(
             @AuthenticationPrincipal Jwt jwt,
@@ -121,6 +159,7 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.getOverdueTasksForOwner(referenceDate, owner)));
     }
 
+    @Operation(summary = "완료 Task 조회", description = "요청 날짜에 완료된 Task를 조회합니다.")
     @GetMapping("/done")
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getDoneTasks(
             @AuthenticationPrincipal Jwt jwt,
@@ -130,6 +169,7 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.getDoneTasksForOwner(date, owner)));
     }
 
+    @Operation(summary = "Task 수정", description = "로그인 사용자의 Task를 수정합니다.")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<TaskResponse>> updateTask(
             @AuthenticationPrincipal Jwt jwt,
@@ -141,6 +181,7 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.updateForOwner(id, request, owner)));
     }
 
+    @Operation(summary = "Task Today 이동", description = "로그인 사용자의 Task를 요청 날짜의 Today로 이동합니다.")
     @PatchMapping("/{id}/today")
     public ResponseEntity<ApiResponse<TaskResponse>> moveToToday(
             @AuthenticationPrincipal Jwt jwt,
@@ -151,6 +192,7 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.moveToTodayForOwner(id, date, owner)));
     }
 
+    @Operation(summary = "Task Inbox 이동", description = "로그인 사용자의 Task를 Inbox로 이동합니다.")
     @PatchMapping("/{id}/inbox")
     public ResponseEntity<ApiResponse<TaskResponse>> moveToInbox(
             @AuthenticationPrincipal Jwt jwt,
@@ -160,6 +202,7 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.moveToInboxForOwner(id, owner)));
     }
 
+    @Operation(summary = "Task 완료", description = "로그인 사용자의 Task를 완료 처리합니다.")
     @PatchMapping("/{id}/done")
     public ResponseEntity<ApiResponse<TaskResponse>> complete(
             @AuthenticationPrincipal Jwt jwt,
@@ -171,6 +214,7 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.completeForOwner(id, effectiveCompletedAt, owner)));
     }
 
+    @Operation(summary = "Task 완료 취소", description = "완료된 Task를 요청 날짜의 Today로 되돌립니다.")
     @PatchMapping("/{id}/done/cancel")
     public ResponseEntity<ApiResponse<TaskResponse>> reopenToday(
             @AuthenticationPrincipal Jwt jwt,
@@ -181,6 +225,7 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.reopenTodayForOwner(id, date, owner)));
     }
 
+    @Operation(summary = "Task 이월", description = "로그인 사용자의 Task를 요청 날짜로 이월합니다.")
     @PatchMapping("/{id}/carry-over")
     public ResponseEntity<ApiResponse<TaskResponse>> carryOver(
             @AuthenticationPrincipal Jwt jwt,
@@ -191,6 +236,7 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.carryOverForOwner(id, date, owner)));
     }
 
+    @Operation(summary = "Today Task 한 칸 재정렬", description = "요청 날짜의 Today Task를 위 또는 아래로 한 칸 이동합니다.")
     @PatchMapping("/{id}/today-order")
     public ResponseEntity<ApiResponse<TaskResponse>> reorderToday(
             @AuthenticationPrincipal Jwt jwt,
@@ -202,6 +248,7 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.reorderTodayForOwner(id, date, direction, owner)));
     }
 
+    @Operation(summary = "미룬 이유 설정", description = "로그인 사용자의 Task에 미룬 이유를 설정합니다.")
     @PatchMapping("/{id}/defer-reason")
     public ResponseEntity<ApiResponse<TaskResponse>> setDeferReason(
             @AuthenticationPrincipal Jwt jwt,
@@ -212,6 +259,7 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.setDeferReasonForOwner(id, reason, owner)));
     }
 
+    @Operation(summary = "미룬 이유 삭제", description = "로그인 사용자의 Task에서 미룬 이유를 삭제합니다.")
     @DeleteMapping("/{id}/defer-reason")
     public ResponseEntity<ApiResponse<TaskResponse>> clearDeferReason(
             @AuthenticationPrincipal Jwt jwt,
@@ -221,6 +269,7 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.clearDeferReasonForOwner(id, owner)));
     }
 
+    @Operation(summary = "D-Day 목표 연결", description = "로그인 사용자의 Task를 D-Day 목표에 연결합니다.")
     @PatchMapping("/{id}/dday-goal")
     public ResponseEntity<ApiResponse<TaskResponse>> connectDdayGoal(
             @AuthenticationPrincipal Jwt jwt,
@@ -231,6 +280,7 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.connectDdayGoalForOwner(id, ddayGoalId, owner)));
     }
 
+    @Operation(summary = "D-Day 목표 연결 해제", description = "로그인 사용자의 Task에서 D-Day 목표 연결을 해제합니다.")
     @DeleteMapping("/{id}/dday-goal")
     public ResponseEntity<ApiResponse<TaskResponse>> disconnectDdayGoal(
             @AuthenticationPrincipal Jwt jwt,
@@ -240,12 +290,14 @@ public class TaskV1Controller {
         return ResponseEntity.ok(ApiResponse.success(taskService.disconnectDdayGoalForOwner(id, owner)));
     }
 
+    @Operation(summary = "미정 Task 조회", description = "로그인 사용자의 미정 Task 목록을 조회합니다.")
     @GetMapping("/unscheduled")
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getUnscheduledTasks(@AuthenticationPrincipal Jwt jwt) {
         User owner = currentUserService.requireUser(jwt);
         return ResponseEntity.ok(ApiResponse.success(taskService.getUnscheduledTasksForOwner(owner)));
     }
 
+    @Operation(summary = "Task 삭제", description = "로그인 사용자의 Task를 삭제합니다.")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteTask(
             @AuthenticationPrincipal Jwt jwt,
