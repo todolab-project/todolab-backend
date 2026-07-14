@@ -6,6 +6,7 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.oas.models.tags.Tag;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -26,6 +27,11 @@ public class OpenApiConfig {
                 .servers(List.of(new Server()
                         .url("/")
                         .description("Current host")))
+                .tags(List.of(
+                        new Tag().name("v1 Auth").description("모바일 JWT 인증 API"),
+                        new Tag().name("v1 Task").description("모바일 Task API"),
+                        new Tag().name("v1 D-Day").description("모바일 D-Day 목표 API")
+                ))
                 .components(new Components()
                         .addSecuritySchemes(BEARER_AUTH, new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)

@@ -43,8 +43,8 @@ Last updated: 2026-07-15
 - [x] v1 controller에 operation summary, tag, security, error response schema 보강
 - [x] 공통 `ApiResponse<T>` envelope가 OpenAPI에서 읽기 쉽게 보이도록 schema 정리
 - [x] enum, 날짜 형식, validation 제약을 request schema에 노출
-- [ ] Swagger UI에서 Bearer token 입력 후 v1 API 호출 확인
-- [ ] Scalar에서 모바일 개발자가 읽기 쉬운 tag 순서 확인
+- [x] Swagger UI에서 Bearer token 입력 후 v1 API 호출 확인
+- [x] Scalar에서 모바일 개발자가 읽기 쉬운 tag 순서 확인
 - [ ] OpenAPI JSON diff를 CI 또는 릴리스 체크에 포함할지 결정
 
 완료 기준:

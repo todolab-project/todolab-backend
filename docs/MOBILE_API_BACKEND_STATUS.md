@@ -21,6 +21,7 @@ Last audited: 2026-07-15
 - [x] 2026-07-14 문서 기준: local CORS origin, 인증 smoke test, Today/Calendar/D-Day real-mode 확인 절차를 runbook으로 정리
 - [x] 2026-07-14 OpenAPI JSON 기준: v1 Auth/Task/D-Day tag, operation summary, Bearer security, error response schema 노출 검증
 - [x] 2026-07-15 OpenAPI JSON 기준: request schema enum, 날짜 형식, validation 제약 노출 검증
+- [x] 2026-07-15 문서 UI 기준: Swagger UI/Scalar 노출, Bearer security scheme, v1 tag 순서 검증
 
 1. [~] 인증 사용자 소유권
    - 완료: `Task`, `DdayGoal` owner 필드와 owner-aware repository/service path 추가
@@ -175,7 +176,7 @@ Last audited: 2026-07-15
 | --- | --- | --- |
 | 개발 / 스테이징 / 운영 API URL | [~] | `ENVIRONMENT_INTEGRATION.md`에 local 기준과 staging/production 미정 상태 정리 |
 | 인증 방식과 토큰 계약 | [~] | `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/me` 있음. 모바일 저장/refresh token 정책은 미정 |
-| OpenAPI 명세 | [x] | `/v3/api-docs`, `/swagger-ui`, `/scalar.html` 제공. v1 주요 controller tag/summary/security/error schema 검증 추가 |
+| OpenAPI 명세 | [x] | `/v3/api-docs`, `/swagger-ui`, `/scalar.html` 제공. v1 주요 controller tag/summary/security/error schema와 tag 순서 검증 추가 |
 | `GET /api/tasks` 범위 조회 계약 | [~] | `DAY/WEEK/MONTH`, `taskType` 지원. v1/owner 기준 계약 문서화 필요 |
 | `GET /api/ddays/{id}` HTTP 500 | [~] | legacy endpoint 없음. v1 `GET /api/v1/dday-goals/{id}` 추가됨 |
 | `POST /api/ddays/{id}/tasks` HTTP 500 | [~] | legacy endpoint 없음. v1 `POST /api/v1/dday-goals/{id}/tasks` 추가됨 |

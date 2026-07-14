@@ -11,6 +11,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -31,6 +32,8 @@ class OpenApiDocumentationIntegrationTest {
         mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.type").value("http"))
+                .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.scheme").value("bearer"))
+                .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.bearerFormat").value("JWT"))
                 .andExpect(jsonPath("$.components.schemas.ApiResponse.description").value("공통 API 응답 envelope"))
                 .andExpect(jsonPath("$.components.schemas.ErrorBody.description").value("공통 API 오류 응답 본문"))
                 .andExpect(jsonPath("$.paths['/api/v1/tasks'].get.tags[0]").value("v1 Task"))
@@ -76,5 +79,23 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath("$.paths['/api/v1/tasks/{id}/today-order'].patch.parameters[2].schema.enum[0]").value("UP"))
                 .andExpect(jsonPath("$.paths['/api/v1/tasks/{id}/defer-reason'].patch.parameters[1].schema.enum[1]")
                         .value("NOT_NEEDED_NOW"));
+    }
+
+    @Test
+    @DisplayName("Swagger UI와 Scalar가 v1 OpenAPI 원본과 tag 순서를 읽을 수 있다")
+    void documentationUi_v1ApiDocsAndTagOrder() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tags[0].name").value("v1 Auth"))
+                .andExpect(jsonPath("$.tags[1].name").value("v1 Task"))
+                .andExpect(jsonPath("$.tags[2].name").value("v1 D-Day"))
+                .andExpect(jsonPath("$.security[0].bearerAuth").exists());
+
+        mockMvc.perform(get("/swagger-ui/index.html"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/scalar.html"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("data-url=\"/v3/api-docs\"")));
     }
 }
