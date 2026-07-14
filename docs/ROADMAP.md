@@ -45,7 +45,7 @@ Last updated: 2026-07-15
 - [x] enum, 날짜 형식, validation 제약을 request schema에 노출
 - [x] Swagger UI에서 Bearer token 입력 후 v1 API 호출 확인
 - [x] Scalar에서 모바일 개발자가 읽기 쉬운 tag 순서 확인
-- [ ] OpenAPI JSON diff를 CI 또는 릴리스 체크에 포함할지 결정
+- [x] OpenAPI JSON diff를 CI 또는 릴리스 체크에 포함할지 결정
 
 완료 기준:
 
@@ -164,7 +164,7 @@ Last updated: 2026-07-15
 - [ ] 오류 코드 카탈로그: code, HTTP status, 사용자 노출 message
 - [ ] 인증/인가 계약서: JWT claim, 만료, 401/403 처리
 - [ ] 데이터 모델 사전: Task, D-Day, User 주요 필드와 상태 전이
-- [ ] 릴리스/호환성 정책: v1 유지, deprecation, breaking change 기준
+- [x] 릴리스/호환성 정책: v1 유지, deprecation, breaking change 기준
 - [x] 모바일 연동 테스트 runbook: smoke test 절차와 기록 방식
 
 상세 목록과 우선순위는 [`BACKEND_DOCUMENTATION_PLAN.md`](./BACKEND_DOCUMENTATION_PLAN.md)에서 관리한다.

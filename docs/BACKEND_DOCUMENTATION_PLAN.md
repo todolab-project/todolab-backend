@@ -1,6 +1,6 @@
 # Backend Documentation Plan
 
-Last updated: 2026-07-14
+Last updated: 2026-07-15
 
 이 문서는 백엔드 개발자가 프론트엔드, 모바일, 운영자와 안정적으로 협업하기 위해 유지해야 할 문서 목록과 우선순위를 정리한다.
 
@@ -13,6 +13,7 @@ Last updated: 2026-07-14
 | `docs/MOBILE_API_BACKEND_STATUS.md` | 모바일 요구사항 대비 백엔드 구현 상태 | 유지, 테스트 결과 반영 필요 |
 | `docs/ENVIRONMENT_INTEGRATION.md` | 환경별 API URL, CORS origin, 문서 UI 공개 기준 | 신규, staging/prod URL 확정 후 갱신 필요 |
 | `docs/MOBILE_INTEGRATION_RUNBOOK.md` | 모바일 real-mode smoke test 절차와 결과 기록 방식 | 신규, 실제 테스트 결과 누적 필요 |
+| `docs/API_COMPATIBILITY_POLICY.md` | v1 호환성, breaking change, deprecation, OpenAPI 변경 검토 정책 | 신규, 외부 클라이언트 확장 시 갱신 필요 |
 | `docs/ROADMAP.md` | 앞으로의 백엔드 작업 우선순위 | 유지 |
 | `/v3/api-docs` | 기계 판독 가능한 OpenAPI 원본 계약 | 신규 기준 |
 | `/swagger-ui` | 개발자 테스트용 OpenAPI UI | 신규 기준 |
@@ -148,7 +149,7 @@ Last updated: 2026-07-14
 
 목적: API 변경이 모바일 앱 배포와 충돌하지 않게 한다.
 
-파일 제안:
+파일:
 
 - `docs/API_COMPATIBILITY_POLICY.md`
 
@@ -161,7 +162,7 @@ Last updated: 2026-07-14
 - OpenAPI 변경 검토 방식
 - 모바일 앱 버전별 지원 정책
 
-우선순위: 중간
+상태: 초안 작성 완료, OpenAPI JSON snapshot diff 도입 조건 확정
 
 ## 3. 문서 작성 순서
 
@@ -171,7 +172,7 @@ Last updated: 2026-07-14
 4. `MOBILE_INTEGRATION_RUNBOOK.md` 초안 작성 완료, smoke test 결과 누적
 5. `API_V1_FRONTEND.md`와 OpenAPI JSON 대조 정리
 6. `DATA_MODEL_GLOSSARY.md`
-7. `API_COMPATIBILITY_POLICY.md`
+7. `API_COMPATIBILITY_POLICY.md` 초안 작성 완료
 
 ## 4. 문서 유지 원칙
 
