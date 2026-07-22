@@ -2,6 +2,7 @@ package com.todolab.common.api;
 
 import com.todolab.auth.exception.InvalidCredentialsException;
 import com.todolab.dday.exception.DdayGoalNotFoundException;
+import com.todolab.task.exception.TaskOrderConflictException;
 import com.todolab.task.exception.TaskValidationException;
 import com.todolab.task.exception.TaskNotFoundException;
 import com.todolab.user.exception.UserEmailAlreadyExistsException;
@@ -83,6 +84,13 @@ public class ApiExceptionHandler {
         log.warn("Task Not Found : {}", e.getDetail());
         return ResponseEntity.status(ErrorCode.TASK_NOT_FOUND.getStatus())
                 .body(ApiResponse.failure(ErrorCode.TASK_NOT_FOUND));
+    }
+
+    @ExceptionHandler(TaskOrderConflictException.class)
+    public ResponseEntity<ApiResponse<?>> handleTaskOrderConflictException(TaskOrderConflictException e) {
+        log.warn("Task Order Conflict : {}", e.getDetail());
+        return ResponseEntity.status(ErrorCode.TASK_ORDER_CONFLICT.getStatus())
+                .body(ApiResponse.failure(ErrorCode.TASK_ORDER_CONFLICT));
     }
 
     @ExceptionHandler(DdayGoalNotFoundException.class)

@@ -33,6 +33,8 @@ public interface TaskRepositoryCustom {
 
     List<Task> findTodayTasks(Long ownerId, LocalDate targetDate);
 
+    List<Task> findReorderableTodayTasks(Long ownerId, LocalDate targetDate);
+
     Integer findMaxTodayOrder(LocalDate targetDate);
 
     Integer findMaxTodayOrder(Long ownerId, LocalDate targetDate);

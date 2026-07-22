@@ -165,6 +165,27 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
     }
 
     @Override
+    public List<Task> findReorderableTodayTasks(Long ownerId, LocalDate targetDate) {
+        QTask t = QTask.task;
+
+        return queryFactory
+                .selectFrom(t)
+                .leftJoin(t.ddayGoal).fetchJoin()
+                .where(
+                        ownerIdEq(t, ownerId),
+                        t.status.eq(TaskStatus.TODAY),
+                        t.targetDate.eq(targetDate),
+                        t.type.ne(TaskType.SCHEDULE)
+                )
+                .orderBy(
+                        t.todayOrder.asc().nullsLast(),
+                        t.createdAt.asc(),
+                        t.id.asc()
+                )
+                .fetch();
+    }
+
+    @Override
     public Integer findMaxTodayOrder(LocalDate targetDate) {
         return findMaxTodayOrder(null, targetDate);
     }

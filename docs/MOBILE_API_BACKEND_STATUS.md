@@ -138,25 +138,22 @@ Last audited: 2026-07-22
 
 문서: `todolab-mobile/docs/API_TODAY_REORDER.md`
 
-현재 상태: [~] 부분 구현
+현재 상태: [x] 구현
 
 현재 제공:
 
-- [x] `PATCH /api/tasks/{taskId}/today-order?date=YYYY-MM-DD&direction=UP|DOWN`
+- [x] `PATCH /api/v1/tasks/{taskId}/today-order?date=YYYY-MM-DD&direction=UP|DOWN`
 - [x] 단일 Task를 위/아래 한 칸 이동
+- [x] `PUT /api/v1/tasks/today-order`
+- [x] request `{ date, orderedTaskIds }`
+- [x] 전체 순서를 transaction으로 저장
+- [x] 중복 ID는 HTTP 400
+- [x] 누락/다른 날짜/완료/일정 Task ID 또는 stale 목록은 HTTP 409
+- [x] 저장 직후 Today 조회 순서와 응답 순서 일치
+- [x] OpenAPI request/response/error schema 등록
+- [x] 인증 사용자 owner 조건 적용
 
-권장 API 미구현:
-
-- [ ] `PUT /api/tasks/today-order`
-- [ ] request `{ date, orderedTaskIds }`
-- [ ] 전체 순서를 transaction으로 저장
-- [ ] 중복/누락/다른 날짜/완료/일정 Task ID 거부
-- [ ] 동시 변경 시 HTTP 409
-- [ ] 저장 직후 Today 조회 순서와 응답 순서 일치
-- [ ] OpenAPI request/response/error schema 등록
-- [ ] 인증 사용자 owner 조건 적용
-
-우선순위: 실제 사용 시작에는 필수는 아니고 drag 안정성 개선 항목이다.
+주의: `SCHEDULE`은 Today 조회에는 포함될 수 있지만 drag-and-drop 실행 순서 저장 대상에서는 제외한다.
 
 ## 7. 날짜·시간 기준
 

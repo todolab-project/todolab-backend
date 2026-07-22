@@ -10,6 +10,7 @@ import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.dto.TaskResponse;
 import com.todolab.task.dto.TaskSearchRequest;
 import com.todolab.task.dto.TaskSearchResponse;
+import com.todolab.task.dto.TodayOrderRequest;
 import com.todolab.task.service.TaskService;
 import com.todolab.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
@@ -336,6 +337,19 @@ public class TaskV1Controller {
     ) {
         User owner = currentUserService.requireUser(jwt);
         return ResponseEntity.ok(ApiResponse.success(taskService.reorderTodayForOwner(id, date, direction, owner)));
+    }
+
+    @Operation(
+            summary = "Today Task 일괄 재정렬",
+            description = "요청 날짜의 일정이 아닌 Today Task 전체 순서를 한 번에 저장합니다. 현재 목록과 요청 ID 집합이 다르면 409를 반환합니다."
+    )
+    @PutMapping("/today-order")
+    public ResponseEntity<ApiResponse<List<TaskResponse>>> reorderToday(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody TodayOrderRequest request
+    ) {
+        User owner = currentUserService.requireUser(jwt);
+        return ResponseEntity.ok(ApiResponse.success(taskService.reorderTodayForOwner(request, owner)));
     }
 
     @Operation(summary = "미룬 이유 설정", description = "로그인 사용자의 Task에 미룬 이유를 설정합니다.")

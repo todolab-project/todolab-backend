@@ -17,6 +17,7 @@ import com.todolab.task.dto.TaskResponse;
 import com.todolab.task.dto.TaskSearchItemResponse;
 import com.todolab.task.dto.TaskSearchRequest;
 import com.todolab.task.dto.TaskSearchResponse;
+import com.todolab.task.dto.TodayOrderRequest;
 import com.todolab.task.exception.TaskNotFoundException;
 import com.todolab.task.repository.TaskRepository;
 import com.todolab.user.domain.User;
@@ -307,6 +308,12 @@ public class TaskService {
     public TaskResponse reorderTodayForOwner(Long id, LocalDate targetDate, TodayOrderDirection direction, User owner) {
         Task reordered = taskTxService.reorderTodayTxForOwner(id, targetDate, direction, owner);
         return TaskResponse.from(reordered);
+    }
+
+    public List<TaskResponse> reorderTodayForOwner(TodayOrderRequest request, User owner) {
+        return taskTxService.reorderTodayTxForOwner(request, owner).stream()
+                .map(TaskResponse::from)
+                .toList();
     }
 
     public TaskResponse setDeferReason(Long id, DeferReason reason) {

@@ -45,7 +45,9 @@ class OpenApiDocumentationIntegrationTest {
                 ).exists())
                 .andExpect(jsonPath("$.paths['/api/v1/tasks/search'].get.tags[0]").value("v1 Task"))
                 .andExpect(jsonPath("$.paths['/api/v1/tasks/search'].get.summary").value("Task 통합 검색"))
-                .andExpect(jsonPath("$.paths['/api/v1/tasks/search'].get.security[0].bearerAuth").exists());
+                .andExpect(jsonPath("$.paths['/api/v1/tasks/search'].get.security[0].bearerAuth").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/tasks/today-order'].put.tags[0]").value("v1 Task"))
+                .andExpect(jsonPath("$.paths['/api/v1/tasks/today-order'].put.summary").value("Today Task 일괄 재정렬"));
     }
 
     @Test
@@ -86,6 +88,8 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath("$.paths['/api/v1/tasks'].get.parameters[1].schema.enum[1]").value("SCHEDULE"))
                 .andExpect(jsonPath("$.paths['/api/v1/tasks/search'].get.parameters[1].schema.enum[0]").value("INBOX"))
                 .andExpect(jsonPath("$.paths['/api/v1/tasks/search'].get.parameters[7].schema.enum[0]").value("PLANNED"))
+                .andExpect(jsonPath("$.components.schemas.TodayOrderRequest.description").value("Today Task 일괄 재정렬 요청"))
+                .andExpect(jsonPath("$.components.schemas.TodayOrderRequest.required[0]").value("date"))
                 .andExpect(jsonPath("$.paths['/api/v1/tasks/{id}/today-order'].patch.parameters[2].schema.enum[0]").value("UP"))
                 .andExpect(jsonPath("$.paths['/api/v1/tasks/{id}/defer-reason'].patch.parameters[1].schema.enum[1]")
                         .value("NOT_NEEDED_NOW"));

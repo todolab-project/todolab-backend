@@ -4,6 +4,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.todolab.auth.service.JwtTokenService;
 import com.todolab.mail.MailService;
 import com.todolab.task.dto.TaskRequest;
+import com.todolab.task.dto.TodayOrderRequest;
 import com.todolab.user.domain.User;
 import com.todolab.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -18,11 +19,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -281,6 +285,77 @@ class TaskV1IntegrationTest {
     }
 
     @Test
+    @DisplayName("v1 Today 일괄 재정렬은 전체 실행 순서를 저장하고 Today 조회 순서와 일치한다")
+    void reorderToday_success_bulkOrder() throws Exception {
+        String accessToken = accessToken("task-bulk-order@example.com");
+
+        Long firstId = moveToToday(accessToken, createTask(accessToken, new TaskRequest("첫 번째", null, null, null, null, false)), "2026-07-22");
+        Long secondId = moveToToday(accessToken, createTask(accessToken, new TaskRequest("두 번째", null, null, null, null, false)), "2026-07-22");
+        Long thirdId = moveToToday(accessToken, createTask(accessToken, new TaskRequest("세 번째", null, null, null, null, false)), "2026-07-22");
+        TodayOrderRequest request = new TodayOrderRequest(java.time.LocalDate.parse("2026-07-22"), List.of(thirdId, firstId, secondId));
+
+        mockMvc.perform(put("/api/v1/tasks/today-order")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.length()").value(3))
+                .andExpect(jsonPath("$.data[0].id").value(thirdId))
+                .andExpect(jsonPath("$.data[0].todayOrder").value(0))
+                .andExpect(jsonPath("$.data[1].id").value(firstId))
+                .andExpect(jsonPath("$.data[1].todayOrder").value(1))
+                .andExpect(jsonPath("$.data[2].id").value(secondId))
+                .andExpect(jsonPath("$.data[2].todayOrder").value(2));
+
+        mockMvc.perform(get("/api/v1/tasks/today")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .param("date", "2026-07-22"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].id").value(thirdId))
+                .andExpect(jsonPath("$.data[1].id").value(firstId))
+                .andExpect(jsonPath("$.data[2].id").value(secondId));
+    }
+
+    @Test
+    @DisplayName("v1 Today 일괄 재정렬은 중복 ID를 400, stale 목록을 409로 거부한다")
+    void reorderToday_fail_duplicateAndConflict() throws Exception {
+        String accessToken = accessToken("task-bulk-order-invalid@example.com");
+
+        Long firstId = moveToToday(accessToken, createTask(accessToken, new TaskRequest("첫 번째", null, null, null, null, false)), "2026-07-22");
+        Long secondId = moveToToday(accessToken, createTask(accessToken, new TaskRequest("두 번째", null, null, null, null, false)), "2026-07-22");
+        Long scheduleId = createTask(accessToken, new TaskRequest(
+                "일정",
+                null,
+                LocalDateTime.of(2026, 7, 22, 9, 0),
+                LocalDateTime.of(2026, 7, 22, 10, 0),
+                null,
+                false
+        ));
+
+        mockMvc.perform(put("/api/v1/tasks/today-order")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new TodayOrderRequest(
+                                java.time.LocalDate.parse("2026-07-22"),
+                                List.of(firstId, firstId)
+                        ))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"));
+
+        mockMvc.perform(put("/api/v1/tasks/today-order")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new TodayOrderRequest(
+                                java.time.LocalDate.parse("2026-07-22"),
+                                List.of(secondId, scheduleId)
+                        ))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value("fail"))
+                .andExpect(jsonPath("$.error.code").value(20002));
+    }
+
+    @Test
     @DisplayName("v1 Task 삭제 응답은 data null envelope를 반환한다")
     void deleteTask_success_dataNull() throws Exception {
         String accessToken = accessToken("task-delete@example.com");
@@ -306,6 +381,19 @@ class TaskV1IntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Number id = JsonPath.read(response, "$.data.id");
+        return id.longValue();
+    }
+
+    private Long moveToToday(String accessToken, Long taskId, String date) throws Exception {
+        String response = mockMvc.perform(patch("/api/v1/tasks/{id}/today", taskId)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .param("date", date))
+                .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();

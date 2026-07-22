@@ -92,12 +92,12 @@ Last updated: 2026-07-22
 
 문서: `todolab-mobile/docs/API_TODAY_REORDER.md`
 
-- [ ] `PUT /api/v1/tasks/today-order`
-- [ ] request `{ date, orderedTaskIds }`
-- [ ] 전체 순서를 transaction으로 저장
-- [ ] 중복/누락/다른 날짜/완료/일정 Task ID 거부
-- [ ] 동시 변경 시 HTTP 409
-- [ ] 저장 직후 Today 조회 순서와 응답 순서 일치
+- [x] `PUT /api/v1/tasks/today-order`
+- [x] request `{ date, orderedTaskIds }`
+- [x] 전체 순서를 transaction으로 저장
+- [x] 중복/누락/다른 날짜/완료/일정 Task ID 거부
+- [x] 동시 변경 시 HTTP 409
+- [x] 저장 직후 Today 조회 순서와 응답 순서 일치
 
 완료 기준:
 

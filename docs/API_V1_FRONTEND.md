@@ -361,8 +361,38 @@ Response: `TaskResponse`
 
 주의:
 
-- 모바일 drag-and-drop용 일괄 재정렬 `PUT /api/v1/tasks/today-order`는 아직 없다.
 - 현재 API는 한 칸씩 이동하는 호환 API다.
+
+### Today 일괄 재정렬
+
+```http
+PUT /api/v1/tasks/today-order
+```
+
+Request: `TodayOrderRequest`
+
+```json
+{
+  "date": "2026-07-15",
+  "orderedTaskIds": [3, 1, 2]
+}
+```
+
+Response: `TaskResponse[]`
+
+동작:
+
+- 요청 날짜의 일정이 아닌 Today Task 전체 순서를 한 번에 저장한다.
+- `orderedTaskIds`는 현재 재정렬 대상 Task ID 전체를 중복 없이 포함해야 한다.
+- 저장은 하나의 transaction에서 처리한다.
+- 성공 응답 순서는 저장된 `todayOrder` 순서와 같다.
+- 저장 직후 `GET /api/v1/tasks/today?date=YYYY-MM-DD`에서 일정이 아닌 Today Task는 같은 순서로 반환된다.
+- `SCHEDULE`은 Today 조회에는 포함될 수 있지만 drag-and-drop 실행 순서 저장 대상에서는 제외한다.
+
+오류:
+
+- 중복 ID, 빈 목록, null ID는 HTTP 400.
+- 누락 ID, 다른 날짜 ID, 완료 ID, 일정 ID, 다른 사용자 ID처럼 현재 재정렬 대상과 요청 ID 집합이 다르면 HTTP 409, error code `20002`.
 
 ### 미룬 이유
 
@@ -519,7 +549,6 @@ Response: `TaskSearchResponse`
 
 아래는 모바일 문서에 요구사항이 있으나 현재 백엔드 v1에는 없다.
 
-- Today 일괄 재정렬 `PUT /api/v1/tasks/today-order`
 - 반복 Task/일정 API
 - 알림 예약 후보 API
 - refresh token API

@@ -9,6 +9,8 @@ import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.domain.TaskType;
 import com.todolab.task.domain.TodayOrderDirection;
 import com.todolab.task.dto.TaskRequest;
+import com.todolab.task.dto.TodayOrderRequest;
+import com.todolab.task.exception.TaskOrderConflictException;
 import com.todolab.task.exception.TaskNotFoundException;
 import com.todolab.task.exception.TaskValidationException;
 import com.todolab.task.repository.TaskRepository;
@@ -19,7 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -165,6 +171,25 @@ public class TaskTxService {
     }
 
     @Transactional
+    public List<Task> reorderTodayTxForOwner(TodayOrderRequest request, User owner) {
+        validateBulkTodayOrderRequest(request);
+        Long ownerId = ownerId(owner);
+
+        List<Task> currentTasks = taskRepository.findReorderableTodayTasks(ownerId, request.date());
+        validateSameTodayOrderSet(currentTasks, request.orderedTaskIds());
+
+        Map<Long, Task> taskById = currentTasks.stream()
+                .collect(Collectors.toMap(Task::getId, Function.identity()));
+        List<Task> reordered = request.orderedTaskIds().stream()
+                .map(taskById::get)
+                .toList();
+
+        normalizeTodayOrder(reordered);
+        taskRepository.saveAll(reordered);
+        return reordered;
+    }
+
+    @Transactional
     public Task setDeferReasonTx(Long id, DeferReason reason) {
         Task task = findTask(id);
         task.setDeferReason(reason);
@@ -294,6 +319,30 @@ public class TaskTxService {
     private void normalizeTodayOrder(List<Task> tasks) {
         for (int i = 0; i < tasks.size(); i++) {
             tasks.get(i).assignTodayOrder(i);
+        }
+    }
+
+    private void validateBulkTodayOrderRequest(TodayOrderRequest request) {
+        if (request == null || request.date() == null) {
+            throw new TaskValidationException("실행 순서를 변경할 날짜가 필요합니다.");
+        }
+        if (request.orderedTaskIds() == null || request.orderedTaskIds().isEmpty()) {
+            throw new TaskValidationException("실행 순서를 저장할 Task 목록이 필요합니다.");
+        }
+        if (request.orderedTaskIds().stream().anyMatch(id -> id == null)) {
+            throw new TaskValidationException("실행 순서를 저장할 Task ID는 필수입니다.");
+        }
+        if (new LinkedHashSet<>(request.orderedTaskIds()).size() != request.orderedTaskIds().size()) {
+            throw new TaskValidationException("실행 순서를 저장할 Task ID가 중복되었습니다.");
+        }
+    }
+
+    private void validateSameTodayOrderSet(List<Task> currentTasks, List<Long> orderedTaskIds) {
+        List<Long> currentIds = currentTasks.stream()
+                .map(Task::getId)
+                .toList();
+        if (!new LinkedHashSet<>(currentIds).equals(new LinkedHashSet<>(orderedTaskIds))) {
+            throw new TaskOrderConflictException("요청한 Today Task 목록이 현재 재정렬 대상과 일치하지 않습니다.");
         }
     }
 }
