@@ -27,11 +27,12 @@ Last audited: 2026-07-22
 - [x] 2026-07-22 v1 Task 생성 응답 기준: nullable/default/date 규칙을 OpenAPI와 `API_V1_FRONTEND.md`에 반영
 - [x] 2026-07-22 v1 MONTH Task 조회 기준: `date=YYYY-MM` 바인딩, `YYYY-MM-DD` 거부, owner scope 검증
 - [x] 2026-07-22 v1 리소스 삭제 응답 기준: Task/D-Day 삭제 성공 envelope의 `data`는 `null`
+- [x] 2026-07-22 legacy 정책 기준: `/api/tasks/**`, `/api/ddays/**`는 웹/과거 호환 범위로 유지하고 모바일 alias는 추가하지 않음
 
 1. [~] 인증 사용자 소유권
    - 완료: `Task`, `DdayGoal` owner 필드와 owner-aware repository/service path 추가
    - 완료: `/api/v1/tasks`, `/api/v1/dday-goals`의 주요 조회/수정/삭제 endpoint를 owner-aware service path로 확장
-   - 남음: 기존 `/api/tasks`, `/api/ddays` 호환 유지/제거 정책 결정
+   - 완료: 기존 `/api/tasks`, `/api/ddays`는 웹/과거 호환 범위로 유지하고 모바일 alias는 추가하지 않는 정책 확정
    - 남음: access token TTL, refresh token 도입 여부, 로그아웃 서버 책임 범위 결정
 
 2. [~] Today / Calendar 여러 날 일정 범위 조회
@@ -48,7 +49,7 @@ Last audited: 2026-07-22
    - 현재 `POST /api/ddays/{id}/tasks` endpoint 자체가 없음.
    - 현재 Task와 D-Day 연결은 `PATCH /api/tasks/{id}/dday-goal?ddayGoalId=...`로 제공됨.
    - 완료: v1 기준 `GET /api/v1/dday-goals/{id}`와 `POST /api/v1/dday-goals/{id}/tasks` 추가.
-   - 남음: legacy `/api/ddays/**`에 alias를 둘지, 모바일을 v1 계약으로 전환할지 결정.
+   - 완료: legacy `/api/ddays/**` alias는 추가하지 않고 모바일을 v1 계약으로 전환하기로 결정.
 
 ## 2. 여러 날 일정 / Calendar 범위 조회
 
@@ -183,8 +184,8 @@ Last audited: 2026-07-22
 | 인증 방식과 토큰 계약 | [~] | `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/me` 있음. 모바일 저장/refresh token 정책은 미정 |
 | OpenAPI 명세 | [x] | `/v3/api-docs`, `/swagger-ui`, `/scalar.html` 제공. v1 주요 controller tag/summary/security/error schema와 tag 순서 검증 추가 |
 | `GET /api/tasks` 범위 조회 계약 | [~] | `DAY/WEEK/MONTH`, `taskType` 지원. v1/owner 기준 계약 문서화 필요 |
-| `GET /api/ddays/{id}` HTTP 500 | [~] | legacy endpoint 없음. v1 `GET /api/v1/dday-goals/{id}` 추가됨 |
-| `POST /api/ddays/{id}/tasks` HTTP 500 | [~] | legacy endpoint 없음. v1 `POST /api/v1/dday-goals/{id}/tasks` 추가됨 |
+| `GET /api/ddays/{id}` HTTP 500 | [x] | legacy alias는 추가하지 않음. 모바일은 v1 `GET /api/v1/dday-goals/{id}` 사용 |
+| `POST /api/ddays/{id}/tasks` HTTP 500 | [x] | legacy alias는 추가하지 않음. 모바일은 v1 `POST /api/v1/dday-goals/{id}/tasks` 사용 |
 | D-Day 연결 Task Today 이동 후 HTTP 500 | [~] | 관련 회귀 테스트 필요. 현재 `PATCH /api/tasks/{id}/today`와 D-Day fetch join 응답 구조는 있음 |
 
 ## 9. 추천 구현 순서

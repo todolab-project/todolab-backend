@@ -491,6 +491,14 @@ Response: `data: null`
 - [ ] 모든 v1 요청에 `Authorization: Bearer <accessToken>` 추가
 - [ ] Task path를 `/api/tasks`에서 `/api/v1/tasks`로 전환
 - [ ] D-Day path를 `/api/ddays`에서 `/api/v1/dday-goals`로 전환
+- [ ] legacy `/api/ddays/**` alias 추가를 기다리지 않고 v1 D-Day 계약으로 전환
 - [ ] D-Day Today Task 생성은 3단계 workflow 대신 `POST /api/v1/dday-goals/{id}/tasks` 사용
 - [ ] 401 응답 시 로그인 화면으로 이동하거나 세션 만료 안내
 - [ ] 검색/반복/알림 UI는 백엔드 계약 구현 전까지 실제 저장 기능처럼 열지 않음
+
+## 8. Legacy API 정책
+
+- 모바일 신규 연동 기준은 `/api/v1/**`다.
+- legacy `/api/tasks/**`, `/api/ddays/**`는 웹 화면과 과거 호환 범위로 유지한다.
+- 모바일 호환을 위해 legacy `/api/ddays/{id}`, `/api/ddays/{id}/tasks` alias를 새로 추가하지 않는다.
+- D-Day 단건 조회는 `GET /api/v1/dday-goals/{id}`, D-Day 기반 Today Task 생성은 `POST /api/v1/dday-goals/{id}/tasks`를 사용한다.

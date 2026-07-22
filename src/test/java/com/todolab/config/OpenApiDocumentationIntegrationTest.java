@@ -103,4 +103,15 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("data-url=\"/v3/api-docs\"")));
     }
+
+    @Test
+    @DisplayName("OpenAPI JSON은 v1 D-Day와 legacy D-Day path를 다른 tag로 구분한다")
+    void apiDocs_v1AndLegacyDdayPathsAreSeparated() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paths['/api/v1/dday-goals/{id}'].get.tags[0]").value("v1 D-Day"))
+                .andExpect(jsonPath("$.paths['/api/ddays/{id}'].delete.tags[0]").value("dday-goal-controller"))
+                .andExpect(jsonPath("$.paths['/api/ddays/{id}'].get").doesNotExist())
+                .andExpect(jsonPath("$.paths['/api/ddays/{id}/tasks'].post").doesNotExist());
+    }
 }
