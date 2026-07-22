@@ -223,7 +223,7 @@ Query:
 - `taskType`: Task 종류. 생략 시 현재 백엔드 기본값 정책을 따른다.
 - `date`:
   - `DAY`, `WEEK`: `YYYY-MM-DD`
-  - `MONTH`: `YYYY-MM`
+  - `MONTH`: `YYYY-MM`. `YYYY-MM-DD`는 HTTP 400이다.
 
 Response: `TaskResponse[]`
 
