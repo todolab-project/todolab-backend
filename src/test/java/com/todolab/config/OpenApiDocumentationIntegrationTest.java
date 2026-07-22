@@ -73,6 +73,8 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath("$.components.schemas.RegisterRequest.properties.password.minLength").value(8))
                 .andExpect(jsonPath("$.components.schemas.RegisterRequest.properties.password.maxLength").value(72))
                 .andExpect(jsonPath("$.components.schemas.DdayGoalRequest.properties.targetDate.format").value("date"))
+                .andExpect(jsonPath("$.components.schemas.DdayGoalResponse.description").value("D-Day 목표 응답"))
+                .andExpect(jsonPath("$.components.schemas.DdayGoalResponse.properties.createdAt.format").value("date-time"))
                 .andExpect(jsonPath("$.components.schemas.DdayGoalTaskRequest.properties.date.example").value("2026-07-15"))
                 .andExpect(jsonPath("$.paths['/api/v1/tasks'].get.parameters[0].schema.enum[0]").value("DAY"))
                 .andExpect(jsonPath("$.paths['/api/v1/tasks'].get.parameters[1].schema.enum[1]").value("SCHEDULE"))

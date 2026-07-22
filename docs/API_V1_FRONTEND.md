@@ -1,6 +1,6 @@
 # ToDoLab v1 Frontend API
 
-Last updated: 2026-07-14
+Last updated: 2026-07-22
 
 이 문서는 모바일/프론트엔드가 실제 연동할 수 있는 현재 백엔드 v1 API 계약이다.
 
@@ -388,7 +388,7 @@ type DdayGoalResponse = {
   title: string;
   targetDate: string;
   daysLeft: number;
-  createdAt: string | null;
+  createdAt: string;
 };
 
 type DdayGoalTaskRequest = {

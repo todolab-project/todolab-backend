@@ -1,6 +1,6 @@
 # Mobile API Backend Status
 
-Last audited: 2026-07-15
+Last audited: 2026-07-22
 
 이 문서는 `todolab-mobile/docs/API_*.md`와 모바일 로드맵의 백엔드 확인 항목을 `todolab-backend` 현재 코드 기준으로 대조한 관리 문서다.
 
@@ -23,6 +23,7 @@ Last audited: 2026-07-15
 - [x] 2026-07-15 OpenAPI JSON 기준: request schema enum, 날짜 형식, validation 제약 노출 검증
 - [x] 2026-07-15 문서 UI 기준: Swagger UI/Scalar 노출, Bearer security scheme, v1 tag 순서 검증
 - [x] 2026-07-15 정책 기준: OpenAPI JSON snapshot diff는 보류하고 CI의 OpenAPI 문서 회귀 테스트와 릴리스 전 계약 검토로 관리하기로 결정
+- [x] 2026-07-22 v1 D-Day 목표 생성 응답 기준: `DdayGoalResponse`의 `id`, `title`, `targetDate`, `daysLeft`, `createdAt`은 모두 non-null
 
 1. [~] 인증 사용자 소유권
    - 완료: `Task`, `DdayGoal` owner 필드와 owner-aware repository/service path 추가

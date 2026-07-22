@@ -1,6 +1,6 @@
 # ToDoLab Backend Roadmap
 
-Last updated: 2026-07-15
+Last updated: 2026-07-22
 
 이 문서는 완료 이력보다 **앞으로 백엔드에서 닫아야 할 작업**을 관리한다. 이미 구현된 인증, v1 경로, owner scope, OpenAPI/Swagger/Scalar 문서 UI는 기준 상태로 보고, 아래 항목은 모바일 실사용과 운영 안정성에 필요한 후속 작업이다.
 
@@ -58,7 +58,7 @@ Last updated: 2026-07-15
 
 - [x] `UserResponse.updatedAt` 응답 필드 반영
 - [x] `DeferReason` enum 문서와 실제 응답/요청 계약 일치
-- [ ] `DdayGoalResponse`의 nullable 필드와 실제 응답 확인
+- [x] `DdayGoalResponse`의 nullable 필드와 실제 응답 확인
 - [ ] `TaskResponse`의 nullable 필드, 생성/수정 시 기본값, 날짜 규칙 재확인
 - [ ] `GET /api/v1/tasks?type=MONTH&date=YYYY-MM` 계약과 실제 binding 동작 검증
 - [ ] 삭제 응답은 모든 v1 API에서 `data: null`로 통일
