@@ -74,15 +74,15 @@ Last updated: 2026-07-22
 
 문서: `todolab-mobile/docs/API_SEARCH_FILTER.md`
 
-- [ ] `GET /api/v1/tasks/search`
-- [ ] `q` 제목/설명 검색
-- [ ] `statuses`, `taskTypes`, `category`, `ddayGoalId`, `hasDday`, `allDay`
-- [ ] `dateField`, `dateFrom`, `dateTo`
-- [ ] `sort`, `cursor`, `limit`
-- [ ] `relevantDate`, `dateSource` 반환
-- [ ] 한글 검색, 영문 대소문자 검색 일관성
-- [ ] 잘못된 enum, 날짜 범위, cursor는 HTTP 400
-- [ ] owner scope 적용
+- [x] `GET /api/v1/tasks/search`
+- [x] `q` 제목/설명 검색
+- [x] `statuses`, `taskTypes`, `category`, `ddayGoalId`, `hasDday`, `allDay`
+- [x] `dateField`, `dateFrom`, `dateTo`
+- [x] `sort`, `cursor`, `limit`
+- [x] `relevantDate`, `dateSource` 반환
+- [x] 한글 검색, 영문 대소문자 검색 일관성
+- [x] 잘못된 enum, 날짜 범위, cursor는 HTTP 400
+- [x] owner scope 적용
 
 완료 기준:
 

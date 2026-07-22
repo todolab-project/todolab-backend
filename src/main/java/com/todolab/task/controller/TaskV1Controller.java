@@ -8,6 +8,8 @@ import com.todolab.task.dto.TaskQueryRequest;
 import com.todolab.task.dto.TaskRecommendationResponse;
 import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.dto.TaskResponse;
+import com.todolab.task.dto.TaskSearchRequest;
+import com.todolab.task.dto.TaskSearchResponse;
 import com.todolab.task.service.TaskService;
 import com.todolab.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
@@ -122,6 +124,70 @@ public class TaskV1Controller {
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(taskService.getTasksForOwner(request, owner)));
+    }
+
+    @Operation(
+            summary = "Task 통합 검색",
+            description = "로그인 사용자의 Task를 텍스트, 상태, 종류, 카테고리, D-Day 연결 여부, 날짜 기준으로 검색합니다."
+    )
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<TaskSearchResponse>> searchTasks(
+            @AuthenticationPrincipal Jwt jwt,
+            @Parameter(description = "제목 또는 설명 부분 검색어", schema = @Schema(example = "출시"))
+            @RequestParam(required = false) String q,
+            @Parameter(description = "상태 필터. 반복 또는 콤마 구분을 지원합니다.", schema = @Schema(allowableValues = {"INBOX", "TODAY", "DONE"}))
+            @RequestParam(required = false) List<String> statuses,
+            @Parameter(description = "Task 종류 필터. 반복 또는 콤마 구분을 지원합니다.", schema = @Schema(allowableValues = {"TODO", "SCHEDULE", "IDEA"}))
+            @RequestParam(required = false) List<String> taskTypes,
+            @Parameter(description = "카테고리명 exact match", schema = @Schema(example = "업무"))
+            @RequestParam(required = false) String category,
+            @Parameter(description = "연결된 D-Day 목표 ID", schema = @Schema(example = "1"))
+            @RequestParam(required = false) Long ddayGoalId,
+            @Parameter(description = "D-Day 목표 연결 여부", schema = @Schema(example = "true"))
+            @RequestParam(required = false) Boolean hasDday,
+            @Parameter(description = "종일 일정 여부", schema = @Schema(example = "false"))
+            @RequestParam(required = false) Boolean allDay,
+            @Parameter(
+                    description = "날짜 필터/정렬 기준",
+                    schema = @Schema(allowableValues = {"PLANNED", "START", "TARGET", "COMPLETED", "CREATED", "UPDATED"}, example = "PLANNED")
+            )
+            @RequestParam(required = false) String dateField,
+            @Parameter(description = "날짜 범위 시작일", schema = @Schema(type = "string", format = "date", example = "2026-07-01"))
+            @RequestParam(required = false) LocalDate dateFrom,
+            @Parameter(description = "날짜 범위 종료일", schema = @Schema(type = "string", format = "date", example = "2026-07-31"))
+            @RequestParam(required = false) LocalDate dateTo,
+            @Parameter(
+                    description = "정렬 기준",
+                    schema = @Schema(allowableValues = {
+                            "RELEVANT_DATE_ASC", "RELEVANT_DATE_DESC",
+                            "CREATED_AT_ASC", "CREATED_AT_DESC",
+                            "UPDATED_AT_ASC", "UPDATED_AT_DESC"
+                    }, example = "RELEVANT_DATE_ASC")
+            )
+            @RequestParam(required = false) String sort,
+            @Parameter(description = "이전 응답의 nextCursor", schema = @Schema(example = "50"))
+            @RequestParam(required = false) String cursor,
+            @Parameter(description = "페이지 크기. 1 이상 100 이하", schema = @Schema(example = "50", minimum = "1", maximum = "100"))
+            @RequestParam(required = false) Integer limit
+    ) {
+        User owner = currentUserService.requireUser(jwt);
+        TaskSearchRequest request = new TaskSearchRequest(
+                q,
+                statuses,
+                taskTypes,
+                category,
+                ddayGoalId,
+                hasDday,
+                allDay,
+                dateField,
+                dateFrom,
+                dateTo,
+                sort,
+                cursor,
+                limit
+        );
+
+        return ResponseEntity.ok(ApiResponse.success(taskService.searchTasksForOwner(request, owner)));
     }
 
     @Operation(summary = "Inbox Task 조회", description = "로그인 사용자의 Inbox Task 목록을 조회합니다.")

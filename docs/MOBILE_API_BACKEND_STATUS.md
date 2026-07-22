@@ -40,9 +40,10 @@ Last audited: 2026-07-22
    - `DAY/WEEK/MONTH` 범위 조회는 `startAt/endAt` overlap 조건을 사용하므로 Calendar 쪽 기반은 있음.
    - 남음: 여러 날 일정이 실행 순서와 `todayOrder`에 섞이지 않게 API 응답/모바일 표시 기준을 더 명확히 분리.
 
-3. [ ] 통합 검색 API
-   - `GET /api/tasks/search` 없음.
-   - 검색어, 필터, relevantDate/dateSource, cursor pagination 모두 미구현.
+3. [~] 통합 검색 API
+   - 완료: `GET /api/v1/tasks/search` 구현.
+   - 완료: 검색어, 필터, relevantDate/dateSource, cursor/limit, owner scope 검증.
+   - 남음: offset cursor의 중복/누락 방지 강화 여부 결정.
 
 4. [~] 기존 D-Day 500 이슈 확인
    - 현재 `GET /api/ddays/{id}` endpoint 자체가 없음.
@@ -76,21 +77,21 @@ Last audited: 2026-07-22
 
 문서: `todolab-mobile/docs/API_SEARCH_FILTER.md`
 
-현재 상태: [ ] 미구현
+현재 상태: [~] 부분 구현
 
 필요 작업:
 
-- [ ] `GET /api/tasks/search`
-- [ ] `q` 제목/설명 검색
-- [ ] `statuses`, `taskTypes`, `category`, `ddayGoalId`, `hasDday`, `allDay`
-- [ ] `dateField`, `dateFrom`, `dateTo`
-- [ ] `sort`, `cursor`, `limit`
+- [x] `GET /api/v1/tasks/search`
+- [x] `q` 제목/설명 검색
+- [x] `statuses`, `taskTypes`, `category`, `ddayGoalId`, `hasDday`, `allDay`
+- [x] `dateField`, `dateFrom`, `dateTo`
+- [x] `sort`, `cursor`, `limit`
 - [ ] cursor pagination 중복/누락 방지
-- [ ] 한글 검색, 영문 대소문자 검색 일관성
-- [ ] `relevantDate`, `dateSource` 반환
-- [ ] 잘못된 enum, 날짜 범위, cursor는 HTTP 400
-- [ ] 모바일에 노출 가능한 안전한 오류 message
-- [ ] 인증 사용자 owner 조건 적용
+- [x] 한글 검색, 영문 대소문자 검색 일관성
+- [x] `relevantDate`, `dateSource` 반환
+- [x] 잘못된 enum, 날짜 범위, cursor는 HTTP 400
+- [x] 모바일에 노출 가능한 안전한 오류 message
+- [x] 인증 사용자 owner 조건 적용
 
 ## 4. 반복 Task / 반복 일정
 

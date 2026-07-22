@@ -474,18 +474,58 @@ Response: `data: null`
 - v1 리소스 삭제 endpoint인 `DELETE /api/v1/tasks/{id}`, `DELETE /api/v1/dday-goals/{id}`는 성공 시 공통 envelope의 `data`를 `null`로 반환한다.
 - `DELETE /api/v1/tasks/{id}/defer-reason`, `DELETE /api/v1/tasks/{id}/dday-goal`은 Task 리소스 삭제가 아니라 Task 수정이므로 `TaskResponse`를 반환한다.
 
-## 6. 아직 프론트에서 의존하면 안 되는 계약
+## 6. Task 통합 검색
+
+```http
+GET /api/v1/tasks/search
+```
+
+Query parameters:
+
+| 이름 | 값 |
+| --- | --- |
+| `q` | 제목/설명 부분 검색어. 한글 검색과 영문 대소문자 무시 검색을 지원한다. |
+| `statuses` | `INBOX`, `TODAY`, `DONE`. 반복 파라미터 또는 콤마 구분을 지원한다. |
+| `taskTypes` | `TODO`, `SCHEDULE`, `IDEA`. 반복 파라미터 또는 콤마 구분을 지원한다. |
+| `category` | 카테고리명 exact match. |
+| `ddayGoalId` | 연결된 D-Day 목표 ID. |
+| `hasDday` | D-Day 목표 연결 여부. |
+| `allDay` | 종일 일정 여부. |
+| `dateField` | `PLANNED`, `START`, `TARGET`, `COMPLETED`, `CREATED`, `UPDATED`. 기본값은 `PLANNED`. |
+| `dateFrom`, `dateTo` | `dateField` 기준 날짜 범위. `YYYY-MM-DD`, 양 끝 포함. |
+| `sort` | `RELEVANT_DATE_ASC`, `RELEVANT_DATE_DESC`, `CREATED_AT_ASC`, `CREATED_AT_DESC`, `UPDATED_AT_ASC`, `UPDATED_AT_DESC`. 기본값은 `RELEVANT_DATE_ASC`. |
+| `cursor` | 이전 응답의 `nextCursor`. |
+| `limit` | 1 이상 100 이하. 기본값은 50. |
+
+Response: `TaskSearchResponse`
+
+```json
+{
+  "items": [
+    {
+      "task": { "id": 1, "title": "출시 회의" },
+      "relevantDate": "2026-07-22",
+      "dateSource": "TARGET_DATE"
+    }
+  ],
+  "nextCursor": "50",
+  "limit": 50
+}
+```
+
+`dateSource` 값은 `TARGET_DATE`, `START_AT`, `COMPLETED_AT`, `CREATED_AT`, `UPDATED_AT`, `NONE` 중 하나다. 잘못된 enum, `dateFrom > dateTo`, 잘못된 cursor, 범위를 벗어난 `limit`은 HTTP 400으로 응답한다.
+
+## 7. 아직 프론트에서 의존하면 안 되는 계약
 
 아래는 모바일 문서에 요구사항이 있으나 현재 백엔드 v1에는 없다.
 
-- `GET /api/v1/tasks/search`
 - Today 일괄 재정렬 `PUT /api/v1/tasks/today-order`
 - 반복 Task/일정 API
 - 알림 예약 후보 API
 - refresh token API
 - OpenAPI/Swagger JSON
 
-## 7. 모바일 전환 체크리스트
+## 8. 모바일 전환 체크리스트
 
 - [ ] 로그인 성공 시 `accessToken` 저장
 - [ ] 모든 v1 요청에 `Authorization: Bearer <accessToken>` 추가
@@ -493,10 +533,11 @@ Response: `data: null`
 - [ ] D-Day path를 `/api/ddays`에서 `/api/v1/dday-goals`로 전환
 - [ ] legacy `/api/ddays/**` alias 추가를 기다리지 않고 v1 D-Day 계약으로 전환
 - [ ] D-Day Today Task 생성은 3단계 workflow 대신 `POST /api/v1/dday-goals/{id}/tasks` 사용
+- [ ] 검색 UI는 `GET /api/v1/tasks/search` 사용
 - [ ] 401 응답 시 로그인 화면으로 이동하거나 세션 만료 안내
-- [ ] 검색/반복/알림 UI는 백엔드 계약 구현 전까지 실제 저장 기능처럼 열지 않음
+- [ ] 반복/알림 UI는 백엔드 계약 구현 전까지 실제 저장 기능처럼 열지 않음
 
-## 8. Legacy API 정책
+## 9. Legacy API 정책
 
 - 모바일 신규 연동 기준은 `/api/v1/**`다.
 - legacy `/api/tasks/**`, `/api/ddays/**`는 웹 화면과 과거 호환 범위로 유지한다.

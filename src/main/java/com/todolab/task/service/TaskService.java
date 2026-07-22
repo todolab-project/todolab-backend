@@ -6,11 +6,17 @@ import com.todolab.task.domain.TaskStatus;
 import com.todolab.task.domain.TodayOrderDirection;
 import com.todolab.task.domain.query.DateRange;
 import com.todolab.task.domain.query.TaskQueryType;
+import com.todolab.task.domain.query.TaskSearchDateField;
+import com.todolab.task.domain.query.TaskSearchDateSource;
+import com.todolab.task.domain.query.TaskSearchSort;
 import com.todolab.task.dto.TaskCategoryGroupResponse;
 import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.dto.TaskQueryRequest;
 import com.todolab.task.dto.TaskRecommendationResponse;
 import com.todolab.task.dto.TaskResponse;
+import com.todolab.task.dto.TaskSearchItemResponse;
+import com.todolab.task.dto.TaskSearchRequest;
+import com.todolab.task.dto.TaskSearchResponse;
 import com.todolab.task.exception.TaskNotFoundException;
 import com.todolab.task.repository.TaskRepository;
 import com.todolab.user.domain.User;
@@ -22,6 +28,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -94,6 +101,31 @@ public class TaskService {
 
     public List<TaskCategoryGroupResponse> getGroupedUnscheduledTasks() {
         return taskCategoryGrouper.group(findUnscheduledTasks());
+    }
+
+    public TaskSearchResponse searchTasksForOwner(TaskSearchRequest request, User owner) {
+        List<SearchCandidate> candidates = taskRepository.findByOwnerId(ownerId(owner)).stream()
+                .filter(task -> matchesText(task, request.getQ()))
+                .filter(task -> request.getStatuses().isEmpty() || request.getStatuses().contains(task.getStatus()))
+                .filter(task -> request.getTaskTypes().isEmpty() || request.getTaskTypes().contains(task.getType()))
+                .filter(task -> request.getCategory() == null || request.getCategory().equals(task.getCategory()))
+                .filter(task -> request.getDdayGoalId() == null
+                        || (task.getDdayGoal() != null && request.getDdayGoalId().equals(task.getDdayGoal().getId())))
+                .filter(task -> request.getHasDday() == null || request.getHasDday().equals(task.getDdayGoal() != null))
+                .filter(task -> request.getAllDay() == null || request.getAllDay().equals(task.isAllDay()))
+                .map(task -> SearchCandidate.from(task, request.getDateField()))
+                .filter(candidate -> matchesDateRange(candidate.relevantDate(), request))
+                .sorted(searchComparator(request.getSort()))
+                .toList();
+
+        int fromIndex = Math.min(request.getOffset(), candidates.size());
+        int toIndex = Math.min(fromIndex + request.getLimit(), candidates.size());
+        String nextCursor = toIndex < candidates.size() ? String.valueOf(toIndex) : null;
+        List<TaskSearchItemResponse> items = candidates.subList(fromIndex, toIndex).stream()
+                .map(SearchCandidate::toResponse)
+                .toList();
+
+        return new TaskSearchResponse(items, nextCursor, request.getLimit());
     }
 
     public List<TaskResponse> getInboxTasks() {
@@ -377,6 +409,56 @@ public class TaskService {
         return owner.getId();
     }
 
+    private boolean matchesText(Task task, String q) {
+        if (q == null) {
+            return true;
+        }
+
+        String needle = q.toLowerCase(Locale.ROOT);
+        return containsIgnoreCase(task.getTitle(), needle) || containsIgnoreCase(task.getDescription(), needle);
+    }
+
+    private boolean containsIgnoreCase(String value, String lowerNeedle) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(lowerNeedle);
+    }
+
+    private boolean matchesDateRange(LocalDate relevantDate, TaskSearchRequest request) {
+        if (!request.hasDateRange()) {
+            return true;
+        }
+        if (relevantDate == null) {
+            return false;
+        }
+        if (request.getDateFrom() != null && relevantDate.isBefore(request.getDateFrom())) {
+            return false;
+        }
+        return request.getDateTo() == null || !relevantDate.isAfter(request.getDateTo());
+    }
+
+    private Comparator<SearchCandidate> searchComparator(TaskSearchSort sort) {
+        Comparator<SearchCandidate> idAsc = Comparator.comparing(candidate -> candidate.task().getId(), Comparator.nullsLast(Comparator.naturalOrder()));
+        return switch (sort) {
+            case RELEVANT_DATE_DESC -> Comparator
+                    .comparing(SearchCandidate::relevantDate, Comparator.nullsLast(Comparator.reverseOrder()))
+                    .thenComparing(idAsc);
+            case CREATED_AT_ASC -> Comparator
+                    .comparing((SearchCandidate candidate) -> candidate.task().getCreatedAt(), Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparing(idAsc);
+            case CREATED_AT_DESC -> Comparator
+                    .comparing((SearchCandidate candidate) -> candidate.task().getCreatedAt(), Comparator.nullsLast(Comparator.reverseOrder()))
+                    .thenComparing(idAsc);
+            case UPDATED_AT_ASC -> Comparator
+                    .comparing((SearchCandidate candidate) -> candidate.task().getUpdatedAt(), Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparing(idAsc);
+            case UPDATED_AT_DESC -> Comparator
+                    .comparing((SearchCandidate candidate) -> candidate.task().getUpdatedAt(), Comparator.nullsLast(Comparator.reverseOrder()))
+                    .thenComparing(idAsc);
+            case RELEVANT_DATE_ASC -> Comparator
+                    .comparing(SearchCandidate::relevantDate, Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparing(idAsc);
+        };
+    }
+
     private record RecommendationCandidate(TaskResponse task, String reason, int priority, long sortKey) {
         static RecommendationCandidate from(TaskResponse task, LocalDate referenceDate) {
             if (task.carryOverCount() >= 3) {
@@ -415,6 +497,48 @@ public class TaskService {
 
         private static long createdAtSortKey(LocalDateTime createdAt) {
             return createdAt.toLocalDate().toEpochDay() * 86_400L + createdAt.toLocalTime().toSecondOfDay();
+        }
+    }
+
+    private record SearchCandidate(Task task, LocalDate relevantDate, TaskSearchDateSource dateSource) {
+
+        static SearchCandidate from(Task task, TaskSearchDateField dateField) {
+            return switch (dateField) {
+                case PLANNED -> planned(task);
+                case START -> task.getStartAt() == null
+                        ? none(task)
+                        : new SearchCandidate(task, task.getStartAt().toLocalDate(), TaskSearchDateSource.START_AT);
+                case TARGET -> task.getTargetDate() == null
+                        ? none(task)
+                        : new SearchCandidate(task, task.getTargetDate(), TaskSearchDateSource.TARGET_DATE);
+                case COMPLETED -> task.getCompletedAt() == null
+                        ? none(task)
+                        : new SearchCandidate(task, task.getCompletedAt().toLocalDate(), TaskSearchDateSource.COMPLETED_AT);
+                case CREATED -> task.getCreatedAt() == null
+                        ? none(task)
+                        : new SearchCandidate(task, task.getCreatedAt().toLocalDate(), TaskSearchDateSource.CREATED_AT);
+                case UPDATED -> task.getUpdatedAt() == null
+                        ? none(task)
+                        : new SearchCandidate(task, task.getUpdatedAt().toLocalDate(), TaskSearchDateSource.UPDATED_AT);
+            };
+        }
+
+        private static SearchCandidate planned(Task task) {
+            if (task.getTargetDate() != null) {
+                return new SearchCandidate(task, task.getTargetDate(), TaskSearchDateSource.TARGET_DATE);
+            }
+            if (task.getStartAt() != null) {
+                return new SearchCandidate(task, task.getStartAt().toLocalDate(), TaskSearchDateSource.START_AT);
+            }
+            return none(task);
+        }
+
+        private static SearchCandidate none(Task task) {
+            return new SearchCandidate(task, null, TaskSearchDateSource.NONE);
+        }
+
+        TaskSearchItemResponse toResponse() {
+            return new TaskSearchItemResponse(TaskResponse.from(task), relevantDate, dateSource);
         }
     }
 

@@ -183,6 +183,104 @@ class TaskV1IntegrationTest {
     }
 
     @Test
+    @DisplayName("v1 Task 통합 검색은 필터, 날짜 출처, cursor, owner scope를 적용한다")
+    void searchTasks_success_filtersCursorAndOwnerScope() throws Exception {
+        String ownerToken = accessToken("task-search-owner@example.com");
+        String otherOwnerToken = accessToken("task-search-other@example.com");
+
+        createTask(ownerToken, new TaskRequest(
+                "출시 회의",
+                "Release 범위 확인",
+                LocalDateTime.of(2026, 7, 22, 9, 0),
+                LocalDateTime.of(2026, 7, 22, 10, 0),
+                "업무",
+                false
+        ));
+        createTask(ownerToken, new TaskRequest(
+                "출시 리허설",
+                "영문 release 점검",
+                LocalDateTime.of(2026, 7, 23, 9, 0),
+                LocalDateTime.of(2026, 7, 23, 10, 0),
+                "업무",
+                false
+        ));
+        createTask(ownerToken, new TaskRequest("출시 아이디어", null, null, null, "업무", false));
+        createTask(otherOwnerToken, new TaskRequest(
+                "출시 회의",
+                null,
+                LocalDateTime.of(2026, 7, 22, 9, 0),
+                LocalDateTime.of(2026, 7, 22, 10, 0),
+                "업무",
+                false
+        ));
+
+        mockMvc.perform(get("/api/v1/tasks/search")
+                        .header("Authorization", "Bearer " + ownerToken)
+                        .param("q", "출시")
+                        .param("statuses", "TODAY")
+                        .param("taskTypes", "SCHEDULE")
+                        .param("category", "업무")
+                        .param("allDay", "false")
+                        .param("dateField", "PLANNED")
+                        .param("dateFrom", "2026-07-01")
+                        .param("dateTo", "2026-07-31")
+                        .param("sort", "RELEVANT_DATE_ASC")
+                        .param("limit", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.items.length()").value(1))
+                .andExpect(jsonPath("$.data.items[0].task.title").value("출시 회의"))
+                .andExpect(jsonPath("$.data.items[0].task.description").value("Release 범위 확인"))
+                .andExpect(jsonPath("$.data.items[0].task.status").value("TODAY"))
+                .andExpect(jsonPath("$.data.items[0].task.type").value("SCHEDULE"))
+                .andExpect(jsonPath("$.data.items[0].relevantDate").value("2026-07-22"))
+                .andExpect(jsonPath("$.data.items[0].dateSource").value("TARGET_DATE"))
+                .andExpect(jsonPath("$.data.nextCursor").value("1"))
+                .andExpect(jsonPath("$.data.limit").value(1));
+
+        mockMvc.perform(get("/api/v1/tasks/search")
+                        .header("Authorization", "Bearer " + ownerToken)
+                        .param("q", "RELEASE")
+                        .param("statuses", "TODAY")
+                        .param("taskTypes", "SCHEDULE")
+                        .param("dateField", "PLANNED")
+                        .param("dateFrom", "2026-07-01")
+                        .param("dateTo", "2026-07-31")
+                        .param("cursor", "1")
+                        .param("limit", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.items.length()").value(1))
+                .andExpect(jsonPath("$.data.items[0].task.title").value("출시 리허설"))
+                .andExpect(jsonPath("$.data.items[0].relevantDate").value("2026-07-23"))
+                .andExpect(jsonPath("$.data.nextCursor").isEmpty());
+    }
+
+    @Test
+    @DisplayName("v1 Task 통합 검색은 잘못된 enum, 날짜 범위, cursor를 거부한다")
+    void searchTasks_fail_invalidParameters() throws Exception {
+        String accessToken = accessToken("task-search-invalid@example.com");
+
+        mockMvc.perform(get("/api/v1/tasks/search")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .param("statuses", "UNKNOWN"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"));
+
+        mockMvc.perform(get("/api/v1/tasks/search")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .param("dateFrom", "2026-07-31")
+                        .param("dateTo", "2026-07-01"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"));
+
+        mockMvc.perform(get("/api/v1/tasks/search")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .param("cursor", "not-a-cursor"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("fail"));
+    }
+
+    @Test
     @DisplayName("v1 Task 삭제 응답은 data null envelope를 반환한다")
     void deleteTask_success_dataNull() throws Exception {
         String accessToken = accessToken("task-delete@example.com");
