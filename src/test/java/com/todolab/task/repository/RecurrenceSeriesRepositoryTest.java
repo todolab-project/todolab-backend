@@ -41,7 +41,7 @@ class RecurrenceSeriesRepositoryTest extends RepositoryTestSupport {
                 owner,
                 RecurrenceFrequency.WEEKLY,
                 1,
-                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO",
+                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO;UNTIL=20260831",
                 "Asia/Seoul",
                 LocalDateTime.of(2026, 7, 20, 9, 0),
                 LocalDate.of(2026, 8, 31),
@@ -55,7 +55,7 @@ class RecurrenceSeriesRepositoryTest extends RepositoryTestSupport {
 
         assertThat(found.getFrequency()).isEqualTo(RecurrenceFrequency.WEEKLY);
         assertThat(found.getInterval()).isEqualTo(1);
-        assertThat(found.getRecurrenceRule()).isEqualTo("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO");
+        assertThat(found.getRecurrenceRule()).isEqualTo("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO;UNTIL=20260831");
         assertThat(found.getTimeZone()).isEqualTo("Asia/Seoul");
         assertThat(found.getRecurrenceStartAt()).isEqualTo(LocalDateTime.of(2026, 7, 20, 9, 0));
         assertThat(found.getRecurrenceUntil()).isEqualTo(LocalDate.of(2026, 8, 31));

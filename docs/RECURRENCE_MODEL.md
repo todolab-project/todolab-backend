@@ -43,7 +43,16 @@ Last updated: 2026-07-23
 - `interval`은 1 이상이다.
 - `recurrenceCount`가 있으면 1 이상이다.
 - `recurrenceUntil`은 `recurrenceStartAt`의 날짜보다 빠를 수 없다.
-- RRULE의 허용 토큰과 월말/윤년/time zone 경계 처리는 다음 단계에서 별도로 확정한다.
+- `timeZone`은 유효한 IANA Zone ID여야 한다.
+- RRULE은 `FREQ`, `INTERVAL`, `COUNT`, `UNTIL`, `BYDAY`, `BYMONTHDAY`만 지원한다.
+- RRULE `FREQ`는 `frequency`와 일치해야 한다.
+- RRULE `INTERVAL`은 `interval`과 일치해야 한다. 생략하면 `1`로 본다.
+- RRULE `COUNT`는 `recurrenceCount`와 함께 지정하며 값이 일치해야 한다.
+- RRULE `UNTIL`은 `recurrenceUntil`과 함께 지정하며 `YYYYMMDD` 형식과 값이 일치해야 한다.
+- RRULE `COUNT`와 `UNTIL`은 함께 사용할 수 없다.
+- RRULE `BYDAY`는 `MO`, `TU`, `WE`, `TH`, `FR`, `SA`, `SU`를 콤마로 나열한다.
+- RRULE `BYMONTHDAY`는 `-31`부터 `31`까지 허용하되 `0`은 허용하지 않는다. `-1`은 월말 표현으로 예약한다.
+- 월말/윤년 occurrence 산출과 time zone 경계 처리는 다음 단계에서 별도로 테스트한다.
 
 ## API 상태
 

@@ -110,10 +110,6 @@ public class RecurrenceSeries {
         if (interval == null || interval < 1) {
             throw new IllegalArgumentException("interval은 1 이상이어야 합니다.");
         }
-        String normalizedRule = normalizeRequired(recurrenceRule);
-        if (normalizedRule == null) {
-            throw new IllegalArgumentException("recurrenceRule은 필수입니다.");
-        }
         String normalizedTimeZone = normalizeRequired(timeZone);
         if (normalizedTimeZone == null) {
             throw new IllegalArgumentException("timeZone은 필수입니다.");
@@ -127,6 +123,14 @@ public class RecurrenceSeries {
         if (recurrenceCount != null && recurrenceCount < 1) {
             throw new IllegalArgumentException("recurrenceCount는 1 이상이어야 합니다.");
         }
+        String normalizedRule = RecurrenceRuleValidator.validate(
+                frequency,
+                interval,
+                recurrenceRule,
+                normalizedTimeZone,
+                recurrenceUntil,
+                recurrenceCount
+        );
 
         this.frequency = frequency;
         this.interval = interval;
