@@ -14,6 +14,7 @@ Last updated: 2026-07-15
 | `docs/ENVIRONMENT_INTEGRATION.md` | 환경별 API URL, CORS origin, 문서 UI 공개 기준 | 신규, staging/prod URL 확정 후 갱신 필요 |
 | `docs/MOBILE_INTEGRATION_RUNBOOK.md` | 모바일 real-mode smoke test 절차와 결과 기록 방식 | 신규, 실제 테스트 결과 누적 필요 |
 | `docs/API_COMPATIBILITY_POLICY.md` | v1 호환성, breaking change, deprecation, OpenAPI 변경 검토 정책 | 신규, 외부 클라이언트 확장 시 갱신 필요 |
+| `docs/RECURRENCE_MODEL.md` | 반복 series와 occurrence Task 내부 모델 | 신규, 반복 API 확정 시 갱신 필요 |
 | `docs/ROADMAP.md` | 앞으로의 백엔드 작업 우선순위 | 유지 |
 | `/v3/api-docs` | 기계 판독 가능한 OpenAPI 원본 계약 | 신규 기준 |
 | `/swagger-ui` | 개발자 테스트용 OpenAPI UI | 신규 기준 |

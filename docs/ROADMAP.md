@@ -107,7 +107,7 @@ Last updated: 2026-07-22
 
 문서: `todolab-mobile/docs/API_RECURRENCE.md`
 
-- [ ] recurrence series 모델 설계
+- [x] recurrence series 모델 설계
 - [ ] RRULE validation 범위 확정
 - [ ] Today/Calendar 조회 시 occurrence materialize
 - [ ] occurrence별 완료 상태 저장

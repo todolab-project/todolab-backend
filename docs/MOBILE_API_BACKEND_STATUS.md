@@ -97,18 +97,18 @@ Last audited: 2026-07-22
 
 문서: `todolab-mobile/docs/API_RECURRENCE.md`
 
-현재 상태: [ ] 미구현
+현재 상태: [~] 모델 설계
 
-백엔드에는 아래 모델과 endpoint가 없다.
+백엔드 모델 반영 상태와 남은 endpoint 작업은 아래와 같다.
 
-- [ ] `recurrenceSeriesId`
-- [ ] `recurrenceRule` RRULE
-- [ ] `recurrenceTimeZone`
-- [ ] `recurrenceStartAt`
-- [ ] `recurrenceUntil` / `recurrenceCount`
-- [ ] `occurrenceDate`
-- [ ] `originalOccurrenceDate`
-- [ ] `recurrenceException`
+- [x] `recurrenceSeriesId`
+- [x] `recurrenceRule` RRULE
+- [x] `recurrenceTimeZone`
+- [x] `recurrenceStartAt`
+- [x] `recurrenceUntil` / `recurrenceCount`
+- [x] `occurrenceDate`
+- [x] `originalOccurrenceDate`
+- [x] `recurrenceException`
 - [ ] Today / Calendar 조회 시 occurrence materialize
 - [ ] occurrence별 완료 상태 저장
 - [ ] `THIS` / `THIS_AND_FUTURE` / `ALL` 수정·삭제 scope
@@ -118,6 +118,7 @@ Last audited: 2026-07-22
 제품 주의:
 
 - 반복 UI는 이 계약 확정 전까지 실제 저장 기능처럼 열면 안 된다.
+- 반복 series 저장 모델은 `docs/RECURRENCE_MODEL.md`에 정리했지만, 반복 생성/수정 API는 아직 제공하지 않는다.
 
 ## 5. 반복 일정과 알림 책임
 

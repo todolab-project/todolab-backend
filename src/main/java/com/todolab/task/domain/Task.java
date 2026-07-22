@@ -83,6 +83,20 @@ public class Task {
     private DdayGoal ddayGoal;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "`RECURRENCE_SERIES_ID`")
+    private RecurrenceSeries recurrenceSeries;
+
+    @Column(name = "`OCCURRENCE_DATE`")
+    private LocalDate occurrenceDate;
+
+    @Column(name = "`ORIGINAL_OCCURRENCE_DATE`")
+    private LocalDate originalOccurrenceDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "`RECURRENCE_EXCEPTION`", length = 30)
+    private RecurrenceExceptionType recurrenceException;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "`OWNER_USER_ID`")
     private User owner;
 
@@ -109,13 +123,18 @@ public class Task {
     @Builder
     public Task(String title, String description, TaskType type, LocalDateTime startAt, LocalDateTime endAt, boolean allDay, String category,
                 TaskStatus status, LocalDate targetDate, Integer todayOrder, LocalDateTime completedAt, Integer carryOverCount,
-                DeferReason deferReason, DdayGoal ddayGoal, User owner) {
+                DeferReason deferReason, DdayGoal ddayGoal, RecurrenceSeries recurrenceSeries, LocalDate occurrenceDate,
+                LocalDate originalOccurrenceDate, RecurrenceExceptionType recurrenceException, User owner) {
         apply(title, description, type, startAt, endAt, allDay, category);
         applyStatus(status, targetDate, completedAt);
         this.todayOrder = todayOrder;
         this.carryOverCount = carryOverCount == null ? 0 : Math.max(0, carryOverCount);
         this.deferReason = deferReason;
         this.ddayGoal = ddayGoal;
+        this.recurrenceSeries = recurrenceSeries;
+        this.occurrenceDate = occurrenceDate;
+        this.originalOccurrenceDate = originalOccurrenceDate;
+        this.recurrenceException = recurrenceException;
         this.owner = owner;
     }
 
@@ -197,6 +216,33 @@ public class Task {
 
     public void disconnectDdayGoal() {
         this.ddayGoal = null;
+    }
+
+    public void connectRecurrenceSeries(RecurrenceSeries recurrenceSeries, LocalDate occurrenceDate) {
+        if (recurrenceSeries == null) {
+            throw new IllegalArgumentException("recurrenceSeries는 필수입니다.");
+        }
+        if (occurrenceDate == null) {
+            throw new IllegalArgumentException("occurrenceDate는 필수입니다.");
+        }
+        this.recurrenceSeries = recurrenceSeries;
+        this.occurrenceDate = occurrenceDate;
+        this.originalOccurrenceDate = occurrenceDate;
+        this.recurrenceException = null;
+    }
+
+    public void markRecurrenceException(RecurrenceExceptionType recurrenceException, LocalDate originalOccurrenceDate) {
+        if (this.recurrenceSeries == null) {
+            throw new IllegalArgumentException("반복 series에 연결된 Task만 예외로 표시할 수 있습니다.");
+        }
+        if (recurrenceException == null) {
+            throw new IllegalArgumentException("recurrenceException은 필수입니다.");
+        }
+        if (originalOccurrenceDate == null) {
+            throw new IllegalArgumentException("originalOccurrenceDate는 필수입니다.");
+        }
+        this.recurrenceException = recurrenceException;
+        this.originalOccurrenceDate = originalOccurrenceDate;
     }
 
     public void assignOwner(User owner) {
