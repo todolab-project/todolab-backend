@@ -24,6 +24,7 @@ Last audited: 2026-07-22
 - [x] 2026-07-15 문서 UI 기준: Swagger UI/Scalar 노출, Bearer security scheme, v1 tag 순서 검증
 - [x] 2026-07-15 정책 기준: OpenAPI JSON snapshot diff는 보류하고 CI의 OpenAPI 문서 회귀 테스트와 릴리스 전 계약 검토로 관리하기로 결정
 - [x] 2026-07-22 v1 D-Day 목표 생성 응답 기준: `DdayGoalResponse`의 `id`, `title`, `targetDate`, `daysLeft`, `createdAt`은 모두 non-null
+- [x] 2026-07-22 v1 Task 생성 응답 기준: nullable/default/date 규칙을 OpenAPI와 `API_V1_FRONTEND.md`에 반영
 
 1. [~] 인증 사용자 소유권
    - 완료: `Task`, `DdayGoal` owner 필드와 owner-aware repository/service path 추가

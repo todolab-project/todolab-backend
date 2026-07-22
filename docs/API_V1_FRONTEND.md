@@ -180,6 +180,15 @@ Task 생성 규칙:
 - `allDay=true`이면 `startAt`, `endAt`은 모두 자정이어야 한다.
 - 날짜 없는 Task에는 `allDay=true`를 사용할 수 없다.
 
+Task 응답 nullable/default 규칙:
+
+- 생성/조회 응답에서 `id`, `type`, `title`, `allDay`, `unscheduled`, `status`, `carryOverCount`, `staleCarryOver`는 항상 내려온다.
+- 저장된 Task의 `createdAt`은 내려온다. 일부 legacy 테스트/생성자 기반 응답에서는 null일 수 있으나 v1 API 응답에서는 non-null로 본다.
+- 날짜 없는 Task는 `startAt`, `endAt`, `plannedDate`, `targetDate`, `todayOrder`, `completedAt`이 null이고 `status=INBOX`, `unscheduled=true`, `allDay=false`다.
+- 날짜가 있는 Task는 생성 직후 `status=TODAY`, `targetDate=startAt 날짜`, `plannedDate=targetDate`, `unscheduled=false`다.
+- `description`, `category`, `deferReason`, `deferReasonLabel`, D-Day 연결 필드는 값이 없으면 null이다.
+- `updatedAt`은 생성 직후 null이고 수정 후 값이 생긴다.
+
 ## 4. Task API
 
 모든 `/api/v1/tasks/**` 요청은 현재 로그인 사용자의 Task만 대상으로 한다. 다른 사용자의 Task ID는 `TASK_NOT_FOUND`처럼 처리된다.

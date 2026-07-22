@@ -59,7 +59,7 @@ Last updated: 2026-07-22
 - [x] `UserResponse.updatedAt` 응답 필드 반영
 - [x] `DeferReason` enum 문서와 실제 응답/요청 계약 일치
 - [x] `DdayGoalResponse`의 nullable 필드와 실제 응답 확인
-- [ ] `TaskResponse`의 nullable 필드, 생성/수정 시 기본값, 날짜 규칙 재확인
+- [x] `TaskResponse`의 nullable 필드, 생성/수정 시 기본값, 날짜 규칙 재확인
 - [ ] `GET /api/v1/tasks?type=MONTH&date=YYYY-MM` 계약과 실제 binding 동작 검증
 - [ ] 삭제 응답은 모든 v1 API에서 `data: null`로 통일
 - [ ] legacy `/api/tasks`, `/api/ddays` 유지/제거 정책 확정
