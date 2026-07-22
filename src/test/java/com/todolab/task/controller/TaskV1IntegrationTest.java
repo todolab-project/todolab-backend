@@ -1,5 +1,6 @@
 package com.todolab.task.controller;
 
+import com.jayway.jsonpath.JsonPath;
 import com.todolab.auth.service.JwtTokenService;
 import com.todolab.mail.MailService;
 import com.todolab.task.dto.TaskRequest;
@@ -19,6 +20,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 
 import static org.hamcrest.Matchers.notNullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -180,16 +182,37 @@ class TaskV1IntegrationTest {
                 .andExpect(jsonPath("$.status").value("fail"));
     }
 
+    @Test
+    @DisplayName("v1 Task 삭제 응답은 data null envelope를 반환한다")
+    void deleteTask_success_dataNull() throws Exception {
+        String accessToken = accessToken("task-delete@example.com");
+        Long taskId = createTask(accessToken, new TaskRequest("삭제 대상", null, null, null, null, false));
+
+        mockMvc.perform(delete("/api/v1/tasks/{id}", taskId)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data").isEmpty())
+                .andExpect(jsonPath("$.error").doesNotExist())
+                .andExpect(jsonPath("$.timestamp").value(notNullValue()));
+    }
+
     private String accessToken(String email) {
         User owner = userRepository.save(new User(email, "encoded-password", "Task 사용자"));
         return jwtTokenService.createAccessToken(owner).tokenValue();
     }
 
-    private void createTask(String accessToken, TaskRequest request) throws Exception {
-        mockMvc.perform(post("/api/v1/tasks")
+    private Long createTask(String accessToken, TaskRequest request) throws Exception {
+        String response = mockMvc.perform(post("/api/v1/tasks")
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Number id = JsonPath.read(response, "$.data.id");
+        return id.longValue();
     }
 }

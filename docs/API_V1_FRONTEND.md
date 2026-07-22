@@ -469,6 +469,11 @@ Response: `data: null`
 - 목표는 삭제한다.
 - 연결된 Task는 삭제하지 않고 D-Day 연결만 해제한다.
 
+리소스 삭제 응답 규칙:
+
+- v1 리소스 삭제 endpoint인 `DELETE /api/v1/tasks/{id}`, `DELETE /api/v1/dday-goals/{id}`는 성공 시 공통 envelope의 `data`를 `null`로 반환한다.
+- `DELETE /api/v1/tasks/{id}/defer-reason`, `DELETE /api/v1/tasks/{id}/dday-goal`은 Task 리소스 삭제가 아니라 Task 수정이므로 `TaskResponse`를 반환한다.
+
 ## 6. 아직 프론트에서 의존하면 안 되는 계약
 
 아래는 모바일 문서에 요구사항이 있으나 현재 백엔드 v1에는 없다.
