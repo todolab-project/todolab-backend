@@ -38,6 +38,7 @@ public class TaskService {
     private final TaskTxService taskTxService;
     private final TaskRepository taskRepository;
     private final TaskCategoryGrouper taskCategoryGrouper;
+    private final RecurrenceOccurrenceMaterializer recurrenceOccurrenceMaterializer;
 
     public TaskResponse create(TaskRequest req) {
         return create(req, null);
@@ -187,7 +188,9 @@ public class TaskService {
     }
 
     public List<TaskResponse> getTodayTasksForOwner(LocalDate targetDate, User owner) {
-        return taskRepository.findTodayTasks(ownerId(owner), targetDate).stream()
+        Long ownerId = ownerId(owner);
+        recurrenceOccurrenceMaterializer.materializeForOwner(ownerId, targetDate, targetDate.plusDays(1));
+        return taskRepository.findTodayTasks(ownerId, targetDate).stream()
                 .map(TaskResponse::from)
                 .toList();
     }
@@ -199,7 +202,9 @@ public class TaskService {
     }
 
     public List<TaskResponse> getPlannedTasksBetweenForOwner(LocalDate startDate, LocalDate endDate, User owner) {
-        return taskRepository.findPlannedTasks(ownerId(owner), startDate, endDate.plusDays(1)).stream()
+        Long ownerId = ownerId(owner);
+        recurrenceOccurrenceMaterializer.materializeForOwner(ownerId, startDate, endDate.plusDays(1));
+        return taskRepository.findPlannedTasks(ownerId, startDate, endDate.plusDays(1)).stream()
                 .map(TaskResponse::from)
                 .toList();
     }
@@ -384,6 +389,9 @@ public class TaskService {
         final String strDate = request.getDate();
 
         DateRange range = type.calculate(strDate);
+        if (ownerId != null) {
+            recurrenceOccurrenceMaterializer.materializeForOwner(ownerId, range.getStart().toLocalDate(), range.getEnd().toLocalDate());
+        }
 
         List<Task> tasks = ownerId == null
                 ? taskRepository.findByDateRangeAndType(range.getStart(), range.getEnd(), request.getTaskType())

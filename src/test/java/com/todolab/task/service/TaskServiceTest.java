@@ -50,6 +50,9 @@ class TaskServiceTest {
     @Mock
     TaskTxService taskTxService;
 
+    @Mock
+    RecurrenceOccurrenceMaterializer recurrenceOccurrenceMaterializer;
+
     TaskCategoryGrouper taskCategoryGrouper;
 
     TaskService taskService;
@@ -57,7 +60,7 @@ class TaskServiceTest {
     @BeforeEach
     void setUp() {
         taskCategoryGrouper = new TaskCategoryGrouper();
-        taskService = new TaskService(taskTxService, taskRepository, taskCategoryGrouper);
+        taskService = new TaskService(taskTxService, taskRepository, taskCategoryGrouper, recurrenceOccurrenceMaterializer);
     }
 
     /*******************

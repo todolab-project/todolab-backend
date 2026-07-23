@@ -3,8 +3,14 @@ package com.todolab.task.controller;
 import com.jayway.jsonpath.JsonPath;
 import com.todolab.auth.service.JwtTokenService;
 import com.todolab.mail.MailService;
+import com.todolab.task.domain.RecurrenceFrequency;
+import com.todolab.task.domain.RecurrenceSeries;
+import com.todolab.task.domain.Task;
+import com.todolab.task.domain.TaskType;
 import com.todolab.task.dto.TaskRequest;
 import com.todolab.task.dto.TodayOrderRequest;
+import com.todolab.task.repository.RecurrenceSeriesRepository;
+import com.todolab.task.repository.TaskRepository;
 import com.todolab.user.domain.User;
 import com.todolab.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -43,6 +49,12 @@ class TaskV1IntegrationTest {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    TaskRepository taskRepository;
+
+    @Autowired
+    RecurrenceSeriesRepository recurrenceSeriesRepository;
 
     @Autowired
     JwtTokenService jwtTokenService;
@@ -353,6 +365,57 @@ class TaskV1IntegrationTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value("fail"))
                 .andExpect(jsonPath("$.error.code").value(20002));
+    }
+
+    @Test
+    @DisplayName("v1 Today/Calendar 조회는 반복 series occurrence를 materialize해서 반환한다")
+    void recurrenceOccurrenceMaterialize_todayAndCalendar() throws Exception {
+        String accessToken = accessToken("task-recurrence-materialize@example.com");
+        User owner = userRepository.findByEmail("task-recurrence-materialize@example.com").orElseThrow();
+        RecurrenceSeries series = recurrenceSeriesRepository.save(new RecurrenceSeries(
+                owner,
+                RecurrenceFrequency.WEEKLY,
+                1,
+                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO;COUNT=3",
+                "Asia/Seoul",
+                LocalDateTime.of(2026, 7, 6, 9, 0),
+                null,
+                3
+        ));
+        Task template = Task.builder()
+                .title("반복 회의")
+                .description("주간 싱크")
+                .type(TaskType.SCHEDULE)
+                .startAt(LocalDateTime.of(2026, 7, 6, 9, 0))
+                .endAt(LocalDateTime.of(2026, 7, 6, 10, 0))
+                .category("업무")
+                .owner(owner)
+                .recurrenceSeries(series)
+                .occurrenceDate(java.time.LocalDate.of(2026, 7, 6))
+                .originalOccurrenceDate(java.time.LocalDate.of(2026, 7, 6))
+                .build();
+        taskRepository.save(template);
+
+        mockMvc.perform(get("/api/v1/tasks/today")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .param("date", "2026-07-13"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].title").value("반복 회의"))
+                .andExpect(jsonPath("$.data[0].startAt").value("2026-07-13T09:00:00"))
+                .andExpect(jsonPath("$.data[0].targetDate").value("2026-07-13"));
+
+        mockMvc.perform(get("/api/v1/tasks")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .param("type", "MONTH")
+                        .param("taskType", "SCHEDULE")
+                        .param("date", "2026-07"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(3))
+                .andExpect(jsonPath("$.data[0].startAt").value("2026-07-06T09:00:00"))
+                .andExpect(jsonPath("$.data[1].startAt").value("2026-07-13T09:00:00"))
+                .andExpect(jsonPath("$.data[2].startAt").value("2026-07-20T09:00:00"));
     }
 
     @Test

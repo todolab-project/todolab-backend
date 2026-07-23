@@ -12,6 +12,10 @@ public interface TaskRepository extends JpaRepository<Task, Long>, TaskRepositor
     @EntityGraph(attributePaths = "ddayGoal")
     List<Task> findByOwnerId(Long ownerId);
 
+    List<Task> findByRecurrenceSeriesIdOrderByOccurrenceDateAscIdAsc(Long recurrenceSeriesId);
+
+    Optional<Task> findByRecurrenceSeriesIdAndOccurrenceDate(Long recurrenceSeriesId, java.time.LocalDate occurrenceDate);
+
     Optional<Task> findByIdAndOwnerId(Long id, Long ownerId);
 
     boolean existsByIdAndOwnerId(Long id, Long ownerId);

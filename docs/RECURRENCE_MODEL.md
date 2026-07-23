@@ -58,5 +58,7 @@ Last updated: 2026-07-23
 
 - 반복 생성/수정/삭제 API는 아직 없다.
 - 기존 Task 생성/수정 API는 반복 필드를 받지 않는다.
-- Today/Calendar 조회에서 occurrence materialize는 아직 수행하지 않는다.
+- Today/Calendar owner 조회는 연결된 반복 series와 template Task를 기준으로 조회 범위의 누락 occurrence Task를 materialize한다.
+- materialize는 `DAILY`, `WEEKLY`, `MONTHLY`, `YEARLY`와 검증된 `BYDAY`, `BYMONTHDAY`, `COUNT`, `UNTIL` 범위를 사용한다.
+- 현재 materialize 기준 template은 같은 series에 연결된 가장 이른 non-exception Task다.
 - 모바일은 반복 UI를 실제 저장 기능처럼 열면 안 된다.

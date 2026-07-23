@@ -110,7 +110,7 @@ Last audited: 2026-07-22
 - [x] `originalOccurrenceDate`
 - [x] `recurrenceException`
 - [x] RRULE validation 범위 확정
-- [ ] Today / Calendar 조회 시 occurrence materialize
+- [x] Today / Calendar 조회 시 occurrence materialize
 - [ ] occurrence별 완료 상태 저장
 - [ ] `THIS` / `THIS_AND_FUTURE` / `ALL` 수정·삭제 scope
 - [ ] 반복 전체 수정 후 기존 완료 기록 보존
